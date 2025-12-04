@@ -1,3 +1,4 @@
+
 """
 Django settings for imu_chiropractic_form project.
 
@@ -10,10 +11,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+APP_NAME = "IMU Chiropractic Form"
+APP_VERSION = "0.0.1"
 
 
 # Quick-start development settings - unsuitable for production
@@ -31,6 +37,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'students',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -54,7 +61,10 @@ ROOT_URLCONF = 'imu_chiropractic_form.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),
+            'students/templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,14 +78,18 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'imu_chiropractic_form.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'chiropractic_form_db',
+        'USER': 'root',
+        'PASSWORD': 'Admin@imu789!',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        }
+
     }
 }
 
@@ -113,6 +127,20 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
+
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "static")
+STATIC_URL = "/static/"
+STATICFILES_DIRS = []
+if DEBUG:
+    STATICFILES_DIRS.append(os.path.join(BASE_DIR, "static"))
+
+MEDIA_ROOT = '/imu_chiropractic_form/media/'
+MEDIA_URL = '/media/'
 
 STATIC_URL = 'static/'
 

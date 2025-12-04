@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+
+# Virtual environment
+venv/
+env/
+
+# Django static files (collected with collectstatic)
+static/
+
+# Django media files (user uploads)
+media/
+
+# IDE
+.vscode/
+.idea/

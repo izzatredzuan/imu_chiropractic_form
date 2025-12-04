@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+    <head>
+        {% include 'head.html' %}
+        {% block style %}
+        {% endblock %}
+        {% block head %}
+        {% endblock %}
+    </head>
+    <body>
+        {% include 'top_bar.html' %}
+        
+        <!-- OVERLAY LOADING SPINNER. TOP BAR Z-INDEX IS 1000 TO ENSURE IT IS VISIBLE DURING LOADING -->
+        <div
+        id="loading"
+        style="
+            background-color: white;
+            display: none;
+            height: 100%;
+            width: 100%;
+            position: fixed;
+            float: left;
+            top: 0;
+            left: 0;
+            opacity: 50%;
+            z-index: 999;   
+        "
+        >
+            <div class="d-flex justify-content-center align-items-center min-vh-100">
+            <div class="spinner-border" role="status" style="width: 5rem; height: 5rem;">
+                <span class="visually-hidden">
+                Loading...
+                </span>
+            </div>
+            </div>
+        </div>
+
+        <div id="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+
+        <footer>
+            <div class="text-center">
+            &copy; {% now "Y" %}
+            </div>
+        </footer>
+        {% block footer %}
+        {% endblock %}
+        <script>
+        </script>
+    </body>
+</html>
