@@ -1,4 +1,3 @@
-
 """
 Django settings for imu_chiropractic_form project.
 
@@ -26,7 +25,7 @@ APP_VERSION = "0.0.1"
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-ue5kfsphg74$he6fwzt*7f-cni0%woc^q%&(%)xn(78oet9o1c'
+SECRET_KEY = "django-insecure-ue5kfsphg74$he6fwzt*7f-cni0%woc^q%&(%)xn(78oet9o1c"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,59 +36,61 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'students',
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
+    "students",
+    "clinicians",
+    "assessments",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "imu_chiropractic_form.middleware.LoginRequiredMiddleware",
 ]
 
-ROOT_URLCONF = 'imu_chiropractic_form.urls'
+ROOT_URLCONF = "imu_chiropractic_form.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            os.path.join(BASE_DIR, 'templates'),
-            'students/templates',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [
+            os.path.join(BASE_DIR, "templates"),
+            "students/templates",
         ],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
         },
     },
 ]
 
-WSGI_APPLICATION = 'imu_chiropractic_form.wsgi.application'
+WSGI_APPLICATION = "imu_chiropractic_form.wsgi.application"
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'chiropractic_form_db',
-        'USER': 'root',
-        'PASSWORD': 'Admin@imu789!',
-        'HOST': 'localhost',
-        'PORT': '3306',
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        }
-
+    "default": {
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "chiropractic_form_db",
+        "USER": "root",
+        "PASSWORD": "Admin@imu789!",
+        "HOST": "localhost",
+        "PORT": "3306",
+        "OPTIONS": {
+            "charset": "utf8mb4",
+        },
     }
 }
 
@@ -99,16 +100,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -116,9 +117,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -129,8 +130,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATICFILES_FINDERS = [
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
 if not DEBUG:
     STATIC_ROOT = os.path.join(BASE_DIR, "static")
@@ -139,12 +140,28 @@ STATICFILES_DIRS = []
 if DEBUG:
     STATICFILES_DIRS.append(os.path.join(BASE_DIR, "static"))
 
-MEDIA_ROOT = '/imu_chiropractic_form/media/'
-MEDIA_URL = '/media/'
+MEDIA_ROOT = "/imu_chiropractic_form/media/"
+MEDIA_URL = "/media/"
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+
+LOGIN_REDIRECT_URL = r"/home/"
+LOGIN_URL = "/login/"
+LOGIN_EXEMPT_URLS = (
+    r"^login/$",
+    r"^login",
+    r"^admin/",
+    r"^api/*",
+    r"^v\d/api/*",
+    r"^media/",
+    r"^dashboard/",
+    r"^password-reset/",
+    r"^forgot-password/",
+    r"^onboarding/",
+)
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

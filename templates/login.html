@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block style %}
+
+{% endblock %}
+
+{% block content %}
+<h2>Login</h2>
+<form method="post">
+    {% csrf_token %}
+    <label>Username:</label>
+    <input type="text" name="username"><br>
+    <label>Password:</label>
+    <input type="password" name="password"><br><br>
+    <button type="submit">Login</button>
+</form>
+
+{% if messages %}
+{% for message in messages %}
+<p style="color:red">{{ message }}</p>
+{% endfor %}
+{% endif %}
+
+
+{% endblock %}

@@ -1,131 +1,150 @@
-<nav
-  id="top_bar"
-  class="
+<nav id="top_bar" class="
     navbar
     navbar-expand-xl
-  "
-  style="z-index: 1000;"
->
+  " style="z-index: 1000;">
 
   <div class="container-fluid">
     <div class="d-flex">
       <a class="navbar-brand d-flex align-items-center" href="/">
-      <img
-        src="/static/icon/logo.png"
-        alt="Logo"
-        style="max-width: 200px; max-height: 200px;"
-        class="d-inline-block"
-      />
-      <div class="ms-2">
-        {% include 'version.html' %}
+        <img src="/static/icon/logo.png" alt="Logo" style="max-width: 200px; max-height: 200px;"
+          class="d-inline-block" />
+        <div class="ms-2">
+          {% include 'version.html' %}
+        </div>
+      </a>
+
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler"
+        aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarToggler">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProjects" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="far fa-sticky-note fa-fw"></i>
+              Students
+            </a>
+            <ul class="dropdown-menu navbar-dark" aria-labelledby="navbarDropdownProjects">
+              <li>
+                <a class="dropdown-item" href="{% url 'view_students' %}">
+                  <i class="fas fa-tasks fa-lg fa-fw"></i>
+                  View Students
+                </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <a class="dropdown-item" href="">
+                  <i class="fas fa-user-secret fa-lg fa-fw"></i>
+                  Students Admin Page
+                </a>
+              </li>
+
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProjects" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="far fa-sticky-note fa-fw"></i>
+              Clinicians
+            </a>
+            <ul class="dropdown-menu navbar-dark" aria-labelledby="navbarDropdownProjects">
+              <li>
+                <a class="dropdown-item" href="{% url 'view_clinicians' %}">
+                  <i class="fas fa-tasks fa-lg fa-fw"></i>
+                  View Clinicians
+                </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <a class="dropdown-item" href="">
+                  <i class="fas fa-user-secret fa-lg fa-fw"></i>
+                  Clinicians Admin Page
+                </a>
+              </li>
+
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProjects" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="far fa-sticky-note fa-fw"></i>
+              Assessments
+            </a>
+            <ul class="dropdown-menu navbar-dark" aria-labelledby="navbarDropdownProjects">
+              <li>
+                <a class="dropdown-item" href="{% url 'view_assessments' %}">
+                  <i class="fas fa-tasks fa-lg fa-fw"></i>
+                  View Assessments
+                </a>
+              </li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li>
+                <a class="dropdown-item" href="">
+                  <i class="fas fa-user-secret fa-lg fa-fw"></i>
+                  Assessments Admin Page
+                </a>
+              </li>
+
+            </ul>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownProfile" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="far fa-md fa-id-card fa-fw"></i>
+              Profile
+            </a>
+            <ul class="dropdown-menu navbar-dark" aria-labelledby="navbarDropdownProfile">
+              <li>
+                <a class="dropdown-item" href="">
+                  <i class="fas fa-md fa-user-alt fa-lg fa-fw"></i>
+                  About
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/password_change/">
+                  <i class="fa fa-md fa-key fa-lg fa-fw"></i>
+                  Change Password
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="/logout/">
+                  <i class="fas fa-md fa-sign-out-alt fa-lg fa-fw"></i>
+                  Sign Out
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="" aria-current="page">
+              <i class="fa fa-calendar fa-fw"></i>
+              Leaves Portal
+            </a>
+          </li>
+        </ul>
       </div>
-    </a>
-
-    <button
-      class="navbar-toggler"
-      type="button"
-      data-bs-toggle="collapse"
-      data-bs-target="#navbarToggler"
-      aria-controls="navbarToggler"
-      aria-expanded="false"
-      aria-label="Toggle navigation"
-    >
-      <span class="navbar-toggler-icon"></span>
-    </button>
-
-    <div class="collapse navbar-collapse" id="navbarToggler">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            id="navbarDropdownProjects"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i class="far fa-sticky-note fa-fw"></i>
-            Projects
-          </a>
-          <ul class="dropdown-menu navbar-dark" aria-labelledby="navbarDropdownProjects">
-            <li>
-              <a class="dropdown-item" href="">
-                <i class="fas fa-tasks fa-lg fa-fw"></i>
-                View Projects
-              </a>
-            </li>
-            <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li>
-              <a class="dropdown-item" href="">
-                <i class="fas fa-user-secret fa-lg fa-fw"></i>
-                Projects Admin Page
-              </a>
-            </li>
-            
-          </ul>
-        </li>
-        <li class="nav-item dropdown">
-          <a
-            class="nav-link dropdown-toggle"
-            href="#"
-            id="navbarDropdownProfile"
-            role="button"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-          >
-            <i class="far fa-md fa-id-card fa-fw"></i>
-            Profile
-          </a>
-          <ul class="dropdown-menu navbar-dark" aria-labelledby="navbarDropdownProfile">
-            <li>
-              <a class="dropdown-item" href="">
-                <i class="fas fa-md fa-user-alt fa-lg fa-fw"></i>
-                About
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item" href="/password_change/">
-                <i class="fa fa-md fa-key fa-lg fa-fw"></i>
-                Change Password
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item"  href="/logout/">
-                <i class="fas fa-md fa-sign-out-alt fa-lg fa-fw"></i>
-                Sign Out
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <li class="nav-item">
-          <a
-            class="nav-link"
-            href=""
-            aria-current="page"
-          >
-            <i class="fa fa-calendar fa-fw"></i>
-            Leaves Portal
-          </a>
-        </li>
-      </ul>
     </div>
-  </div>
 
-  
+
 </nav>
 
 <script>
-// APPEND TOP BAR DARK/LIGHT THEME BASED ON USER PROFILE THEME
-/* if (!parseInt('{{ requester.profile.theme }}')) {
-  document.getElementById('top_bar').classList.add('navbar-dark');
-  document.getElementById('top_bar').classList.add('bg-dark');
-}
+  // APPEND TOP BAR DARK/LIGHT THEME BASED ON USER PROFILE THEME
+  /* if (!parseInt('{{ requester.profile.theme }}')) {
+    document.getElementById('top_bar').classList.add('navbar-dark');
+    document.getElementById('top_bar').classList.add('bg-dark');
+  }
 
-if (parseInt('{{ requester.profile.theme }}')) {
-  document.getElementById('top_bar').style.background = 'lightgray';
-  document.getElementById('top_bar').classList.add('navbar-light');
-} */
+  if (parseInt('{{ requester.profile.theme }}')) {
+    document.getElementById('top_bar').style.background = 'lightgray';
+    document.getElementById('top_bar').classList.add('navbar-light');
+  } */
 </script>

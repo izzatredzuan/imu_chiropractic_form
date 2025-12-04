@@ -9,15 +9,16 @@ from django.shortcuts import (
 from django.contrib.auth.models import User
 
 from django.views import View
+# Create your views here.
 
 
-class DisplayStudent(View):
+class DisplayClinician(View):
     def get(self, request):
         string_to_date = datetime.strptime("2024-06-12", "%Y-%m-%d").date()
         # date_to_string = datetime.date()
         date_to_string = string_to_date.strftime("%Y-%m-%dT%X")
         current_time = datetime.now()
-
+        
         print(string_to_date)
         print(date_to_string)
         print(current_time)
@@ -28,5 +29,5 @@ class DisplayStudent(View):
         print(user)
         return render(
             request,
-            "students/students.html",
+            "clinicians/clinicians.html",
         )
