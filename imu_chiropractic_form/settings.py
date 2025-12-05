@@ -145,7 +145,7 @@ MEDIA_URL = "/media/"
 
 STATIC_URL = "static/"
 
-LOGIN_REDIRECT_URL = r"/home/"
+LOGIN_REDIRECT_URL = r"/"
 LOGIN_URL = "/login/"
 LOGIN_EXEMPT_URLS = (
     r"^login/$",
