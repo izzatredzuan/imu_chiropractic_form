@@ -9,6 +9,7 @@ urlpatterns = [
         views.Home.as_view(),
         name="Home",
     ),
+    path("", include("accounts.urls")),
     path("", include("students.urls")),
     path("", include("clinicians.urls")),
     path("", include("assessments.urls")),

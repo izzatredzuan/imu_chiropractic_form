@@ -36,9 +36,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    "accounts",
     "students",
     "clinicians",
     "assessments",
+    "rest_framework",  # for API
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -100,16 +102,24 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
+        # UserAttributeSimilarityValidator → prevents passwords too similar to username/email.
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
+        # MinimumLengthValidator → ensures password is at least 8 characters.
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
+        # CommonPasswordValidator → prevents simple common passwords.
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
+        # NumericPasswordValidator → prevents purely numeric passwords.
         "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+    {
+        # Custom Validators
+        "NAME": "accounts.validators.CustomPasswordValidator"
     },
 ]
 
@@ -160,6 +170,42 @@ LOGIN_EXEMPT_URLS = (
     r"^onboarding/",
 )
 
+# For activity history logs
+
+BASE_LOG_PATH = Path(BASE_DIR) / "logs"
+BASE_LOG_PATH.mkdir(exist_ok=True)
+
+ACCOUNTS_LOG_PATH = BASE_LOG_PATH / "accounts"
+ACCOUNTS_LOG_PATH.mkdir(parents=True, exist_ok=True)
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "[%(levelname)s] %(asctime)s %(pathname)s:%(lineno)d (%(funcName)s) - %(message)s",
+        },
+    },
+    "handlers": {
+        "userprofile_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": ACCOUNTS_LOG_PATH / "userprofile.log",
+            "formatter": "default",
+        },
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    "loggers": {
+        "userprofile": {
+            "handlers": ["userprofile_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
