@@ -4,7 +4,7 @@ from clinicians import views
 
 urlpatterns = [
     path(
-        "clinicians/view_clinicians/",
+        "view_clinicians/",
         views.DisplayClinician.as_view(),
         name="view_clinicians",
     ),

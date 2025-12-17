@@ -76,13 +76,15 @@ class UserProfileCreateAPIView(APIView):
             try:
                 with transaction.atomic():
                     user = serializer.save()  # User + Profile created
-                    profile = user.profile
-                    # Official name exist on create but won't display here so have to declare it again
-                    profile.official_name = validated_data["official_name"]
+
+                    # Refresh the user queried to get the correct data
+                    user.refresh_from_db()
+                    user.profile.refresh_from_db()
             except Exception as e:
                 logger.error(f"CREATE - Failed: {str(e)}")
                 return Response({"error": str(e)}, status=400)
 
+            profile = user.profile     
             logger.info(
                 f"CREATE - User created: username={username}, member_id={profile.member_id}, "
                 f"official_name={profile.official_name}, role={profile.role}"

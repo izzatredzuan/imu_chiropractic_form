@@ -5,8 +5,11 @@ from .api import (
     UserProfileUpdateAPIView,
     UserProfileDeleteAPIView,
 )
+from .views import UserListView
 
 urlpatterns = [
+    path("users/", UserListView.as_view(), name="user_list"),
+    # API
     path("api/user/", UserProfileAPIView.as_view(), name="user_api"),
     path(
         "api/user/create/", UserProfileCreateAPIView.as_view(), name="user_create_api"

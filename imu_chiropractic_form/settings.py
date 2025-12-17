@@ -163,6 +163,7 @@ LOGIN_EXEMPT_URLS = (
     r"^admin/",
     r"^api/*",
     r"^v\d/api/*",
+    r"^accounts/api/*",
     r"^media/",
     r"^dashboard/",
     r"^password-reset/",

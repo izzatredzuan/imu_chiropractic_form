@@ -1,25 +1,65 @@
 {% extends 'base.html' %}
 
-{% block style %}
+{% block head %}
+<style>
+    body {
+        background-color: var(--bg-light);
+    }
 
+    .login-card {
+        max-width: 420px;
+        margin: auto;
+        margin-top: 80px;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .login-logo {
+        max-width: 200px;
+        display: block;
+        margin: auto;
+        margin-bottom: 20px;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<h2>Login</h2>
-<form method="post">
-    {% csrf_token %}
-    <label>Username:</label>
-    <input type="text" name="username"><br>
-    <label>Password:</label>
-    <input type="password" name="password"><br><br>
-    <button type="submit">Login</button>
-</form>
 
-{% if messages %}
-{% for message in messages %}
-<p style="color:red">{{ message }}</p>
-{% endfor %}
-{% endif %}
+<div class="login-card">
 
+    <img src="/static/icon/logo.png" class="login-logo" alt="Logo">
+
+    <h3 class="text-center mb-4" style="color: var(--primary);">
+        Login to Your Account
+    </h3>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mt-2">
+            Login
+        </button>
+    </form>
+
+    {% if messages %}
+    <div class="mt-3">
+        {% for message in messages %}
+        <div class="alert alert-danger py-2">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
 
 {% endblock %}
