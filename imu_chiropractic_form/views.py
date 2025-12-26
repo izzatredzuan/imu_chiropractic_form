@@ -3,14 +3,7 @@ from django.shortcuts import render, redirect
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import (
-    AnonymousUser,
-)
-from django.urls import reverse
 from django.views import View
-from django.shortcuts import (
-    HttpResponseRedirect,
-)
 
 
 class Home(View):

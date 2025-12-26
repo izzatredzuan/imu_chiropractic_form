@@ -45,6 +45,8 @@ class AssessmentsAdmin(admin.ModelAdmin):
             None,
             {
                 "fields": (
+                    "student",
+                    "evaluator",
                     "patient_name",
                     "gender",
                     "date_of_birth",

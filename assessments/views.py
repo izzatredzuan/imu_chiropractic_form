@@ -1,28 +1,63 @@
-from datetime import datetime
+from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.shortcuts import (
-    HttpResponseRedirect,
-    get_object_or_404,
     render,
-    reverse,
 )
-
-from django.contrib.auth.models import User
-
 from django.views import View
-# Create your views here.
+from accounts.models import Profile
+from assessments.models import Assessments
 
 
-class DisplayAssessment(View):
+class AssessmentListView(View):
+    template_name = "assessments/assessments.html"
+
     def get(self, request):
-        string_to_date = datetime.strptime("2024-06-12", "%Y-%m-%d").date()
-        # date_to_string = datetime.date()
-        date_to_string = string_to_date.strftime("%Y-%m-%dT%X")
-        current_time = datetime.now()
-        
+        return render(request, self.template_name)
 
-        user = User.objects.all()
-        print(user)
-        return render(
-            request,
-            "assessments/assessments.html",
-        )
+
+class AssessmentSection1FormView(View):
+    template_name = "assessments/section1_form.html"
+
+    def get(self, request):
+        profile = request.user.profile
+
+        # Only student & admin allowed
+        # if profile.role not in ["student", "admin"]:
+        #     return HttpResponseForbidden("You are not allowed to access this page.")
+
+        # Check for assessment ID for edit mode
+        assessment_id = request.GET.get("id")
+        context = {}
+
+        if assessment_id:
+            try:
+                assessment = Assessments.objects.get(id=assessment_id)
+            except Assessments.DoesNotExist:
+                return HttpResponseNotFound("Assessment not found.")
+
+            # Permission check for student
+            if profile.role == "student" and assessment.student != profile:
+                return HttpResponseForbidden("You cannot edit this assessment.")
+
+            context["assessment_id"] = assessment_id
+            context["assessment"] = assessment
+
+        # Set read-only for clinicians
+        is_readonly = request.user.profile.role == "clinician"
+        context["is_readonly"] = is_readonly
+
+        # For admin, show all students and clinicians
+        if profile.role == "admin":
+            context["students"] = Profile.objects.filter(role="student").order_by(
+                "official_name"
+            )
+            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            )
+
+        # For student, only show clinicians
+        if profile.role == "student":
+            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            )
+
+        return render(request, self.template_name, context)

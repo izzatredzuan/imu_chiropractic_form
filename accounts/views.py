@@ -21,9 +21,6 @@ class UserListView(View):
     def get(self, request):
         if not is_admin(request.user):
             messages.error(request, "You are not authorized to access this page.")
-            return redirect("/")  # redirect to home or another page
-
-        api_url = request.build_absolute_uri("/accounts/api/user/")
-        response = requests.get(api_url, cookies=request.COOKIES)
-        users = response.json() if response.status_code == 200 else []
-        return render(request, self.template_name, {"users": users})
+            return redirect("/assessments") 
+        
+        return render(request, self.template_name)

@@ -168,3 +168,30 @@ class Assessments(models.Model):
 
     def __str__(self):
         return f"{self.patient_name} ({self.student})"
+
+    # =====================
+    # Progress & Stage Logic
+    # =====================
+
+    def current_stage(self):
+        if not self.is_section_1_signed:
+            return "section_1"
+
+        if not self.is_section_2_signed:
+            return "section_2"
+
+        if not self.is_section_3_signed:
+            return "section_3"
+
+        return "completed"
+
+    def progress_percent(self):
+        total = 3
+        signed = sum(
+            [
+                self.is_section_1_signed,
+                self.is_section_2_signed,
+                self.is_section_3_signed,
+            ]
+        )
+        return int((signed / total) * 100)

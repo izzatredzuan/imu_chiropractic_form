@@ -58,7 +58,7 @@ class UserProfileAPIView(APIView):
 
 
 class UserProfileCreateAPIView(APIView):
-    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser]
 
     def post(self, request):
         serializer = UserProfileCreateSerializer(data=request.data)
@@ -84,7 +84,7 @@ class UserProfileCreateAPIView(APIView):
                 logger.error(f"CREATE - Failed: {str(e)}")
                 return Response({"error": str(e)}, status=400)
 
-            profile = user.profile     
+            profile = user.profile
             logger.info(
                 f"CREATE - User created: username={username}, member_id={profile.member_id}, "
                 f"official_name={profile.official_name}, role={profile.role}"
@@ -102,7 +102,7 @@ class UserProfileCreateAPIView(APIView):
 # EDIT / UPDATE User + Profile
 # -----------------------------------
 class UserProfileUpdateAPIView(APIView):
-    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser]
 
     def put(self, request):
         member_id = request.data.get("member_id")
@@ -140,7 +140,7 @@ class UserProfileUpdateAPIView(APIView):
 # DELETE User + Profile
 # -----------------------------------
 class UserProfileDeleteAPIView(APIView):
-    # permission_classes = [permissions.IsAdminUser]
+    permission_classes = [permissions.IsAdminUser]
 
     def delete(self, request):
         member_ids = request.data.get("member_id")  # str or list

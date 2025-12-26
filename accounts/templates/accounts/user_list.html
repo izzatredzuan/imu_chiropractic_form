@@ -1,28 +1,18 @@
 {% extends 'base.html' %}
 
 {% block style %}
-<!-- Add any extra styling if needed -->
+<!-- Optional extra styles -->
 {% endblock %}
 
 {% block content %}
 <div class="container mt-4">
     <h1>Users</h1>
 
-    <button id="createUserBtn" class="btn btn-primary mb-3">Create User</button>
+    <button id="createUserBtn" class="btn btn-primary mb-3">
+        Create User
+    </button>
 
-    <table id="userTable" class="table table-striped table-bordered">
-        <thead>
-            <tr>
-                <th>Official Name</th>
-                <th>Username</th>
-                <th>Member ID</th>
-                <th>Role</th>
-                <th>Phone</th>
-                <th>Admin</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-    </table>
+    <table id="userTable" class="table table-striped table-bordered w-100"></table>
 </div>
 
 <!-- Edit Modal -->
@@ -33,31 +23,37 @@
                 <h5 class="modal-title">Edit User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body">
                 <form id="editUserForm">
                     <input type="hidden" id="editMemberId">
+
                     <div class="mb-3">
-                        <label>Official Name</label>
+                        <label class="form-label">Official Name</label>
                         <input type="text" id="editOfficialName" class="form-control">
                     </div>
+
                     <div class="mb-3">
-                        <label>Role</label>
+                        <label class="form-label">Role</label>
                         <select id="editRoleSelect" class="form-control">
                             <option value="student">Student</option>
                             <option value="clinician">Clinician</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
+
                     <div class="mb-3">
-                        <label>Phone</label>
+                        <label class="form-label">Phone</label>
                         <input type="text" id="editPhone" class="form-control">
                     </div>
-                    <div class="mb-3">
-                        <label>Admin?</label>
-                        <input type="checkbox" id="editIsAdmin">
+
+                    <div class="form-check mb-3">
+                        <input type="checkbox" id="editIsAdmin" class="form-check-input">
+                        <label class="form-check-label">Admin?</label>
                     </div>
                 </form>
             </div>
+
             <div class="modal-footer">
                 <button id="saveEditBtn" class="btn btn-primary">Save</button>
                 <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -68,85 +64,114 @@
 
 <script>
     $(document).ready(function () {
-        // Mapping to capitalize role in table display
+
+        /* ----------------------------------------
+         * Display helpers
+         * ---------------------------------------- */
         const roleMap = {
-            "student": "Student",
-            "clinician": "Clinician",
-            "admin": "Admin"
+            student: "Student",
+            clinician: "Clinician",
+            admin: "Admin"
         };
 
+        /* ----------------------------------------
+         * SINGLE SOURCE OF TRUTH FOR COLUMNS
+         * DataTables will auto-generate <thead>
+         * ---------------------------------------- */
+        const columnsConfig = [{
+                title: "Official Name",
+                data: "official_name"
+            },
+            {
+                title: "Username",
+                data: "username"
+            },
+            {
+                title: "Member ID",
+                data: "member_id"
+            },
+            {
+                title: "Role",
+                data: "role",
+                render: data => roleMap[data] || data
+            },
+            {
+                title: "Phone",
+                data: "phone"
+            },
+            {
+                title: "Admin",
+                data: "is_admin",
+                render: data => data ? "Yes" : "No"
+            },
+            {
+                title: "Action",
+                data: null,
+                orderable: false,
+                searchable: false,
+                render: function (data) {
+                    return `
+                    <button class="editBtn btn btn-sm btn-primary"
+                        data-id="${data.member_id}"
+                        data-role="${data.role}"
+                        data-official-name="${data.official_name}"
+                        data-phone="${data.phone}"
+                        data-is-admin="${data.is_admin}">
+                        Edit
+                    </button>
+                    <button class="deleteBtn btn btn-sm btn-danger"
+                        data-id="${data.member_id}">
+                        Delete
+                    </button>
+                `;
+                }
+            }
+        ];
+
+        /* ----------------------------------------
+         * DataTable Init
+         * ---------------------------------------- */
         const table = $('#userTable').DataTable({
             ajax: {
                 url: "{% url 'user_api' %}",
                 dataSrc: ''
             },
-            columns: [{
-                    data: 'official_name'
-                },
-                {
-                    data: 'username'
-                },
-                {
-                    data: 'member_id'
-                },
-                {
-                    data: 'role',
-                    render: function (data) {
-                        return roleMap[data] || data;
-                    }
-                },
-                {
-                    data: 'phone'
-                },
-                {
-                    data: 'is_admin',
-                    render: data => data ? 'Yes' : 'No'
-                },
-                {
-                    data: null,
-                    render: function (data) {
-                        return `
-                        <button class="editBtn btn btn-sm btn-primary" 
-                            data-id="${data.member_id}" 
-                            data-role="${data.role}" 
-                            data-official-name="${data.official_name}" 
-                            data-phone="${data.phone}" 
-                            data-is-admin="${data.is_admin}">Edit</button>
-                        <button class="deleteBtn btn btn-sm btn-danger" data-id="${data.member_id}">Delete</button>
-                    `;
-                    }
-                }
-            ]
+            columns: columnsConfig,
+            responsive: true
         });
 
+        /* ----------------------------------------
+         * Create User
+         * ---------------------------------------- */
         $('#createUserBtn').click(function () {
             window.location.href = "/";
         });
 
-        // Edit button
+        /* ----------------------------------------
+         * Edit User
+         * ---------------------------------------- */
         $('#userTable').on('click', '.editBtn', function () {
-            const memberId = $(this).data('id');
-            $('#editMemberId').val(memberId);
+            $('#editMemberId').val($(this).data('id'));
             $('#editOfficialName').val($(this).data('official-name'));
-            $('#editRoleSelect').val($(this).data('role')); // send lowercase value
+            $('#editRoleSelect').val($(this).data('role'));
             $('#editPhone').val($(this).data('phone'));
             $('#editIsAdmin').prop('checked', $(this).data('is-admin'));
+
             $('#editUserModal').modal('show');
         });
 
         $('#saveEditBtn').click(function () {
-            const memberId = $('#editMemberId').val();
             $.ajax({
                 url: "{% url 'user_update_api' %}",
-                type: 'PUT',
+                type: "PUT",
                 headers: {
-                    'X-CSRFToken': CSRFTOKEN
+                    "X-CSRFToken": CSRFTOKEN
                 },
-                contentType: 'application/json',
+                contentType: "application/json",
                 data: JSON.stringify({
-                    member_id: memberId,
+                    member_id: $('#editMemberId').val(),
                     official_name: $('#editOfficialName').val(),
-                    role: $('#editRoleSelect').val(), // send lowercase
+                    role: $('#editRoleSelect').val(),
                     phone: $('#editPhone').val(),
                     is_admin: $('#editIsAdmin').is(':checked')
                 }),
@@ -155,23 +180,26 @@
                     $('#editUserModal').modal('hide');
                 },
                 error: function () {
-                    alert('Update failed');
+                    alert("Update failed");
                 }
             });
         });
 
-        // Delete button
+        /* ----------------------------------------
+         * Delete User
+         * ---------------------------------------- */
         $('#userTable').on('click', '.deleteBtn', function () {
             const memberId = $(this).data('id');
-            if (!confirm('Delete this user?')) return;
+
+            if (!confirm("Delete this user?")) return;
 
             $.ajax({
                 url: "{% url 'user_delete_api' %}",
-                type: 'DELETE',
+                type: "DELETE",
                 headers: {
-                    'X-CSRFToken': CSRFTOKEN
+                    "X-CSRFToken": CSRFTOKEN
                 },
-                contentType: 'application/json',
+                contentType: "application/json",
                 data: JSON.stringify({
                     member_id: [memberId]
                 }),
@@ -179,10 +207,11 @@
                     table.ajax.reload(null, false);
                 },
                 error: function () {
-                    alert('Delete failed');
+                    alert("Delete failed");
                 }
             });
         });
+
     });
 </script>
 {% endblock %}

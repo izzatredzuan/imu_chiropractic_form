@@ -47,4 +47,4 @@ class Profile(models.Model):
     is_locked = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.username} ({self.role})"
+        return f"{self.member_id} - {self.official_name}"

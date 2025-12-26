@@ -155,7 +155,7 @@ MEDIA_URL = "/media/"
 
 STATIC_URL = "static/"
 
-LOGIN_REDIRECT_URL = r"/"
+LOGIN_REDIRECT_URL = r"/assessments"
 LOGIN_URL = "/login/"
 LOGIN_EXEMPT_URLS = (
     r"^login/$",

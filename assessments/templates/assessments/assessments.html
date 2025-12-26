@@ -1,42 +1,182 @@
 {% extends 'base.html' %}
 
 {% block style %}
-
-
+<!-- Optional extra styles -->
 {% endblock %}
 
 {% block content %}
-<div id="testId" class="banana">
-    <h1 href="wwww">Assessments!</h1>
-</div>
-<script>
-    console.log("asdasd");
-    div_attribute = $('.banana').attr("id");
-    test_id = $('h1').attr("href");
-    console.log(div_attribute);
-    console.log(test_id)
-</script>
-<!-- 
-<script>
-    $('#valueID')
-    $.ajax({
-        url: `api/test`,
-        type: `PUT`,
-        headers: {
-            'X-CSRFToken': CSRFTOKEN
-        },
-        data: {
-            'id': 23,
-            'name': 'Leon'
-        },
-        success: function () {
-            table.ajax.reload(null, false);
-            $('#testModal').modal('hide');
-        },
-        error: function () {
-            alert('Failed');
-        }
-    })
-</script> -->
-{% endblock %}
 
+<div class="container mt-4">
+    <h2>My Assessments</h2>
+    {% if request.user.profile.role in "student admin" %}
+    <a href="{% url 'assessment_section1_form' %}" class="btn btn-primary mb-3">
+        Create Assessment
+    </a>
+    {% endif %}
+
+    <table id="assessmentsTable" class="table table-striped table-bordered w-100"></table>
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        /* ----------------------------------
+         * Define columns
+         * ---------------------------------- */
+        const columnsConfig = [{
+                title: "Patient Name",
+                data: "patient_name"
+            },
+            {
+                title: "Student",
+                data: "student"
+            },
+            {
+                title: "Clinician",
+                data: "clinician"
+            },
+            // {
+            //     title: "Progress",
+            //     data: "progress",
+            //     render: data => `${data}%`
+            // },
+            {
+                title: "Current Stage",
+                data: "current_stage",
+                render: function (data) {
+                    if (data === "completed") {
+                        return `<span class="badge bg-success">Completed</span>`;
+                    }
+                    return `<span class="badge bg-warning">
+                    ${data.replace("_", " ").toUpperCase()}
+                </span>`;
+                }
+            },
+
+            {
+                title: "Edit Sections",
+                name: "edit_sections",
+                data: null,
+                orderable: false,
+                searchable: false,
+                render: function (row) {
+                    const section1BtnClass = "btn btn-sm btn-primary"; // always enabled
+                    const section2BtnClass =
+                        "btn btn-sm " + (row.is_section_1_signed ? "btn-primary" :
+                            "btn-secondary disabled");
+                    const section3BtnClass =
+                        "btn btn-sm " + (row.is_section_2_signed ? "btn-primary" :
+                            "btn-secondary disabled");
+
+                    return `
+                        <a href="/assessments/section-1/form/?id=${row.id}" class="${section1BtnClass}">
+                            Section 1
+                        </a>
+                        <a href="/assessments/section-2/form/?id=${row.id}" class="${section2BtnClass}">
+                            Section 2
+                        </a>
+                        <a href="/assessments/section-3/form/?id=${row.id}" class="${section3BtnClass}">
+                            Section 3
+                        </a>
+                    `;
+                },
+            },
+            {
+                title: "Sign-off",
+                name: "sign_off_sessions",
+                data: null,
+                orderable: false,
+                searchable: false,
+                render: function (row) {
+                    const section1BtnClass = "btn btn-sm btn-primary";
+                    const section2BtnClass =
+                        "btn btn-sm " + (row.is_section_1_signed ? "btn-primary" :
+                            "btn-secondary disabled");
+                    const section3BtnClass =
+                        "btn btn-sm " + (row.is_section_2_signed ? "btn-primary" :
+                            "btn-secondary disabled");
+
+                    // Use Jinja for the base URL
+                    const section1Url = "{% url 'assessment_section1_form' %}?id=" + row.id;
+                    const section2Url = "/section-2/form/?id=" + row
+                        .id; // you can define a separate URL pattern
+                    const section3Url = "/section-3/form/?id=" + row.id; // same as above
+
+                    return `
+                        <a href="${section1Url}" class="${section1BtnClass}">Section 1</a>
+                        <a href="${section2Url}" class="${section2BtnClass}">Section 2</a>
+                        <a href="${section3Url}" class="${section3BtnClass}">Section 3</a>
+                    `;
+                }
+            },
+            {
+                title: "Created Date",
+                data: "created_at",
+                render: function (data) {
+                    return data ? moment(data).format("DD/MM/YYYY") : "-";
+                }
+            },
+            {
+                title: "Last Updated",
+                data: "updated_at",
+                render: function (data) {
+                    return data ? moment(data).format("DD/MM/YYYY") : "-";
+                }
+            }
+        ];
+
+        /* ----------------------------------
+         * DataTable init
+         * ---------------------------------- */
+        const table = $('#assessmentsTable').DataTable({
+            ajax: {
+                url: "{% url 'assessments_list_api' %}",
+                dataSrc: ""
+            },
+            columns: columnsConfig,
+            responsive: true,
+            pageLength: 25,
+            lengthMenu: [5, 10, 25, 50, 100],
+            order: [
+                [5, 'desc']
+            ]
+        });
+
+        const userRole = "{{ request.user.profile.role }}";
+        if (userRole === "student") {
+            table.column("sign_off_sessions:name").visible(false);
+        }
+
+        if (userRole === "clinician") {
+            table.column("edit_sections:name").visible(false);
+        }
+
+
+        /* ----------------------------------
+         * Sign Off button click
+         * ---------------------------------- */
+        $('#assessmentsTable').on('click', '.sign-btn', function () {
+
+            if ($(this).hasClass('disabled')) return;
+
+            const assessmentId = $(this).data('id');
+            const section = $(this).data('section');
+
+            fetch(`/api/assessments/section-${section}/sign/`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": CSRFTOKEN
+                    },
+                    body: JSON.stringify({
+                        assessment_id: assessmentId
+                    })
+                })
+                .then(res => res.json())
+                .then(() => $('#assessmentsTable').DataTable().ajax.reload(null, false));
+        });
+
+
+    });
+</script>
+{% endblock %}

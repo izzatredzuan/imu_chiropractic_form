@@ -1,8 +1,8 @@
 <nav id="top_bar" class="navbar navbar-expand-xl bg-white shadow-sm py-2" style="z-index:1000;">
-  <div class="container-fluid">
+  <div class="container-fluid px-3 px-lg-5">
 
     <!-- Logo + Version -->
-    <a class="navbar-brand d-flex align-items-center" href="/">
+    <a class="navbar-brand d-flex align-items-center" href="{% url 'assessments_list' %}">
       <img src="/static/icon/logo.png" alt="Logo" style="max-height:60px;" />
       <div class="ms-2 fw-semibold text-primary" style="font-size:0.9rem;">
         {% include 'version.html' %}
@@ -20,7 +20,7 @@
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
 
         <!-- Students -->
-         {% if request.user.profile.role in "student admin" %}
+        {% if request.user.profile.role in "student admin" %}
         <li class="nav-item dropdown px-2">
           <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">Students</a>
           <ul class="dropdown-menu shadow-sm border-0 rounded-3 p-2">
@@ -29,14 +29,14 @@
                 <i class="fas fa-tasks fa-fw me-2"></i> View Students
               </a>
             </li>
-            <li>
+            <!-- <li>
               <hr class="dropdown-divider">
             </li>
             <li>
               <a class="dropdown-item rounded-2 py-2" href="#">
                 <i class="fas fa-user-secret fa-fw me-2"></i> Students Admin Page
               </a>
-            </li>
+            </li> -->
           </ul>
         </li>
         {% endif %}
@@ -51,14 +51,14 @@
                 <i class="fas fa-tasks fa-fw me-2"></i> View Clinicians
               </a>
             </li>
-            <li>
+            <!-- <li>
               <hr class="dropdown-divider">
             </li>
             <li>
               <a class="dropdown-item rounded-2 py-2" href="#">
                 <i class="fas fa-user-secret fa-fw me-2"></i> Clinicians Admin Page
               </a>
-            </li>
+            </li> -->
           </ul>
         </li>
         {% endif %}
@@ -68,7 +68,7 @@
           <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">Assessments</a>
           <ul class="dropdown-menu shadow-sm border-0 rounded-3 p-2">
             <li>
-              <a class="dropdown-item rounded-2 py-2" href="{% url 'view_assessments' %}">
+              <a class="dropdown-item rounded-2 py-2" href="{% url 'assessments_list' %}">
                 <i class="fas fa-tasks fa-fw me-2"></i> View Assessments
               </a>
             </li>
@@ -98,11 +98,11 @@
         </li>
 
         <!-- Leaves Portal -->
-        <li class="nav-item px-2">
+        <!-- <li class="nav-item px-2">
           <a class="nav-link fw-semibold text-dark" href="#">
             <i class="fa fa-calendar me-1"></i> Leaves Portal
           </a>
-        </li>
+        </li> -->
 
       </ul>
     </div>
