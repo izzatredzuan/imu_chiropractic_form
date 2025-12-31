@@ -40,22 +40,49 @@
                 orderable: false,
                 searchable: false,
                 render: function (row) {
-                    const section1BtnClass = "btn btn-sm btn-primary"; // always enabled
-                    const section2BtnClass =
-                        "btn btn-sm " + (row.is_section_1_signed ? "btn-primary" :
-                            "btn-secondary disabled");
-                    const section3BtnClass =
-                        "btn btn-sm " + (row.is_section_2_signed ? "btn-primary" :
-                            "btn-secondary disabled");
+
+                    // -------------------------
+                    // Section 1 button
+                    // -------------------------
+                    let section1Class = "btn btn-sm ";
+                    if (row.is_section_1_signed) {
+                        section1Class += "btn-success";
+                    } else {
+                        section1Class += "btn-primary";
+                    }
+
+                    // -------------------------
+                    // Section 2 button
+                    // -------------------------
+                    let section2Class = "btn btn-sm ";
+                    if (!row.is_section_1_signed) {
+                        section2Class += "btn-secondary disabled";
+                    } else if (row.is_section_2_signed) {
+                        section2Class += "btn-success";
+                    } else {
+                        section2Class += "btn-primary";
+                    }
+
+                    // -------------------------
+                    // Section 3 button
+                    // -------------------------
+                    let section3Class = "btn btn-sm ";
+                    if (!row.is_section_2_signed) {
+                        section3Class += "btn-secondary disabled";
+                    } else if (row.is_section_3_signed) {
+                        section3Class += "btn-success";
+                    } else {
+                        section3Class += "btn-primary";
+                    }
 
                     return `
-                        <a href="/assessments/section-1/form/?id=${row.id}" class="${section1BtnClass}">
+                        <a href="/assessments/section-1/form/?id=${row.id}" class="${section1Class}">
                             Section 1
                         </a>
-                        <a href="/assessments/section-2/form/?id=${row.id}" class="${section2BtnClass}">
+                        <a href="/assessments/section-2/form/?id=${row.id}" class="${section2Class}">
                             Section 2
                         </a>
-                        <a href="/assessments/section-3/form/?id=${row.id}" class="${section3BtnClass}">
+                        <a href="/assessments/section-3/form/?id=${row.id}" class="${section3Class}">
                             Section 3
                         </a>
                     `;

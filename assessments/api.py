@@ -192,20 +192,11 @@ class AssessmentSection1APIView(APIView):
             )
 
     def put(self, request):
-        """
-        PUT method to update section 1.
-        Resets all sign-offs (student and clinician).
-        """
         profile = request.user.profile
         assessment_id = request.data.get("assessment_id")
-
-        logger.info(
-            f"UPDATE - Attempt by user={request.user.username} - {profile.official_name}, role={profile.role}"
-            f"assessment_id={assessment_id}, patient name={request.data.get('patient_name', 'N/A')}"
-        )
+        action = request.data.get("action", "save")
 
         if not assessment_id:
-            logger.error("UPDATE - Failed: assessment_id missing")
             return Response(
                 {"assessment_id": "Assessment ID is required"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -217,34 +208,30 @@ class AssessmentSection1APIView(APIView):
         # Permission check
         # -------------------------
         if profile.role == "student" and assessment.student != profile:
-            logger.warning(
-                f"UPDATE - Permission denied: user={request.user.username}, "
-                f"assessment_id={assessment.id}"
-            )
             return Response(
                 {"detail": "You cannot edit this assessment"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        try:
-            serializer = AssessmentSection1CreateSerializer(
-                assessment,
-                data=request.data,
-                partial=False,
-                context={"request": request},
+        if profile.role == "clinician" and assessment.evaluator != profile:
+            return Response(
+                {"detail": "You are not assigned to this assessment"},
+                status=status.HTTP_403_FORBIDDEN,
             )
 
-            if not serializer.is_valid():
-                logger.error(
-                    f"UPDATE - Validation failed: assessment_id={assessment.id}, "
-                    f"errors={serializer.errors}"
-                )
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer = AssessmentSection1CreateSerializer(
+            assessment,
+            data=request.data,
+            partial=False,
+            context={"request": request},
+        )
 
+        try:
+            serializer.is_valid(raise_exception=True)
             serializer.save()
 
             # -------------------------
-            # Reset all sign-offs
+            # Reset sign-offs on edit
             # -------------------------
             assessment.is_student_signed = False
             assessment.student_signed_by = None
@@ -254,34 +241,50 @@ class AssessmentSection1APIView(APIView):
             assessment.section_1_signed_by = None
             assessment.section_1_signed_at = None
 
-            assessment.is_section_2_signed = False
-            assessment.section_2_signed_by = None
-            assessment.section_2_signed_at = None
+            # -------------------------
+            # SIGN OFF if requested
+            # -------------------------
+            if action == "sign_off_section_1":
+                print("Signing off section 1")
+                if profile.role not in ["clinician", "admin"]:
+                    return Response(
+                        {"detail": "Not allowed to sign off"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
 
-            assessment.is_section_3_signed = False
-            assessment.section_3_signed_by = None
-            assessment.section_3_signed_at = None
+                assessment.is_section_1_signed = True
+                assessment.section_1_signed_by = profile
+                assessment.section_1_signed_at = timezone.now()
+
+                logger.info(
+                    f"SIGN_OFF - Section 1 | "
+                    f"assessment_id={assessment.id}, "
+                    f"student={assessment.student.official_name}, "
+                    f"signed_by={profile.official_name} ({profile.role})"
+                )
 
             assessment.updated_at = timezone.now()
             assessment.save()
 
             logger.info(
-                f"UPDATE - Success: assessment_id={assessment.id}, "
-                f"patient name={assessment.patient_name}, "
-                f"updated_by={request.user.username} - {profile.official_name}"
+                f"UPDATE - Section 1 | "
+                f"assessment_id={assessment.id}, "
+                f"student={assessment.student.official_name}, "
+                f"updated_by={profile.official_name} ({profile.role}), "
+                f"action={action}"
             )
 
             return Response(
-                {"message": "Section 1 updated. All sign-offs reset."},
+                {"message": "Section 1 updated successfully"},
                 status=status.HTTP_200_OK,
             )
 
         except Exception as e:
-            logger.exception(
-                f"UPDATE - Exception occurred: assessment_id={assessment.id}, "
-                f"user={request.user.username}, error={str(e)}"
+            logger.error(
+                f"UPDATE_FAILED - Section 1 | "
+                f"assessment_id={assessment_id}, "
+                f"user={profile.official_name}, "
+                f"error={str(e)}",
+                exc_info=True,
             )
-            return Response(
-                {"detail": "Failed to update assessment", "error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            raise

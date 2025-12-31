@@ -246,16 +246,22 @@
              Submit
         ========================== -->
         <div class="mt-4 d-flex justify-content-end gap-2">
-            <a href="{% url 'assessments_list' %}" class="btn btn-secondary">Cancel</a>
+            <a href="{% url 'assessments_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
 
-            {% if not is_readonly %}
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" id="btnSave"name="action" value="save" class="btn btn-primary">
                 {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
             </button>
-            {% else %}
-            <button type="button" class="btn btn-success" disabled>
-                Read Only (Clinician)
-            </button>
+
+            {% if assessment %}
+                {% if request.user.profile.role in "clinician admin" %}
+                    {% if not assessment.is_section_1_signed %}
+                        <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
+                            Update & Sign Off Section 1
+                        </button>
+                    {% endif %}
+                {% endif %}
             {% endif %}
         </div>
 
@@ -263,57 +269,51 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById("section1Form");
-        const submitBtn = form.querySelector("button[type='submit']");
-        const profileRole = "{{ request.user.profile.role }}";
-        const assessmentId = "{{ assessment.id|default:'' }}"; // empty if create
+document.getElementById("btnSave")?.addEventListener("click", function () {
+    clickedAction = "save";
+});
 
-        // Make all fields readonly for clinician
-        // if (profileRole === "clinician") {
-        //     form.querySelectorAll("input, select, textarea").forEach(f => f.disabled = true);
-        //     submitBtn.innerText = assessmentId ? "Sign Off" : "Submit"; // optional: change text
-        // }
+document.getElementById("btnSignOff")?.addEventListener("click", function () {
+    clickedAction = "sign_off_section_1";
+});
 
-        // ======================
-        // Submit (Create or Edit)
-        // ======================
-        form.addEventListener("submit", function (e) {
-            e.preventDefault();
+document.getElementById("section1Form").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-            const payload = {};
-            new FormData(form).forEach((v, k) => payload[k] = v);
+    const formData = new FormData(this);
+    formData.set("action", clickedAction);
+    
+    const payload = {};
+    formData.forEach((v, k) => payload[k] = v);
 
-            let method = "POST"; // default create
-            if (assessmentId) {
-                method = "PUT"; // update
-                payload["assessment_id"] = assessmentId;
-            }
+    {% if assessment %}
+        payload["assessment_id"] = "{{ assessment.id }}";
+        const method = "PUT";
+    {% else %}
+        const method = "POST";
+    {% endif %}
 
-            fetch("{% url 'assessment_section1_api' %}", {
-                    method: method,
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-CSRFToken": CSRFTOKEN
-                    },
-                    body: JSON.stringify(payload)
-                })
-                .then(res => {
-                    if (!res.ok) return res.json().then(err => {
-                        throw err
-                    });
-                    return res.json();
-                })
-                .then(data => {
-                    alert(data.message || "Success!");
-                    window.location.href = "{% url 'assessments_list' %}";
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert("Failed. Check required fields.");
-                });
-        });
+    fetch("{% url 'assessment_section1_api' %}", {
+        method: method,
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": CSRFTOKEN
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(res => {
+        if (!res.ok) return res.json().then(err => { throw err; });
+        return res.json();
+    })
+    .then(data => {
+        alert(data.message || "Success");
+        window.location.href = "{% url 'assessments_list' %}";
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed. Please check required fields.");
     });
+});
 </script>
 
 
