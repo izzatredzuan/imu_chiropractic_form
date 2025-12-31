@@ -42,8 +42,8 @@ class AssessmentSection1FormView(View):
             context["assessment"] = assessment
 
         # Set read-only for clinicians
-        is_readonly = request.user.profile.role == "clinician"
-        context["is_readonly"] = is_readonly
+        # is_readonly = request.user.profile.role == "clinician"
+        # context["is_readonly"] = is_readonly
 
         # For admin, show all students and clinicians
         if profile.role == "admin":
@@ -57,6 +57,12 @@ class AssessmentSection1FormView(View):
         # For student, only show clinicians
         if profile.role == "student":
             context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            )
+
+        # For clinician, only show students
+        if profile.role == "clinician":
+            context["students"] = Profile.objects.filter(role="student").order_by(
                 "official_name"
             )
 

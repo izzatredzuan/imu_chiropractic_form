@@ -69,6 +69,23 @@
         </div>
         {% endif %}
 
+        {% if request.user.profile.role == "clinician" %}
+        <div class="mb-3">
+            <label class="form-label required">Student</label>
+            <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+                <option value="">-- Select Student --</option>
+                {% for s in students %}
+                <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
+                    {{ s.member_id }} - {{ s.official_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- evaluator is ALWAYS clinician himself -->
+        <input type="hidden" name="evaluator" value="{{ request.user.profile.id }}">
+        {% endif %}
+
         <!-- =========================
              Section 1 – Initial Assessment
         ========================== -->
@@ -253,10 +270,10 @@
         const assessmentId = "{{ assessment.id|default:'' }}"; // empty if create
 
         // Make all fields readonly for clinician
-        if (profileRole === "clinician") {
-            form.querySelectorAll("input, select, textarea").forEach(f => f.disabled = true);
-            submitBtn.innerText = assessmentId ? "Sign Off" : "Submit"; // optional: change text
-        }
+        // if (profileRole === "clinician") {
+        //     form.querySelectorAll("input, select, textarea").forEach(f => f.disabled = true);
+        //     submitBtn.innerText = assessmentId ? "Sign Off" : "Submit"; // optional: change text
+        // }
 
         // ======================
         // Submit (Create or Edit)

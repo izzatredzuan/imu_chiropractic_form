@@ -179,6 +179,9 @@ BASE_LOG_PATH.mkdir(exist_ok=True)
 ACCOUNTS_LOG_PATH = BASE_LOG_PATH / "accounts"
 ACCOUNTS_LOG_PATH.mkdir(parents=True, exist_ok=True)
 
+ASSESSMENTS_LOG_PATH = BASE_LOG_PATH / "assessments"
+ASSESSMENTS_LOG_PATH.mkdir(parents=True, exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -194,6 +197,12 @@ LOGGING = {
             "filename": ACCOUNTS_LOG_PATH / "userprofile.log",
             "formatter": "default",
         },
+        "assessments_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": ASSESSMENTS_LOG_PATH / "assessments.log",
+            "formatter": "default",
+        },
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "default",
@@ -202,6 +211,11 @@ LOGGING = {
     "loggers": {
         "userprofile": {
             "handlers": ["userprofile_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "assessments": {
+            "handlers": ["assessments_file", "console"],
             "level": "INFO",
             "propagate": False,
         },
