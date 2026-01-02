@@ -25,7 +25,17 @@
         <h4 class="mt-4 mb-3 border-bottom pb-2">
             Assignment
         </h4>
+        {% if assessment.is_section_1_signed %}
+        <div class="alert alert-success">
+            <strong>Signed-off by:</strong>
+            {{ assessment.section_1_signed_by.official_name }}
+            ({{ assessment.section_1_signed_by.role|title }})<br>
 
+            <small class="text-muted">
+                <strong>Signed at:</strong> {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}
+            </small>
+        </div>
+        {% endif %}
         {% if request.user.profile.role == "admin" %}
         <div class="row">
             <div class="col-md-6 mb-3">
@@ -250,18 +260,18 @@
                 Cancel
             </a>
 
-            <button type="submit" id="btnSave"name="action" value="save" class="btn btn-primary">
+            <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary">
                 {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
             </button>
 
             {% if assessment %}
-                {% if request.user.profile.role in "clinician admin" %}
-                    {% if not assessment.is_section_1_signed %}
-                        <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
-                            Update & Sign Off Section 1
-                        </button>
-                    {% endif %}
-                {% endif %}
+            {% if request.user.profile.role in "clinician admin" %}
+            {% if not assessment.is_section_1_signed %}
+            <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
+                Update & Sign Off Section 1
+            </button>
+            {% endif %}
+            {% endif %}
             {% endif %}
         </div>
 
@@ -269,51 +279,54 @@
 </div>
 
 <script>
-document.getElementById("btnSave")?.addEventListener("click", function () {
-    clickedAction = "save";
-});
-
-document.getElementById("btnSignOff")?.addEventListener("click", function () {
-    clickedAction = "sign_off_section_1";
-});
-
-document.getElementById("section1Form").addEventListener("submit", function (e) {
-    e.preventDefault();
-
-    const formData = new FormData(this);
-    formData.set("action", clickedAction);
-    
-    const payload = {};
-    formData.forEach((v, k) => payload[k] = v);
-
-    {% if assessment %}
-        payload["assessment_id"] = "{{ assessment.id }}";
-        const method = "PUT";
-    {% else %}
-        const method = "POST";
+    document.getElementById("btnSave").addEventListener("click", function () {
+        clickedAction = "save";
+    });
+    {% if assessment and not assessment.is_section_1_signed %}
+    document.getElementById("btnSignOff").addEventListener("click", function () {
+        clickedAction = "sign_off_section_1";
+    });
     {% endif %}
 
-    fetch("{% url 'assessment_section1_api' %}", {
-        method: method,
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": CSRFTOKEN
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(res => {
-        if (!res.ok) return res.json().then(err => { throw err; });
-        return res.json();
-    })
-    .then(data => {
-        alert(data.message || "Success");
-        window.location.href = "{% url 'assessments_list' %}";
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed. Please check required fields.");
+    document.getElementById("section1Form").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        formData.set("action", clickedAction);
+
+        const payload = {};
+        formData.forEach((v, k) => payload[k] = v);
+
+        {% if assessment %}
+        payload["assessment_id"] = "{{ assessment.id }}";
+        const method = "PUT"; 
+        {% else %}
+        const method = "POST"; 
+        {% endif %}
+            
+        fetch("{% url 'assessment_section1_api' %}", {
+                method: method,
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": CSRFTOKEN
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) return res.json().then(err => {
+                    throw err;
+                });
+                return res.json();
+            })
+            .then(data => {
+                alert(data.message || "Success");
+                window.location.href = "{% url 'assessments_list' %}";
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Failed. Please check required fields.");
+            });
     });
-});
 </script>
 
 

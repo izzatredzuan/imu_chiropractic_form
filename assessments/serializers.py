@@ -24,6 +24,7 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "is_section_2_signed",
             "is_section_3_signed",
             "created_at",
+            "updated_at",
         ]
 
     def get_progress(self, obj):

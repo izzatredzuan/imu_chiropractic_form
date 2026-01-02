@@ -274,11 +274,16 @@ class AssessmentSection1APIView(APIView):
                 f"action={action}"
             )
 
+            if action == "sign_off_section_1":
+                return Response(
+                    {"message": "Section 1 updated and signed-off successfully"},
+                    status=status.HTTP_200_OK,
+                )
+
             return Response(
-                {"message": "Section 1 updated successfully"},
+                {"message": "Section 1 updated successfully, sign-offs has been reset"},
                 status=status.HTTP_200_OK,
             )
-
         except Exception as e:
             logger.error(
                 f"UPDATE_FAILED - Section 1 | "
