@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">
+        {% if assessment %}Edit Assessment – Section 2{% else %}Create Assessment – Section 2{% endif %}
+    </h2>
+
+    <form id="section2Form">
+
+        <!-- =========================
+             Assignment
+        ========================== -->
+        <h4 class="mt-4 mb-3 border-bottom pb-2">
+            Assignment
+        </h4>
+
+        {% if assessment.is_section_2_signed %}
+        <div class="alert alert-success">
+            <strong>Signed-off by:</strong>
+            {{ assessment.section_2_signed_by.official_name }}
+            ({{ assessment.section_2_signed_by.role|title }})<br>
+            <small class="text-muted">
+                <strong>Signed at:</strong>
+                {{ assessment.section_2_signed_at|date:"d M Y, h:i A" }}
+            </small>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Student</label>
+                <input type="text" class="form-control" disabled
+                       value="{{ assessment.student.official_name }}">
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="form-label">Evaluator (Clinician)</label>
+                <input type="text" class="form-control" disabled
+                       value="{{ assessment.evaluator.official_name }}">
+            </div>
+        </div>
+
+        <!-- =========================
+             Section 2 – Physical Examination
+        ========================== -->
+        <h4 class="mt-5 mb-3 border-bottom pb-2">
+            Section 2 – Physical Examination
+        </h4>
+
+        <h5 class="mt-4">Inspection</h5>
+
+        <div class="mb-3">
+            <label class="form-label">Posture</label>
+            <textarea name="inspection_posture" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.inspection_posture|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Gait</label>
+            <textarea name="inspection_gait" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.inspection_gait|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Regional</label>
+            <textarea name="inspection_regional" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.inspection_regional|default_if_none:'' }}</textarea>
+        </div>
+
+        <h5 class="mt-4">Palpation / Percussion / Instrumentation</h5>
+
+        <div class="mb-3">
+            <label class="form-label">Palpation</label>
+            <textarea name="palpation" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.palpation|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Percussion</label>
+            <textarea name="percussion" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.percussion|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Instrumentation</label>
+            <textarea name="instrumentation" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.instrumentation|default_if_none:'' }}</textarea>
+        </div>
+
+        <h5 class="mt-4">Range of Motion (ROM)</h5>
+
+        <div class="mb-3">
+            <label class="form-label">Active</label>
+            <textarea name="rom_active" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.rom_active|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Passive</label>
+            <textarea name="rom_passive" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.rom_passive|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Resisted</label>
+            <textarea name="rom_resisted" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.rom_resisted|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Second Chiropractic Notes</label>
+            <textarea name="second_chiropractic_notes" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.second_chiropractic_notes|default_if_none:'' }}</textarea>
+        </div>
+
+        <h5 class="mt-4">Further Diagnostic Procedures</h5>
+
+        <div class="mb-3">
+            <label class="form-label">Further Diagnostic Procedures</label>
+            <textarea name="further_diagnostic_procedures" class="form-control"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.further_diagnostic_procedures|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">PTT</label>
+            <input type="text" name="ptt" class="form-control"
+                   value="{{ assessment.ptt|default_if_none:'' }}"
+                   {% if is_readonly %}disabled{% endif %}>
+        </div>
+
+        <!-- =========================
+             Submit
+        ========================== -->
+        <div class="mt-4 d-flex justify-content-end gap-2">
+            <a href="{% url 'assessments_list' %}" class="btn btn-secondary">
+                Cancel
+            </a>
+
+            <button type="submit" id="btnSave" name="action" value="save"
+                    class="btn btn-primary">
+                Update Section 2
+            </button>
+
+            {% if request.user.profile.role in "clinician admin" %}
+            {% if not assessment.is_section_2_signed %}
+            <button type="submit" id="btnSignOff" name="action"
+                    value="sign_off_section_2"
+                    class="btn btn-success">
+                Update & Sign Off Section 2
+            </button>
+            {% endif %}
+            {% endif %}
+        </div>
+
+    </form>
+</div>
+
+<script>
+    let clickedAction = "save";
+
+    document.getElementById("btnSave").addEventListener("click", function () {
+        clickedAction = "save";
+    });
+
+    {% if not assessment.is_section_2_signed %}
+    document.getElementById("btnSignOff").addEventListener("click", function () {
+        clickedAction = "sign_off_section_2";
+    });
+    {% endif %}
+
+    document.getElementById("section2Form").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const payload = {};
+        new FormData(this).forEach((v, k) => payload[k] = v);
+
+        payload["action"] = clickedAction;
+        payload["assessment_id"] = "{{ assessment.id }}";
+
+        fetch("{% url 'assessment_section2_api' %}", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRFTOKEN
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (!res.ok) return res.json().then(err => { throw err; });
+            return res.json();
+        })
+        .then(data => {
+            alert(data.message || "Section 2 saved");
+            window.location.href = "{% url 'assessments_list' %}";
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to save Section 2");
+        });
+    });
+</script>
+
+{% endblock %}

@@ -4,330 +4,576 @@
 {% block content %}
 
 <style>
-    .required::after {
-        content: " *";
-        color: red;
-        font-weight: bold;
-    }
+  body {
+    background-color: #f7f9fb;
+  }
+
+  .required::after {
+    content: " *";
+    color: red;
+    font-weight: bold;
+  }
+
+  #markerLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* clicks pass through to image */
+  }
+
+  .anatomy-marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #c0392b;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
+    pointer-events: auto; /* allows click/right-click */
+    cursor: pointer;
+  }
+
+  #anatomyWrapper {
+    position: relative;
+    display: inline-block;
+    width: fit-content;
+    /* prevent image scaling by container */
+  }
+
+  #anatomyImage,
+  #markerLayer {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Optional: floating note box */
+  /* #markerNotePopup textarea {
+    resize: none;
+  } */
 </style>
 
-<div class="container mt-4">
+<div class="container-fluid py-4">
 
-    <h2 class="mb-4">
-        {% if assessment %}Edit Assessment{% else %}Create Assessment{% endif %}
+  <!-- =========================
+       PAGE TITLE
+  ========================== -->
+  <div class="mb-4">
+    <h2 class="fw-semibold">
+      {% if assessment %}Edit Assessment{% else %}Create Assessment{% endif %}
     </h2>
+  </div>
 
-    <form id="section1Form">
+  <form id="section1Form">
 
-        <!-- =========================
-             Assignment
-        ========================== -->
-        <h4 class="mt-4 mb-3 border-bottom pb-2">
-            Assignment
-        </h4>
+    <!-- =========================
+         ASSIGNMENT
+    ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">
+        Assignment
+      </div>
+      <div class="card-body">
+
         {% if assessment.is_section_1_signed %}
         <div class="alert alert-success">
-            <strong>Signed-off by:</strong>
-            {{ assessment.section_1_signed_by.official_name }}
-            ({{ assessment.section_1_signed_by.role|title }})<br>
-
-            <small class="text-muted">
-                <strong>Signed at:</strong> {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}
-            </small>
+          <strong>Signed-off by:</strong>
+          {{ assessment.section_1_signed_by.official_name }}
+          ({{ assessment.section_1_signed_by.role|title }})<br>
+          <small class="text-muted">
+            Signed at: {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}
+          </small>
         </div>
         {% endif %}
+
         {% if request.user.profile.role == "admin" %}
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label required">Student</label>
-                <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
-                    <option value="">-- Select Student --</option>
-                    {% for s in students %}
-                    <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
-                        {{ s.member_id }} - {{ s.official_name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Student</label>
+            <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+              <option value="">-- Select Student --</option>
+              {% for s in students %}
+              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
+                {{ s.member_id }} – {{ s.official_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
 
-            <div class="col-md-6 mb-3">
-                <label class="form-label required">Evaluator (Clinician)</label>
-                <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
-                    <option value="">-- Select Clinician --</option>
-                    {% for c in clinicians %}
-                    <option value="{{ c.id }}"
-                        {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
-                        {{ c.member_id }} - {{ c.official_name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Evaluator (Clinician)</label>
+            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+              <option value="">-- Select Clinician --</option>
+              {% for c in clinicians %}
+              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+                {{ c.member_id }} – {{ c.official_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
         {% endif %}
 
         {% if request.user.profile.role == "student" %}
         <div class="mb-3">
-            <label class="form-label required">Evaluator (Clinician)</label>
-            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
-                <option value="">-- Select Clinician --</option>
-                {% for c in clinicians %}
-                <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
-                    {{ c.member_id }} - {{ c.official_name }}
-                </option>
-                {% endfor %}
-            </select>
+          <label class="form-label required">Evaluator (Clinician)</label>
+          <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+            <option value="">-- Select Clinician --</option>
+            {% for c in clinicians %}
+            <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+              {{ c.member_id }} – {{ c.official_name }}
+            </option>
+            {% endfor %}
+          </select>
         </div>
         {% endif %}
 
         {% if request.user.profile.role == "clinician" %}
         <div class="mb-3">
-            <label class="form-label required">Student</label>
-            <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
-                <option value="">-- Select Student --</option>
-                {% for s in students %}
-                <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
-                    {{ s.member_id }} - {{ s.official_name }}
-                </option>
-                {% endfor %}
-            </select>
+          <label class="form-label required">Student</label>
+          <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+            <option value="">-- Select Student --</option>
+            {% for s in students %}
+            <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
+              {{ s.member_id }} – {{ s.official_name }}
+            </option>
+            {% endfor %}
+          </select>
         </div>
 
-        <!-- evaluator is ALWAYS clinician himself -->
         <input type="hidden" name="evaluator" value="{{ request.user.profile.id }}">
         {% endif %}
 
-        <!-- =========================
-             Section 1 – Initial Assessment
-        ========================== -->
-        <h4 class="mt-5 mb-3 border-bottom pb-2">
-            Section 1 – Initial Assessment
-        </h4>
+      </div>
+    </div>
 
-        <div class="row">
-            <div class="col-md-6 mb-3">
+    <!-- =========================
+         SECTION 1 – INITIAL ASSESSMENT
+    ========================== -->
+    <h4 class="fw-semibold mb-3">Section 1 – Initial Assessment</h4>
+
+    <div class="row g-4">
+
+      <!-- ========== LEFT COLUMN ========== -->
+      <div class="col-lg-7">
+
+        <!-- Patient Details -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header fw-semibold">Patient Details</div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
                 <label class="form-label required">Patient Name</label>
                 <input type="text" name="patient_name" class="form-control" required
-                    value="{{ assessment.patient_name|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
-            </div>
+                  value="{{ assessment.patient_name|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+              </div>
 
-            <div class="col-md-3 mb-3">
+              <div class="col-md-3 mb-3">
                 <label class="form-label required">Gender</label>
                 <select name="gender" class="form-control" required {% if is_readonly %}disabled{% endif %}>
-                    <option value="">-- Select --</option>
-                    <option value="male" {% if assessment and assessment.gender == 'male' %}selected{% endif %}>Male
-                    </option>
-                    <option value="female" {% if assessment and assessment.gender == 'female' %}selected{% endif %}>
-                        Female</option>
+                  <option value="">-- Select --</option>
+                  <option value="male" {% if assessment.gender == 'male' %}selected{% endif %}>Male</option>
+                  <option value="female" {% if assessment.gender == 'female' %}selected{% endif %}>Female</option>
                 </select>
-            </div>
+              </div>
 
-            <div class="col-md-3 mb-3">
+              <div class="col-md-3 mb-3">
                 <label class="form-label required">Date of Birth</label>
                 <input type="date" name="date_of_birth" class="form-control" required
-                    value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
-                    {% if is_readonly %}disabled{% endif %}>
+                  value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
+                  {% if is_readonly %}disabled{% endif %}>
+              </div>
             </div>
+          </div>
         </div>
 
-        <div class="row">
-            <div class="col-md-3 mb-3">
+        <!-- Vitals -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header fw-semibold">Vitals</div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-3 mb-3">
                 <label class="form-label required">Pulse</label>
-                <input type="number" name="pulse" class="form-control" required min="0"
-                    value="{{ assessment.pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
-            </div>
-
-            <div class="col-md-3 mb-3">
+                <input type="number" name="pulse" class="form-control" required
+                  value="{{ assessment.pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+              </div>
+              <div class="col-md-3 mb-3">
                 <label class="form-label required">Respiratory</label>
-                <input type="number" name="respiratory" class="form-control" required min="0"
-                    value="{{ assessment.respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
-            </div>
-
-            <div class="col-md-3 mb-3">
+                <input type="number" name="respiratory" class="form-control" required
+                  value="{{ assessment.respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+              </div>
+              <div class="col-md-3 mb-3">
                 <label class="form-label required">Systolic BP</label>
-                <input type="number" name="systolic_bp" class="form-control" required min="0"
-                    value="{{ assessment.systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
-            </div>
-
-            <div class="col-md-3 mb-3">
+                <input type="number" name="systolic_bp" class="form-control" required
+                  value="{{ assessment.systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+              </div>
+              <div class="col-md-3 mb-3">
                 <label class="form-label required">Diastolic BP</label>
-                <input type="number" name="diastolic_bp" class="form-control" required min="0"
-                    value="{{ assessment.diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                <input type="number" name="diastolic_bp" class="form-control" required
+                  value="{{ assessment.diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
 
-        <div class="mb-3">
-            <label class="form-label required">Summary</label>
-            <textarea name="summary" class="form-control" rows="3" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label required">Special Direction</label>
-            <textarea name="special_direction" class="form-control" rows="3" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
-        </div>
-
+      <!-- ========== RIGHT COLUMN ========== -->
+      <div class="col-lg-5">
         <!-- =========================
-             Presenting Complaint
+            Anatomy Marking Card
         ========================== -->
-        <h4 class="mt-5 mb-3 border-bottom pb-2">
-            Presenting Complaint
-        </h4>
+        <div class="card shadow-sm">
+          <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+            <span>Anatomy Marking</span>
+            <!-- <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary active" id="btnFront">Front</button>
+              <button class="btn btn-outline-secondary" id="btnBack">Back</button>
+            </div> -->
+          </div>
+
+          <div class="card-body text-center">
+
+            <!-- Instructions -->
+            <div class="mb-3 text-muted small">
+              <strong>Instructions:</strong> Click on the body to mark pain or tenderness.  
+              Left-click a marker to add/edit a note. Right-click a marker to delete it.
+            </div>
+
+            <!-- Anatomy Image Container -->
+            <div id="anatomyWrapper" class="position-relative d-inline-block">
+              <img
+                src="/static/images/Muscles_front_and_back.svg"
+                id="anatomyImage"
+                style="display: block; max-height: 520px; width: auto;"
+              />
+              <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+        PRESENTING COMPLAINT
+    ========================== -->
+    <div class="card mt-4 shadow-sm">
+      <div class="card-header fw-semibold">Presenting Complaint</div>
+      <div class="card-body">
 
         <div class="mb-3">
-            <label class="form-label required">Chief Complaint</label>
-            <textarea name="chief_complaint" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.chief_complaint|default_if_none:'' }}</textarea>
+          <label class="form-label required">Chief Complaint</label>
+          <textarea name="chief_complaint" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.chief_complaint|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">History of Condition</label>
-            <textarea name="history_of_condition" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.history_of_condition|default_if_none:'' }}</textarea>
+          <label class="form-label required">History of Condition</label>
+          <textarea name="history_of_condition" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.history_of_condition|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Pain</label>
-            <textarea name="pain" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.pain|default_if_none:'' }}</textarea>
+          <label class="form-label required">Pain</label>
+          <textarea name="pain" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.pain|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Aggravating Factors</label>
-            <textarea name="aggravating_factors" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.aggravating_factors|default_if_none:'' }}</textarea>
+          <label class="form-label required">Aggravating Factors</label>
+          <textarea name="aggravating_factors" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.aggravating_factors|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Relieving Factors</label>
-            <textarea name="relieving_factors" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.relieving_factors|default_if_none:'' }}</textarea>
+          <label class="form-label required">Relieving Factors</label>
+          <textarea name="relieving_factors" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.relieving_factors|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Associated Symptoms</label>
-            <textarea name="associated_symptoms" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.associated_symptoms|default_if_none:'' }}</textarea>
+          <label class="form-label required">Associated Symptoms</label>
+          <textarea name="associated_symptoms" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.associated_symptoms|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Health History Review</label>
-            <textarea name="health_hx_review" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.health_hx_review|default_if_none:'' }}</textarea>
+          <label class="form-label required">Health History Review</label>
+          <textarea name="health_hx_review" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.health_hx_review|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Past Illnesses</label>
-            <textarea name="past_illnesses" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.past_illnesses|default_if_none:'' }}</textarea>
+          <label class="form-label required">Past Illnesses</label>
+          <textarea name="past_illnesses" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.past_illnesses|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Family History</label>
-            <textarea name="family_hx" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.family_hx|default_if_none:'' }}</textarea>
+          <label class="form-label required">Family History</label>
+          <textarea name="family_hx" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.family_hx|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Psycho Social History</label>
-            <textarea name="psycho_social_hx" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.psycho_social_hx|default_if_none:'' }}</textarea>
+          <label class="form-label required">Psycho Social History</label>
+          <textarea name="psycho_social_hx" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.psycho_social_hx|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Occupational</label>
-            <textarea name="occupational" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.occupational|default_if_none:'' }}</textarea>
+          <label class="form-label required">Occupational</label>
+          <textarea name="occupational" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.occupational|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">Diet</label>
-            <textarea name="diet" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.diet|default_if_none:'' }}</textarea>
+          <label class="form-label required">Diet</label>
+          <textarea name="diet" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.diet|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
-            <label class="form-label required">System Review</label>
-            <textarea name="system_review" class="form-control" required
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.system_review|default_if_none:'' }}</textarea>
+          <label class="form-label required">System Review</label>
+          <textarea name="system_review" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.system_review|default_if_none:'' }}</textarea>
         </div>
 
-        <!-- =========================
-             Submit
+      </div>
+    </div>
+
+
+    <!-- =========================
+            SUBMIT
         ========================== -->
-        <div class="mt-4 d-flex justify-content-end gap-2">
-            <a href="{% url 'assessments_list' %}" class="btn btn-secondary">
-                Cancel
-            </a>
+    <div class="mt-4 d-flex justify-content-end gap-2">
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">Cancel</a>
 
-            <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary">
-                {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
-            </button>
+      <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary">
+        {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
+      </button>
 
-            {% if assessment %}
-            {% if request.user.profile.role in "clinician admin" %}
-            {% if not assessment.is_section_1_signed %}
-            <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
-                Update & Sign Off Section 1
-            </button>
-            {% endif %}
-            {% endif %}
-            {% endif %}
-        </div>
+      {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
+      <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
+        Update & Sign Off Section 1
+      </button>
+      {% endif %}
+    </div>
 
-    </form>
+  </form>
 </div>
 
 <script>
-    document.getElementById("btnSave").addEventListener("click", function () {
-        clickedAction = "save";
-    });
-    {% if assessment and not assessment.is_section_1_signed %}
-    document.getElementById("btnSignOff").addEventListener("click", function () {
-        clickedAction = "sign_off_section_1";
-    });
+  document.getElementById("btnSave").addEventListener("click", function () {
+    clickedAction = "save";
+  }); 
+  {% if assessment and not assessment.is_section_1_signed %}
+  document.getElementById("btnSignOff").addEventListener("click", function () {
+    clickedAction = "sign_off_section_1";
+  }); 
+  {% endif %}
+
+  document.getElementById("section1Form").addEventListener("submit", function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    formData.set("action", clickedAction);
+
+    const payload = {};
+    formData.forEach((v, k) => payload[k] = v);
+
+    {% if assessment %}
+    payload["assessment_id"] = "{{ assessment.id }}";
+    const method = "PUT"; 
+    {% else %}
+    const method = "POST"; 
     {% endif %}
 
-    document.getElementById("section1Form").addEventListener("submit", function (e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-        formData.set("action", clickedAction);
-
-        const payload = {};
-        formData.forEach((v, k) => payload[k] = v);
-
-        {% if assessment %}
-        payload["assessment_id"] = "{{ assessment.id }}";
-        const method = "PUT"; 
-        {% else %}
-        const method = "POST"; 
-        {% endif %}
-            
-        fetch("{% url 'assessment_section1_api' %}", {
-                method: method,
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": CSRFTOKEN
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(res => {
-                if (!res.ok) return res.json().then(err => {
-                    throw err;
-                });
-                return res.json();
-            })
-            .then(data => {
-                alert(data.message || "Success");
-                window.location.href = "{% url 'assessments_list' %}";
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Failed. Please check required fields.");
-            });
-    });
+    fetch("{% url 'assessment_section1_api' %}", {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRFTOKEN
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) return res.json().then(err => {
+          throw err;
+        });
+        return res.json();
+      })
+      .then(data => {
+        alert(data.message || "Success");
+        window.location.href = "{% url 'assessments_list' %}";
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Failed. Please check required fields.");
+      });
+  });
 </script>
+<script>
+  (() => {
+  const anatomyImage = document.getElementById("anatomyImage");
+  const markerLayer = document.getElementById("markerLayer");
+  let currentView = "front"; // front/back
+
+  const markersData = {
+    front: [],
+    back: []
+  };
+
+  // ===========================
+  // Create marker
+  // ===========================
+  function addMarker(x, y, note = "") {
+    const marker = document.createElement("div");
+    marker.className = "anatomy-marker";
+    marker.style.left = (x * 100) + "%";
+    marker.style.top = (y * 100) + "%";
+    marker.title = note;
+
+    // LEFT CLICK → floating textarea note
+    marker.addEventListener("click", ev => {
+      ev.stopPropagation();
+      createNotePopup(marker);
+    });
+
+    // RIGHT CLICK → delete marker
+    marker.addEventListener("contextmenu", ev => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      if (confirm("Remove this marking?")) {
+        marker.remove();
+        saveMarkers();
+      }
+    });
+
+    markerLayer.appendChild(marker);
+    saveMarkers();
+  }
+
+  // ===========================
+  // Click on image → add marker
+  // ===========================
+  anatomyImage.addEventListener("click", e => {
+    const rect = anatomyImage.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+    addMarker(x, y);
+  });
+
+  // ===========================
+  // Front/Back toggle
+  // ===========================
+  document.getElementById("btnFront").onclick = () => setView("front");
+  document.getElementById("btnBack").onclick = () => setView("back");
+
+  function setView(view) {
+    currentView = view;
+    anatomyImage.src = view === "front"
+      ? "/static/images/Muscles_front_and_back.svg"
+      : "/static/images/Muscles_front_and_back.svg"; // replace with back image if available
+    document.getElementById("btnFront").classList.toggle("active", view === "front");
+    document.getElementById("btnBack").classList.toggle("active", view === "back");
+
+    renderMarkers();
+  }
+
+  // ===========================
+  // Save markers in memory (JSON-ready)
+  // ===========================
+  function saveMarkers() {
+    const markers = markerLayer.querySelectorAll(".anatomy-marker");
+    markersData[currentView] = Array.from(markers).map(m => ({
+      x: parseFloat(m.style.left) / 100,
+      y: parseFloat(m.style.top) / 100,
+      note: m.title || ""
+    }));
+    console.log("Markers saved:", markersData);
+  }
+
+  // ===========================
+  // Render markers from memory
+  // ===========================
+  function renderMarkers() {
+    markerLayer.innerHTML = "";
+    markersData[currentView].forEach(m => addMarker(m.x, m.y, m.note));
+  }
+
+  // ===========================
+  // Floating textarea popup
+  // ===========================
+  function createNotePopup(marker) {
+    // Remove existing popup
+    const existing = document.getElementById("markerNotePopup");
+    if (existing) existing.remove();
+
+    const popup = document.createElement("div");
+    popup.id = "markerNotePopup";
+    popup.style.position = "absolute";
+    popup.style.zIndex = "1000";
+    popup.style.background = "#fff";
+    popup.style.border = "1px solid #ccc";
+    popup.style.padding = "8px";
+    popup.style.borderRadius = "4px";
+    popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+    popup.style.width = "350px";
+    popup.style.maxWidth = "90vw";
+    popup.style.height = "200px";
+    popup.style.overflow = "hidden";
+
+    // Position near marker
+    const rect = marker.getBoundingClientRect();
+    popup.style.left = rect.right + 5 + "px";
+    popup.style.top = rect.top + window.scrollY + "px";
+
+    // Textarea
+    const textarea = document.createElement("textarea");
+    textarea.rows = 8;
+    textarea.style.width = "100%";
+    textarea.style.height = "calc(100% - 35px)";
+    textarea.style.resize = "vertical";
+    textarea.value = marker.title || "";
+    popup.appendChild(textarea);
+
+    // Save button
+    const btnSave = document.createElement("button");
+    btnSave.textContent = "Save";
+    btnSave.style.marginTop = "4px";
+    btnSave.className = "btn btn-sm btn-primary";
+    popup.appendChild(btnSave);
+
+    btnSave.addEventListener("click", () => {
+      marker.title = textarea.value;
+      popup.remove();
+      saveMarkers();
+    });
+
+    document.body.appendChild(popup);
+
+    // ===========================
+    // Close popup on clicking outside
+    // ===========================
+    function closePopupOnOutsideClick(event) {
+      if (!popup.contains(event.target) && event.target !== marker) {
+        popup.remove();
+        document.removeEventListener("click", closePopupOnOutsideClick);
+      }
+    }
+
+    setTimeout(() => { // slight delay to avoid immediate removal on marker click
+      document.addEventListener("click", closePopupOnOutsideClick);
+    }, 0);
+  }
+
+})();
+
+</script>
+
 
 
 {% endblock %}

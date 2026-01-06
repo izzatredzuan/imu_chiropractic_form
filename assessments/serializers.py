@@ -8,9 +8,6 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
     student = serializers.StringRelatedField()
     clinician = serializers.CharField(source="evaluator", read_only=True)
 
-    progress = serializers.SerializerMethodField()
-    current_stage = serializers.SerializerMethodField()
-
     class Meta:
         model = Assessments
         fields = [
@@ -18,20 +15,12 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "patient_name",
             "student",
             "clinician",
-            "progress",
-            "current_stage",
             "is_section_1_signed",
             "is_section_2_signed",
             "is_section_3_signed",
             "created_at",
             "updated_at",
         ]
-
-    def get_progress(self, obj):
-        return obj.progress_percent()
-
-    def get_current_stage(self, obj):
-        return obj.current_stage()
 
 
 # serializers.py

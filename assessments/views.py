@@ -67,3 +67,55 @@ class AssessmentSection1FormView(View):
             )
 
         return render(request, self.template_name, context)
+
+
+class AssessmentSection2FormView(View):
+    template_name = "assessments/section2_form.html"
+
+    def get(self, request):
+        profile = request.user.profile
+        assessment_id = request.GET.get("id")
+
+        context = {}
+
+        # =========================
+        # Edit mode
+        # =========================
+        if assessment_id:
+            try:
+                assessment = Assessments.objects.get(id=assessment_id)
+            except Assessments.DoesNotExist:
+                return HttpResponseNotFound("Assessment not found.")
+
+            # Student can only view their own
+            if profile.role == "student" and assessment.student != profile:
+                return HttpResponseForbidden("You cannot access this assessment.")
+
+            context["assessment"] = assessment
+            context["assessment_id"] = assessment_id
+
+            # Section 2 becomes readonly once signed
+            context["is_readonly"] = assessment.is_section_2_signed
+
+        # =========================
+        # Role-based dropdowns
+        # =========================
+        if profile.role == "admin":
+            context["students"] = Profile.objects.filter(role="student").order_by(
+                "official_name"
+            )
+            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            )
+
+        elif profile.role == "student":
+            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            )
+
+        elif profile.role == "clinician":
+            context["students"] = Profile.objects.filter(role="student").order_by(
+                "official_name"
+            )
+
+        return render(request, self.template_name, context)
