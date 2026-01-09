@@ -234,7 +234,7 @@
             </div> -->
           </div>
 
-          <div class="card-body text-center">
+          <div id="anatomySection"class="card-body text-center">
 
             <!-- Instructions -->
             <div class="mb-3 text-muted small">
@@ -414,101 +414,41 @@
         alert("Failed. Please check required fields.");
       });
   });
-</script>
-<script>
+
+  // ===========================
+  // Anatomy Marking Logic
+  // ===========================
   (() => {
+  const anatomySection = document.getElementById("anatomySection");
   const anatomyImage = document.getElementById("anatomyImage");
   const markerLayer = document.getElementById("markerLayer");
-  let currentView = "front"; // front/back
-
-  const markersData = {
-    front: [],
-    back: []
-  };
-
-  // ===========================
-  // Create marker
-  // ===========================
-  function addMarker(x, y, note = "") {
-    const marker = document.createElement("div");
-    marker.className = "anatomy-marker";
-    marker.style.left = (x * 100) + "%";
-    marker.style.top = (y * 100) + "%";
-    marker.title = note;
-
-    // LEFT CLICK → floating textarea note
-    marker.addEventListener("click", ev => {
-      ev.stopPropagation();
-      createNotePopup(marker);
-    });
-
-    // RIGHT CLICK → delete marker
-    marker.addEventListener("contextmenu", ev => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      if (confirm("Remove this marking?")) {
-        marker.remove();
-        saveMarkers();
-      }
-    });
-
-    markerLayer.appendChild(marker);
-    saveMarkers();
-  }
-
-  // ===========================
-  // Click on image → add marker
-  // ===========================
-  anatomyImage.addEventListener("click", e => {
-    const rect = anatomyImage.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-    addMarker(x, y);
+  
+  // Prevent right-click menu in the anatomy section
+  anatomySection.addEventListener("contextmenu", function(e) {
+    e.preventDefault();
   });
 
   // ===========================
-  // Front/Back toggle
-  // ===========================
-  document.getElementById("btnFront").onclick = () => setView("front");
-  document.getElementById("btnBack").onclick = () => setView("back");
-
-  function setView(view) {
-    currentView = view;
-    anatomyImage.src = view === "front"
-      ? "/static/images/Muscles_front_and_back.svg"
-      : "/static/images/Muscles_front_and_back.svg"; // replace with back image if available
-    document.getElementById("btnFront").classList.toggle("active", view === "front");
-    document.getElementById("btnBack").classList.toggle("active", view === "back");
-
-    renderMarkers();
-  }
-
-  // ===========================
-  // Save markers in memory (JSON-ready)
+  // Save markers to JSON
   // ===========================
   function saveMarkers() {
     const markers = markerLayer.querySelectorAll(".anatomy-marker");
-    markersData[currentView] = Array.from(markers).map(m => ({
+
+    const markersData = Array.from(markers).map(m => ({
       x: parseFloat(m.style.left) / 100,
       y: parseFloat(m.style.top) / 100,
       note: m.title || ""
     }));
-    console.log("Markers saved:", markersData);
-  }
 
-  // ===========================
-  // Render markers from memory
-  // ===========================
-  function renderMarkers() {
-    markerLayer.innerHTML = "";
-    markersData[currentView].forEach(m => addMarker(m.x, m.y, m.note));
+    console.log("Markers saved:", markersData);
+
+    return markersData;
   }
 
   // ===========================
   // Floating textarea popup
   // ===========================
   function createNotePopup(marker) {
-    // Remove existing popup
     const existing = document.getElementById("markerNotePopup");
     if (existing) existing.remove();
 
@@ -521,59 +461,109 @@
     popup.style.padding = "8px";
     popup.style.borderRadius = "4px";
     popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-    popup.style.width = "350px";
-    popup.style.maxWidth = "90vw";
-    popup.style.height = "200px";
-    popup.style.overflow = "hidden";
+    popup.style.width = "400px";
+    popup.style.height = "220px";
 
-    // Position near marker
-    const rect = marker.getBoundingClientRect();
-    popup.style.left = rect.right + 5 + "px";
-    popup.style.top = rect.top + window.scrollY + "px";
-
-    // Textarea
     const textarea = document.createElement("textarea");
     textarea.rows = 8;
     textarea.style.width = "100%";
-    textarea.style.height = "calc(100% - 35px)";
+    textarea.style.height = "calc(100% - 40px)";
     textarea.style.resize = "vertical";
     textarea.value = marker.title || "";
     popup.appendChild(textarea);
 
-    // Save button
     const btnSave = document.createElement("button");
     btnSave.textContent = "Save";
-    btnSave.style.marginTop = "4px";
     btnSave.className = "btn btn-sm btn-primary";
     popup.appendChild(btnSave);
 
+    let saved = false;
+    const originalText = marker.title || "";
+
     btnSave.addEventListener("click", () => {
       marker.title = textarea.value;
+      saved = true;
       popup.remove();
       saveMarkers();
+      document.removeEventListener("click", outsideHandler);
     });
 
     document.body.appendChild(popup);
 
+    // position near marker
+    const rect = marker.getBoundingClientRect();
+    popup.style.left = rect.right + 5 + "px";
+    popup.style.top = rect.top + window.scrollY + "px";
+
     // ===========================
-    // Close popup on clicking outside
+    // Outside click close with alert
     // ===========================
-    function closePopupOnOutsideClick(event) {
-      if (!popup.contains(event.target) && event.target !== marker) {
-        popup.remove();
-        document.removeEventListener("click", closePopupOnOutsideClick);
+    function outsideHandler(event) {
+    // click on popup or marker → do nothing
+    if (popup.contains(event.target) || event.target === marker) return;
+    // unsaved changes
+    if (textarea.value !== originalText) {
+      console.log("Unsaved changes detected.");
+      const discard = confirm("You have unsaved changes. Discard the note?");
+      if (!discard) {
+        // user wants to keep editing → stop closing
+        return;
       }
     }
 
-    setTimeout(() => { // slight delay to avoid immediate removal on marker click
-      document.addEventListener("click", closePopupOnOutsideClick);
-    }, 0);
+    // remove popup
+    popup.remove();
+    document.removeEventListener("click", outsideHandler);
   }
 
-})();
+  // attach listener after current call stack
+  setTimeout(() => {
+    document.addEventListener("click", outsideHandler);
+  }, 0);
 
+  }
+
+  // ===========================
+  // Create marker on image click
+  // ===========================
+  anatomyImage.addEventListener("click", function (e) {
+    const rect = anatomyImage.getBoundingClientRect();
+
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+
+    const marker = document.createElement("div");
+    marker.className = "anatomy-marker";
+
+    marker.style.left = (x * 100) + "%";
+    marker.style.top = (y * 100) + "%";
+
+    // reopen popup later
+    marker.addEventListener("click", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      createNotePopup(marker);
+    });
+
+    // right-click delete
+    marker.addEventListener("contextmenu", function (ev) {
+      ev.preventDefault();
+      ev.stopPropagation();
+
+      if (confirm("Remove this marking?")) {
+        marker.remove();
+        saveMarkers();
+      }
+    });
+
+    markerLayer.appendChild(marker);
+
+    // instantly open popup
+    createNotePopup(marker);
+  });
+
+  })();
 </script>
-
 
 
 {% endblock %}

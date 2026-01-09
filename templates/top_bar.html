@@ -16,53 +16,9 @@
     </button>
 
     <div class="collapse navbar-collapse" id="navbarToggler">
-
+      <!-- Only show if user is authenticated -->
+      {% if request.user.is_authenticated%}
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-
-        <!-- Students -->
-        {% if request.user.profile.role in "student admin" %}
-        <li class="nav-item dropdown px-2">
-          <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">Students</a>
-          <ul class="dropdown-menu shadow-sm border-0 rounded-3 p-2">
-            <li>
-              <a class="dropdown-item rounded-2 py-2" href="{% url 'view_students' %}">
-                <i class="fas fa-tasks fa-fw me-2"></i> View Students
-              </a>
-            </li>
-            <!-- <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li>
-              <a class="dropdown-item rounded-2 py-2" href="#">
-                <i class="fas fa-user-secret fa-fw me-2"></i> Students Admin Page
-              </a>
-            </li> -->
-          </ul>
-        </li>
-        {% endif %}
-
-        <!-- Clinicians -->
-        {% if request.user.profile.role in "clinician admin" %}
-        <li class="nav-item dropdown px-2">
-          <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">Clinicians</a>
-          <ul class="dropdown-menu shadow-sm border-0 rounded-3 p-2">
-            <li>
-              <a class="dropdown-item rounded-2 py-2" href="{% url 'view_clinicians' %}">
-                <i class="fas fa-tasks fa-fw me-2"></i> View Clinicians
-              </a>
-            </li>
-            <!-- <li>
-              <hr class="dropdown-divider">
-            </li>
-            <li>
-              <a class="dropdown-item rounded-2 py-2" href="#">
-                <i class="fas fa-user-secret fa-fw me-2"></i> Clinicians Admin Page
-              </a>
-            </li> -->
-          </ul>
-        </li>
-        {% endif %}
-
         <!-- Assessments -->
         <li class="nav-item dropdown px-2">
           <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">Assessments</a>
@@ -80,8 +36,28 @@
 
         <!-- Profile -->
         <li class="nav-item dropdown px-2">
-          <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">Profile</a>
-          <ul class="dropdown-menu shadow-sm border-0 rounded-3 p-2">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-3 text-dark" href="#"
+            data-bs-toggle="dropdown" aria-expanded="false">
+
+            <!-- Avatar -->
+            <div class="profile-avatar">
+              {% with request.user.profile.official_name.split as parts %}
+              {{ parts.0|slice:":1"|upper }}{% if parts|length > 1 %}{{ parts.1|slice:":1"|upper }}{% endif %}
+              {% endwith %}
+            </div>
+
+            <!-- Name + Profile Label -->
+            <div class="profile-text">
+              <div class="profile-name">
+                {{ request.user.profile.official_name }}
+              </div>
+              <div class="profile-label">
+                Profile
+              </div>
+            </div>
+          </a>
+
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 p-2">
             {% if request.user.profile.is_admin %}
             <li>
               <a class="dropdown-item rounded-2 py-2" href="{% url 'user_list' %}">
@@ -97,6 +73,7 @@
           </ul>
         </li>
 
+
         <!-- Leaves Portal -->
         <!-- <li class="nav-item px-2">
           <a class="nav-link fw-semibold text-dark" href="#">
@@ -105,6 +82,7 @@
         </li> -->
 
       </ul>
+      {% endif %}
     </div>
   </div>
 </nav>
@@ -140,5 +118,32 @@
   .dropdown-menu a.dropdown-item:hover {
     background-color: #eaf2ff;
     color: #0d6efd;
+  }
+
+  /* Profile Avatar */
+  .profile-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd, #5a8dee);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  /* Profile Name */
+  .profile-name {
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Hover polish */
+  #top_bar .nav-item.dropdown:hover .profile-avatar {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
   }
 </style>
