@@ -150,8 +150,8 @@ STATICFILES_DIRS = []
 if DEBUG:
     STATICFILES_DIRS.append(os.path.join(BASE_DIR, "static"))
 
-MEDIA_ROOT = "/imu_chiropractic_form/media/"
 MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 STATIC_URL = "static/"
 

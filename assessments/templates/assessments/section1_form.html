@@ -89,7 +89,7 @@
         </div>
         {% endif %}
 
-        {% if request.user.profile.role == "admin" %}
+        {% if request.user.profile.role == "admin" or request.user.profile.role == "clinician" %}
         <div class="row">
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
@@ -129,22 +129,6 @@
             {% endfor %}
           </select>
         </div>
-        {% endif %}
-
-        {% if request.user.profile.role == "clinician" %}
-        <div class="mb-3">
-          <label class="form-label required">Student</label>
-          <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
-            <option value="">-- Select Student --</option>
-            {% for s in students %}
-            <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
-              {{ s.member_id }} – {{ s.official_name }}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-
-        <input type="hidden" name="evaluator" value="{{ request.user.profile.id }}">
         {% endif %}
 
       </div>
@@ -218,6 +202,26 @@
             </div>
           </div>
         </div>
+
+        <!-- =========================
+            Summary & Special Direction (NEW)
+        ========================== -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header fw-semibold">Summary</div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">Summary</label>
+              <textarea name="summary" class="form-control" rows="4"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Special Direction</label>
+              <textarea name="special_direction" class="form-control" rows="4"
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- ========== RIGHT COLUMN ========== -->

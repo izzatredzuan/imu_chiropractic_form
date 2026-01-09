@@ -157,10 +157,6 @@ class AssessmentSection1APIView(APIView):
                 student=student,
                 evaluator=evaluator,
                 **data,
-                # Student sign-off on creation
-                is_student_signed=True,
-                student_signed_by=student,
-                student_signed_at=timezone.now(),
                 # Clinician sign-offs reset
                 is_section_1_signed=False,
                 is_section_2_signed=False,
@@ -233,7 +229,6 @@ class AssessmentSection1APIView(APIView):
             # -------------------------
             # Reset sign-offs on edit
             # -------------------------
-            assessment.is_student_signed = False
             assessment.student_signed_by = None
             assessment.student_signed_at = None
 

@@ -59,8 +59,6 @@ class AssessmentSection1DetailSerializer(serializers.ModelSerializer):
             "occupational",
             "diet",
             "system_review",
-            # Sign-offs (needed by frontend)
-            "is_student_signed",
             "is_section_1_signed",
             "created_at",
             "updated_at",
@@ -115,9 +113,6 @@ class AssessmentSection1CreateSerializer(serializers.ModelSerializer):
         # If user is a student, override student field
         if user_profile.role == "student":
             validated_data["student"] = user_profile
-            validated_data["is_student_signed"] = True
-            validated_data["student_signed_by"] = user_profile
-            validated_data["student_signed_at"] = timezone.now()
 
         # If user is admin, must select student manually
         elif user_profile.role == "admin":
@@ -126,8 +121,13 @@ class AssessmentSection1CreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"student": "This field is required for admins."}
                 )
-            validated_data["is_student_signed"] = True
             validated_data["student_signed_by"] = student
             validated_data["student_signed_at"] = timezone.now()
+
+        # -----------------------------
+        # Audit fields
+        # -----------------------------
+        validated_data["created_by"] = user_profile
+        validated_data["updated_by"] = user_profile
 
         return super().create(validated_data)

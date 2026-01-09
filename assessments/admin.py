@@ -1,52 +1,85 @@
 from django.contrib import admin
 from .models import Assessments
-from django.utils.translation import gettext_lazy as _
-
 
 class AssessmentsAdmin(admin.ModelAdmin):
-    # Display these fields in the list view
+    # =====================
+    # List view
+    # =====================
     list_display = (
         "patient_name",
         "student",
         "evaluator",
-        "gender",
-        "date_of_birth",
-        "systolic_bp",
-        "diastolic_bp",
-        "is_student_signed",
+        "is_initial_patient_consent_signed",
         "is_section_1_signed",
         "is_section_2_signed",
         "is_section_3_signed",
-        "created_at",
+        "is_section_4_signed",
+        "is_section_5_signed",
         "updated_at",
     )
 
-    # Add search capability for certain fields
+    list_filter = (
+        "gender",
+        "is_initial_patient_consent_signed",
+        "is_section_1_signed",
+        "is_section_2_signed",
+        "is_section_3_signed",
+        "is_section_4_signed",
+        "is_section_5_signed",
+        "created_at",
+    )
+
     search_fields = (
         "patient_name",
         "student__user__username",
         "evaluator__user__username",
+        "initial_patient_consent_signed_by",
     )
 
-    # Add filters for certain fields in the sidebar (to help filter in the admin)
-    list_filter = (
-        "gender",
-        "is_student_signed",
-        "is_section_1_signed",
-        "is_section_2_signed",
-        "is_section_3_signed",
+    ordering = ("-updated_at",)
+
+    # =====================
+    # Read-only fields
+    # =====================
+    readonly_fields = (
         "created_at",
         "updated_at",
+        "initial_patient_consent_signed_at",
+        "section_1_signed_at",
+        "section_2_signed_at",
+        "section_3_signed_at",
+        "section_4_signed_at",
+        "section_5_signed_at",
     )
 
-    # Fields to display in the form when adding/editing an instance
+    # =====================
+    # Form layout
+    # =====================
     fieldsets = (
         (
-            None,
+            "Assignment",
             {
                 "fields": (
                     "student",
                     "evaluator",
+                )
+            },
+        ),
+        (
+            "Initial Patient Consent",
+            {
+                "fields": (
+                    "is_initial_patient_consent_signed",
+                    "initial_patient_consent_signed_by",
+                    "initial_patient_consent_signed_at",
+                    "initial_patient_consent_signature",
+                )
+            },
+        ),
+        (
+            "Section 1 – Initial Assessment",
+            {
+                "fields": (
                     "patient_name",
                     "gender",
                     "date_of_birth",
@@ -56,11 +89,14 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "diastolic_bp",
                     "summary",
                     "special_direction",
-                ),
+                    "is_section_1_signed",
+                    "section_1_signed_by",
+                    "section_1_signed_at",
+                )
             },
         ),
         (
-            _("Presenting Complaint"),
+            "Section 2 – Presenting Complaint",
             {
                 "fields": (
                     "chief_complaint",
@@ -76,37 +112,32 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "occupational",
                     "diet",
                     "system_review",
-                ),
-            },
-        ),
-        (
-            _("Sign Offs"),
-            {
-                "fields": (
-                    "is_student_signed",
-                    "student_signed_by",
-                    "student_signed_at",
-                    "is_section_1_signed",
-                    "section_1_signed_by",
-                    "section_1_signed_at",
+                    "differential_diagnosis",
                     "special_examination_instruction",
                     "is_section_2_signed",
                     "section_2_signed_by",
                     "section_2_signed_at",
-                    "further_diagnostic_procedures",
-                    "ptt",
-                    "procedures_signed_at",
-                    "procedures_signed_by",
-                    "is_section_3_signed",
-                    "section_3_signed_by",
-                    "section_3_signed_at",
-                ),
+                )
             },
         ),
         (
-            _("Neurological & Final"),
+            "Section 3 – Physical & Neurological Examination",
             {
                 "fields": (
+                    "inspection_posture",
+                    "inspection_gait",
+                    "inspection_regional",
+                    "palpation",
+                    "percussion",
+                    "instrumentation",
+                    "rom_active",
+                    "rom_passive",
+                    "rom_resisted",
+                    "second_chiropractic_notes",
+                    "further_diagnostic_procedures",
+                    "ptt",
+                    "procedures_signed_by",
+                    "procedures_signed_at",
                     "cranial_nerves",
                     "cerebellar",
                     "spinal_cord",
@@ -117,27 +148,67 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "third_chiropractic_notes",
                     "imaging",
                     "lab",
-                ),
+                    "working_diagnosis",
+                    "is_section_3_signed",
+                    "section_3_signed_by",
+                    "section_3_signed_at",
+                )
             },
         ),
         (
-            _("Meta Information"),
+            "Section 4 – Problem & Interventions",
             {
-                "fields": ("created_at", "updated_at"),
+                "fields": (
+                    "diagnosis",
+                    "diagnosis_date",
+                    "is_section_4_signed",
+                    "section_4_signed_by",
+                    "section_4_signed_at",
+                )
+            },
+        ),
+        (
+            "Section 5 – Treatment Plan",
+            {
+                "fields": (
+                    "phase_1",
+                    "phase_2",
+                    "phase_3",
+                    "is_section_5_signed",
+                    "section_5_signed_by",
+                    "section_5_signed_at",
+                )
+            },
+        ),
+        (
+            "Meta",
+            {
+                "fields": (
+                    "created_at",
+                    "created_by",
+                    "updated_at",
+                    "updated_by",
+                )
             },
         ),
     )
 
-    # Make fields read-only for certain fields that shouldn't be edited directly
-    readonly_fields = ("created_at", "updated_at")
+    # =====================
+    # Auto set created_by and updated_by
+    # =====================
+    def save_model(self, request, obj, form, change):
+        if request.user.is_authenticated and hasattr(request.user, "profile"):
+            profile = request.user.profile
 
-    # Optionally, you can make some fields non-editable in the admin
-    def get_readonly_fields(self, request, obj=None):
-        # Example: make `student_signed_at` non-editable when `is_student_signed` is True
-        readonly_fields = super().get_readonly_fields(request, obj)
-        if obj and obj.is_student_signed:
-            readonly_fields += ("student_signed_at",)
-        return readonly_fields
+            # Set created_by ONLY on first creation
+            if not change and obj.created_by is None:
+                obj.created_by = profile
+
+            # Always update updated_by
+            obj.updated_by = profile
+
+        super().save_model(request, obj, form, change)
+
 
 
 # Register the model and the custom admin class
