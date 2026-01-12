@@ -9,6 +9,19 @@ class Assessments(models.Model):
         ("female", "Female"),
     )
 
+
+    # =====================
+    # Initial Patient Consent
+    # =====================
+    is_initial_patient_consent_signed = models.BooleanField(default=False)
+    initial_patient_consent_signed_by = models.CharField(max_length=150)
+    initial_patient_consent_signed_at = models.DateTimeField(
+        null=True, blank=True, default=None
+    )
+    initial_patient_consent_signature = models.ImageField(
+        upload_to="assessments/patient_signatures/", null=True, blank=True
+    )
+    
     # =====================
     # Assignment
     # =====================
@@ -30,18 +43,6 @@ class Assessments(models.Model):
         related_name="evaluator_assessments",
         limit_choices_to={"role": "clinician"},
         default=None,
-    )
-
-    # =====================
-    # Initial Patient Consent
-    # =====================
-    is_initial_patient_consent_signed = models.BooleanField(default=False)
-    initial_patient_consent_signed_by = models.CharField(max_length=150)
-    initial_patient_consent_signed_at = models.DateTimeField(
-        null=True, blank=True, default=None
-    )
-    initial_patient_consent_signature = models.ImageField(
-        upload_to="assessments/patient_signatures/", null=True, blank=True
     )
 
     # =====================

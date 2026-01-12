@@ -378,10 +378,31 @@
     clickedAction = "sign_off_section_1";
   }); 
   {% endif %}
-
+ 
+  // ===========================
+  // Save confirmation and submission
+  // ===========================
   document.getElementById("section1Form").addEventListener("submit", function (e) {
     e.preventDefault();
 
+    const isUpdate = {% if assessment %}true{% else %}false{% endif %};
+
+    if (isUpdate) {
+      let confirmMessage = "Are you sure you want to save the changes? All sections sign-offs will be reset.";
+
+      if (clickedAction === "sign_off_section_1") {
+        confirmMessage =
+          "Are you sure you want to UPDATE and SIGN OFF Section 1?";
+      }
+
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+    }
+
+    // ==========================
+    // Proceed with save
+    // ==========================
     const formData = new FormData(this);
     formData.set("action", clickedAction);
 
