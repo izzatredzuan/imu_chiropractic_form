@@ -40,51 +40,30 @@
                 orderable: false,
                 searchable: false,
                 render: function (row) {
+                    function sectionBtn(sectionNo, isSigned, prevSigned) {
+                        let cls = "btn btn-sm ";
 
-                    // -------------------------
-                    // Section 1 button
-                    // -------------------------
-                    let section1Class = "btn btn-sm ";
-                    if (row.is_section_1_signed) {
-                        section1Class += "btn-success";
-                    } else {
-                        section1Class += "btn-primary";
-                    }
+                        if (!prevSigned) {
+                            cls += "btn-secondary disabled";
+                        } else if (isSigned) {
+                            cls += "btn-success";
+                        } else {
+                            cls += "btn-primary";
+                        }
 
-                    // -------------------------
-                    // Section 2 button
-                    // -------------------------
-                    let section2Class = "btn btn-sm ";
-                    if (!row.is_section_1_signed) {
-                        section2Class += "btn-secondary disabled";
-                    } else if (row.is_section_2_signed) {
-                        section2Class += "btn-success";
-                    } else {
-                        section2Class += "btn-primary";
-                    }
-
-                    // -------------------------
-                    // Section 3 button
-                    // -------------------------
-                    let section3Class = "btn btn-sm ";
-                    if (!row.is_section_2_signed) {
-                        section3Class += "btn-secondary disabled";
-                    } else if (row.is_section_3_signed) {
-                        section3Class += "btn-success";
-                    } else {
-                        section3Class += "btn-primary";
+                        return `
+                            <a href="/assessments/section-${sectionNo}/form/?id=${row.id}" class="${cls}">
+                                Section ${sectionNo}
+                            </a>
+                        `;
                     }
 
                     return `
-                        <a href="/assessments/section-1/form/?id=${row.id}" class="${section1Class}">
-                            Section 1
-                        </a>
-                        <a href="/assessments/section-2/form/?id=${row.id}" class="${section2Class}">
-                            Section 2
-                        </a>
-                        <a href="/assessments/section-3/form/?id=${row.id}" class="${section3Class}">
-                            Section 3
-                        </a>
+                        ${sectionBtn(1, row.is_section_1_signed, true)}
+                        ${sectionBtn(2, row.is_section_2_signed, row.is_section_1_signed)}
+                        ${sectionBtn(3, row.is_section_3_signed, row.is_section_2_signed)}
+                        ${sectionBtn(4, row.is_section_4_signed, row.is_section_3_signed)}
+                        ${sectionBtn(5, row.is_section_5_signed, row.is_section_4_signed)}
                     `;
                 },
             },
@@ -96,10 +75,24 @@
                 }
             },
             {
+                title: "Created By",
+                data: "created_by",
+                render: function (data) {
+                    return data ? data : "-";
+                }
+            },
+            {
                 title: "Last Updated",
                 data: "updated_at",
                 render: function (data) {
                     return data ? moment(data).format("DD/MM/YYYY") : "-";
+                }
+            },
+            {
+                title: "Updated By",
+                data: "updated_by",
+                render: function (data) {
+                    return data ? data : "-";
                 }
             }
         ];
@@ -114,11 +107,13 @@
             },
             columns: columnsConfig,
             responsive: true,
+            // scrollX: true,
+            // autoWidth: false,
             pageLength: 25,
             lengthMenu: [5, 10, 25, 50, 100],
             order: [
                 [5, 'asc']
-            ]
+            ],
         });
     });
 </script>

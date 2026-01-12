@@ -7,6 +7,12 @@ from .models import Assessments
 class AssessmentsListSerializer(serializers.ModelSerializer):
     student = serializers.StringRelatedField()
     clinician = serializers.CharField(source="evaluator", read_only=True)
+    updated_by = serializers.CharField(
+        source="updated_by.official_name", read_only=True
+    )
+    created_by = serializers.CharField(
+        source="created_by.official_name", read_only=True
+    )
 
     class Meta:
         model = Assessments
@@ -18,7 +24,9 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "is_section_1_signed",
             "is_section_2_signed",
             "is_section_3_signed",
+            "created_by",
             "created_at",
+            "updated_by",
             "updated_at",
         ]
 
@@ -121,13 +129,22 @@ class AssessmentSection1CreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"student": "This field is required for admins."}
                 )
-            validated_data["student_signed_by"] = student
-            validated_data["student_signed_at"] = timezone.now()
-
+            
         # -----------------------------
-        # Audit fields
+        # Audit fields (CREATE)
         # -----------------------------
         validated_data["created_by"] = user_profile
         validated_data["updated_by"] = user_profile
 
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        request = self.context["request"]
+        user_profile = request.user.profile
+
+        # -----------------------------
+        # Audit field (UPDATE)
+        # -----------------------------
+        instance.updated_by = user_profile
+
+        return super().update(instance, validated_data)

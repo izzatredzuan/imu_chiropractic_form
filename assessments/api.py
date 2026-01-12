@@ -26,10 +26,7 @@ class AssessmentsListAPIView(APIView):
         if role == "student":
             queryset = Assessments.objects.filter(student=profile)
 
-        elif role == "clinician":
-            queryset = Assessments.objects.filter(evaluator=profile)
-
-        elif role == "admin":
+        elif role == "admin" or role == "clinician":
             queryset = Assessments.objects.all()
 
         else:
@@ -116,22 +113,7 @@ class AssessmentSection1APIView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-        elif profile.role == "clinician":
-            evaluator = profile
-            student = student_from_payload
-
-            if not student:
-                return Response(
-                    {"student": "Student is required"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            try:
-                student = Profile.objects.get(id=student_from_payload.id)
-
-            except Profile.DoesNotExist:
-                return Response({"student": "Invalid student ID"}, status=400)
-
-        elif profile.role == "admin":
+        elif profile.role == "admin" or profile.role == "clinician":
             student = student_from_payload
             if not student:
                 return Response(
@@ -153,11 +135,10 @@ class AssessmentSection1APIView(APIView):
         # Create assessment
         # --------------------------------
         try:
-            assessment = Assessments.objects.create(
+            # Use serializer to create to ensure audit fields are set
+            assessment = serializer.save(
                 student=student,
                 evaluator=evaluator,
-                **data,
-                # Clinician sign-offs reset
                 is_section_1_signed=False,
                 is_section_2_signed=False,
                 is_section_3_signed=False,
@@ -209,12 +190,6 @@ class AssessmentSection1APIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if profile.role == "clinician" and assessment.evaluator != profile:
-            return Response(
-                {"detail": "You are not assigned to this assessment"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
         serializer = AssessmentSection1CreateSerializer(
             assessment,
             data=request.data,
@@ -229,8 +204,6 @@ class AssessmentSection1APIView(APIView):
             # -------------------------
             # Reset sign-offs on edit
             # -------------------------
-            assessment.student_signed_by = None
-            assessment.student_signed_at = None
 
             assessment.is_section_1_signed = False
             assessment.section_1_signed_by = None
@@ -257,8 +230,6 @@ class AssessmentSection1APIView(APIView):
                     f"student={assessment.student.official_name}, "
                     f"signed_by={profile.official_name} ({profile.role})"
                 )
-
-            assessment.updated_at = timezone.now()
             assessment.save()
 
             logger.info(
