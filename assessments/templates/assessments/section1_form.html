@@ -20,7 +20,8 @@
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; /* clicks pass through to image */
+    pointer-events: none;
+    /* clicks pass through to image */
   }
 
   .anatomy-marker {
@@ -31,8 +32,9 @@
     border-radius: 50%;
     transform: translate(-50%, -50%);
     border: 2px solid #fff;
-    box-shadow: 0 0 0 1px rgba(0,0,0,0.2);
-    pointer-events: auto; /* allows click/right-click */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+    pointer-events: auto;
+    /* allows click/right-click */
     cursor: pointer;
   }
 
@@ -238,21 +240,18 @@
             </div> -->
           </div>
 
-          <div id="anatomySection"class="card-body text-center">
+          <div id="anatomySection" class="card-body text-center">
 
             <!-- Instructions -->
             <div class="mb-3 text-muted small">
-              <strong>Instructions:</strong> Click on the body to mark pain or tenderness.  
+              <strong>Instructions:</strong> Click on the body to mark pain or tenderness.
               Left-click a marker to add/edit a note. Right-click a marker to delete it.
             </div>
 
             <!-- Anatomy Image Container -->
             <div id="anatomyWrapper" class="position-relative d-inline-block">
-              <img
-                src="/static/images/Muscles_front_and_back.svg"
-                id="anatomyImage"
-                style="display: block; max-height: 520px; width: auto;"
-              />
+              <img src="/static/images/Muscles_front_and_back.svg" id="anatomyImage"
+                style="display: block; max-height: 520px; width: auto;" />
               <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
             </div>
           </div>
@@ -261,108 +260,24 @@
     </div>
 
     <!-- =========================
-        PRESENTING COMPLAINT
-    ========================== -->
-    <div class="card mt-4 shadow-sm">
-      <div class="card-header fw-semibold">Presenting Complaint</div>
-      <div class="card-body">
-
-        <div class="mb-3">
-          <label class="form-label required">Chief Complaint</label>
-          <textarea name="chief_complaint" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.chief_complaint|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">History of Condition</label>
-          <textarea name="history_of_condition" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.history_of_condition|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Pain</label>
-          <textarea name="pain" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.pain|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Aggravating Factors</label>
-          <textarea name="aggravating_factors" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.aggravating_factors|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Relieving Factors</label>
-          <textarea name="relieving_factors" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.relieving_factors|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Associated Symptoms</label>
-          <textarea name="associated_symptoms" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.associated_symptoms|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Health History Review</label>
-          <textarea name="health_hx_review" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.health_hx_review|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Past Illnesses</label>
-          <textarea name="past_illnesses" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.past_illnesses|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Family History</label>
-          <textarea name="family_hx" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.family_hx|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Psycho Social History</label>
-          <textarea name="psycho_social_hx" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.psycho_social_hx|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Occupational</label>
-          <textarea name="occupational" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.occupational|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Diet</label>
-          <textarea name="diet" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.diet|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">System Review</label>
-          <textarea name="system_review" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.system_review|default_if_none:'' }}</textarea>
-        </div>
-
-      </div>
-    </div>
-
-
-    <!-- =========================
             SUBMIT
         ========================== -->
     <div class="mt-4 d-flex justify-content-end gap-2">
-      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">Cancel</a>
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">
+        Cancel
+      </a>
 
-      <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary">
-        {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
-      </button>
+      <!-- Hide button if user is only able to readonly -->
+      {% if not is_readonly %}
+        <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary">
+          {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
+        </button>
 
-      {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
-      <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
-        Update & Sign Off Section 1
-      </button>
+        {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
+          <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
+            Update & Sign Off Section 1
+          </button>
+        {% endif %}
       {% endif %}
     </div>
 
@@ -371,14 +286,14 @@
 
 <script>
   document.getElementById("btnSave").addEventListener("click", function () {
-    clickedAction = "save";
+    clickedAction = "save_section_1";
   }); 
   {% if assessment and not assessment.is_section_1_signed %}
   document.getElementById("btnSignOff").addEventListener("click", function () {
     clickedAction = "sign_off_section_1";
   }); 
   {% endif %}
- 
+
   // ===========================
   // Save confirmation and submission
   // ===========================
@@ -413,10 +328,10 @@
     payload["assessment_id"] = "{{ assessment.id }}";
     const method = "PUT"; 
     {% else %}
-    const method = "POST"; 
+    const method = "POST";
     {% endif %}
 
-    fetch("{% url 'assessment_section1_api' %}", {
+    fetch("{% url 'assessment_section1_and_2_api' %}", {
         method: method,
         headers: {
           "Content-Type": "application/json",
@@ -444,148 +359,148 @@
   // Anatomy Marking Logic
   // ===========================
   (() => {
-  const anatomySection = document.getElementById("anatomySection");
-  const anatomyImage = document.getElementById("anatomyImage");
-  const markerLayer = document.getElementById("markerLayer");
-  
-  // Prevent right-click menu in the anatomy section
-  anatomySection.addEventListener("contextmenu", function(e) {
-    e.preventDefault();
-  });
+    const anatomySection = document.getElementById("anatomySection");
+    const anatomyImage = document.getElementById("anatomyImage");
+    const markerLayer = document.getElementById("markerLayer");
 
-  // ===========================
-  // Save markers to JSON
-  // ===========================
-  function saveMarkers() {
-    const markers = markerLayer.querySelectorAll(".anatomy-marker");
-
-    const markersData = Array.from(markers).map(m => ({
-      x: parseFloat(m.style.left) / 100,
-      y: parseFloat(m.style.top) / 100,
-      note: m.title || ""
-    }));
-
-    console.log("Markers saved:", markersData);
-
-    return markersData;
-  }
-
-  // ===========================
-  // Floating textarea popup
-  // ===========================
-  function createNotePopup(marker) {
-    const existing = document.getElementById("markerNotePopup");
-    if (existing) existing.remove();
-
-    const popup = document.createElement("div");
-    popup.id = "markerNotePopup";
-    popup.style.position = "absolute";
-    popup.style.zIndex = "1000";
-    popup.style.background = "#fff";
-    popup.style.border = "1px solid #ccc";
-    popup.style.padding = "8px";
-    popup.style.borderRadius = "4px";
-    popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-    popup.style.width = "400px";
-    popup.style.height = "220px";
-
-    const textarea = document.createElement("textarea");
-    textarea.rows = 8;
-    textarea.style.width = "100%";
-    textarea.style.height = "calc(100% - 40px)";
-    textarea.style.resize = "vertical";
-    textarea.value = marker.title || "";
-    popup.appendChild(textarea);
-
-    const btnSave = document.createElement("button");
-    btnSave.textContent = "Save";
-    btnSave.className = "btn btn-sm btn-primary";
-    popup.appendChild(btnSave);
-
-    let saved = false;
-    const originalText = marker.title || "";
-
-    btnSave.addEventListener("click", () => {
-      marker.title = textarea.value;
-      saved = true;
-      popup.remove();
-      saveMarkers();
-      document.removeEventListener("click", outsideHandler);
+    // Prevent right-click menu in the anatomy section
+    anatomySection.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
     });
 
-    document.body.appendChild(popup);
-
-    // position near marker
-    const rect = marker.getBoundingClientRect();
-    popup.style.left = rect.right + 5 + "px";
-    popup.style.top = rect.top + window.scrollY + "px";
-
     // ===========================
-    // Outside click close with alert
+    // Save markers to JSON
     // ===========================
-    function outsideHandler(event) {
-    // click on popup or marker → do nothing
-    if (popup.contains(event.target) || event.target === marker) return;
-    // unsaved changes
-    if (textarea.value !== originalText) {
-      console.log("Unsaved changes detected.");
-      const discard = confirm("You have unsaved changes. Discard the note?");
-      if (!discard) {
-        // user wants to keep editing → stop closing
-        return;
-      }
+    function saveMarkers() {
+      const markers = markerLayer.querySelectorAll(".anatomy-marker");
+
+      const markersData = Array.from(markers).map(m => ({
+        x: parseFloat(m.style.left) / 100,
+        y: parseFloat(m.style.top) / 100,
+        note: m.title || ""
+      }));
+
+      console.log("Markers saved:", markersData);
+
+      return markersData;
     }
 
-    // remove popup
-    popup.remove();
-    document.removeEventListener("click", outsideHandler);
-  }
+    // ===========================
+    // Floating textarea popup
+    // ===========================
+    function createNotePopup(marker) {
+      const existing = document.getElementById("markerNotePopup");
+      if (existing) existing.remove();
 
-  // attach listener after current call stack
-  setTimeout(() => {
-    document.addEventListener("click", outsideHandler);
-  }, 0);
+      const popup = document.createElement("div");
+      popup.id = "markerNotePopup";
+      popup.style.position = "absolute";
+      popup.style.zIndex = "1000";
+      popup.style.background = "#fff";
+      popup.style.border = "1px solid #ccc";
+      popup.style.padding = "8px";
+      popup.style.borderRadius = "4px";
+      popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+      popup.style.width = "400px";
+      popup.style.height = "220px";
 
-  }
+      const textarea = document.createElement("textarea");
+      textarea.rows = 8;
+      textarea.style.width = "100%";
+      textarea.style.height = "calc(100% - 40px)";
+      textarea.style.resize = "vertical";
+      textarea.value = marker.title || "";
+      popup.appendChild(textarea);
 
-  // ===========================
-  // Create marker on image click
-  // ===========================
-  anatomyImage.addEventListener("click", function (e) {
-    const rect = anatomyImage.getBoundingClientRect();
+      const btnSave = document.createElement("button");
+      btnSave.textContent = "Save";
+      btnSave.className = "btn btn-sm btn-primary";
+      popup.appendChild(btnSave);
 
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
+      let saved = false;
+      const originalText = marker.title || "";
 
-    const marker = document.createElement("div");
-    marker.className = "anatomy-marker";
+      btnSave.addEventListener("click", () => {
+        marker.title = textarea.value;
+        saved = true;
+        popup.remove();
+        saveMarkers();
+        document.removeEventListener("click", outsideHandler);
+      });
 
-    marker.style.left = (x * 100) + "%";
-    marker.style.top = (y * 100) + "%";
+      document.body.appendChild(popup);
 
-    // reopen popup later
-    marker.addEventListener("click", function (ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
+      // position near marker
+      const rect = marker.getBoundingClientRect();
+      popup.style.left = rect.right + 5 + "px";
+      popup.style.top = rect.top + window.scrollY + "px";
+
+      // ===========================
+      // Outside click close with alert
+      // ===========================
+      function outsideHandler(event) {
+        // click on popup or marker → do nothing
+        if (popup.contains(event.target) || event.target === marker) return;
+        // unsaved changes
+        if (textarea.value !== originalText) {
+          console.log("Unsaved changes detected.");
+          const discard = confirm("You have unsaved changes. Discard the note?");
+          if (!discard) {
+            // user wants to keep editing → stop closing
+            return;
+          }
+        }
+
+        // remove popup
+        popup.remove();
+        document.removeEventListener("click", outsideHandler);
+      }
+
+      // attach listener after current call stack
+      setTimeout(() => {
+        document.addEventListener("click", outsideHandler);
+      }, 0);
+
+    }
+
+    // ===========================
+    // Create marker on image click
+    // ===========================
+    anatomyImage.addEventListener("click", function (e) {
+      const rect = anatomyImage.getBoundingClientRect();
+
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+
+      const marker = document.createElement("div");
+      marker.className = "anatomy-marker";
+
+      marker.style.left = (x * 100) + "%";
+      marker.style.top = (y * 100) + "%";
+
+      // reopen popup later
+      marker.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        createNotePopup(marker);
+      });
+
+      // right-click delete
+      marker.addEventListener("contextmenu", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
+
+        if (confirm("Remove this marking?")) {
+          marker.remove();
+          saveMarkers();
+        }
+      });
+
+      markerLayer.appendChild(marker);
+
+      // instantly open popup
       createNotePopup(marker);
     });
-
-    // right-click delete
-    marker.addEventListener("contextmenu", function (ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      if (confirm("Remove this marking?")) {
-        marker.remove();
-        saveMarkers();
-      }
-    });
-
-    markerLayer.appendChild(marker);
-
-    // instantly open popup
-    createNotePopup(marker);
-  });
 
   })();
 </script>

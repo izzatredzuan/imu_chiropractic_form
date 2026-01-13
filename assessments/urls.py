@@ -25,8 +25,8 @@ urlpatterns = [
     ),
     # For creating Section 1, might need to change the name later if used for update as well
     path(
-        "api/assessments/section-1/",
-        api.AssessmentSection1APIView.as_view(),
-        name="assessment_section1_api",
+        "api/assessments/section-1-and-2/",
+        api.AssessmentSection1And2APIView.as_view(),
+        name="assessment_section1_and_2_api",
     ),
 ]

@@ -4,212 +4,291 @@
 {% block content %}
 
 <style>
-    .required::after {
-        content: " *";
-        color: red;
-        font-weight: bold;
-    }
+  body {
+    background-color: #f7f9fb;
+  }
+
+  .required::after {
+    content: " *";
+    color: red;
+    font-weight: bold;
+  }
 </style>
 
-<div class="container mt-4">
+<div class="container-fluid py-4">
 
-    <h2 class="mb-4">
-        {% if assessment %}Edit Assessment – Section 2{% else %}Create Assessment – Section 2{% endif %}
+  <!-- =========================
+       PAGE TITLE
+  ========================== -->
+  <div class="mb-4">
+    <h2 class="fw-semibold">
+      Edit Assessment
     </h2>
+  </div>
+  
+  <div class="mb-3">
+    {% if is_readonly %}
+    <div class="alert alert-warning">
+      You are viewing this assessment in read-only mode because you are not the assigned evaluator.
+    </div>
+    {% endif %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">
+        Patient: <strong>{{ assessment.patient_name }}</strong>
+      </h5>
 
-    <form id="section2Form">
+      <h6 class="mb-0 text-muted">
+        File No: <strong>{{ assessment.file_number }}</strong>
+      </h6>
+    </div>
+  </div>
+  <form id="section2Form">
 
-        <!-- =========================
-             Assignment
-        ========================== -->
-        <h4 class="mt-4 mb-3 border-bottom pb-2">
-            Assignment
-        </h4>
+    <!-- =========================
+         SECTION 2 – PRESENTING COMPLAINT
+    ========================== -->
+    <h4 class="fw-semibold mb-3">Section 2 – Presenting Complaint</h4>
+
+    <!-- =========================
+         ASSIGNMENT
+    ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">
+        Assignment
+      </div>
+      <div class="card-body">
 
         {% if assessment.is_section_2_signed %}
         <div class="alert alert-success">
-            <strong>Signed-off by:</strong>
-            {{ assessment.section_2_signed_by.official_name }}
-            ({{ assessment.section_2_signed_by.role|title }})<br>
-            <small class="text-muted">
-                <strong>Signed at:</strong>
-                {{ assessment.section_2_signed_at|date:"d M Y, h:i A" }}
-            </small>
+          <strong>Signed-off by:</strong>
+          {{ assessment.section_2_signed_by.official_name }}
+          ({{ assessment.section_2_signed_by.role|title }})<br>
+          <small class="text-muted">
+            Signed at: {{ assessment.section_2_signed_at|date:"d M Y, h:i A" }}
+          </small>
         </div>
         {% endif %}
 
+        {% if request.user.profile.role == "admin" or request.user.profile.role == "clinician" %}
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Student</label>
-                <input type="text" class="form-control" disabled
-                       value="{{ assessment.student.official_name }}">
-            </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Student</label>
+            <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+              <option value="">-- Select Student --</option>
+              {% for s in students %}
+              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
+                {{ s.member_id }} – {{ s.official_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
 
-            <div class="col-md-6 mb-3">
-                <label class="form-label">Evaluator (Clinician)</label>
-                <input type="text" class="form-control" disabled
-                       value="{{ assessment.evaluator.official_name }}">
-            </div>
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Evaluator (Clinician)</label>
+            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+              <option value="">-- Select Clinician --</option>
+              {% for c in clinicians %}
+              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+                {{ c.member_id }} – {{ c.official_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if request.user.profile.role == "student" %}
+        <div class="mb-3">
+          <label class="form-label required">Evaluator (Clinician)</label>
+          <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+            <option value="">-- Select Clinician --</option>
+            {% for c in clinicians %}
+            <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+              {{ c.member_id }} – {{ c.official_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+
+    <!-- =========================
+        PRESENTING COMPLAINT
+    ========================== -->
+    <div class="card mt-4 shadow-sm">
+      <div class="card-header fw-semibold">Presenting Complaint</div>
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">Chief Complaint</label>
+          <textarea name="chief_complaint" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.chief_complaint|default_if_none:'' }}</textarea>
         </div>
 
-        <!-- =========================
-             Section 2 – Physical Examination
+        <div class="mb-3">
+          <label class="form-label required">History of Condition</label>
+          <textarea name="history_of_condition" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.history_of_condition|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Pain</label>
+          <textarea name="pain" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.pain|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Aggravating Factors</label>
+          <textarea name="aggravating_factors" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.aggravating_factors|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Relieving Factors</label>
+          <textarea name="relieving_factors" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.relieving_factors|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Associated Symptoms</label>
+          <textarea name="associated_symptoms" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.associated_symptoms|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Health History Review</label>
+          <textarea name="health_hx_review" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.health_hx_review|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Past Illnesses</label>
+          <textarea name="past_illnesses" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.past_illnesses|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Family History</label>
+          <textarea name="family_hx" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.family_hx|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Psycho Social History</label>
+          <textarea name="psycho_social_hx" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.psycho_social_hx|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Occupational</label>
+          <textarea name="occupational" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.occupational|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Diet</label>
+          <textarea name="diet" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.diet|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">System Review</label>
+          <textarea name="system_review" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.system_review|default_if_none:'' }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- =========================
+            SUBMIT
         ========================== -->
-        <h4 class="mt-5 mb-3 border-bottom pb-2">
-            Section 2 – Physical Examination
-        </h4>
+    <div class="mt-4 d-flex justify-content-end gap-2">
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">Cancel</a>
+      <!-- Hide button if user is only able to readonly -->
+      {% if not is_readonly %}
+        <button type="submit" id="btnSave" name="action" value="save_section_2" class="btn btn-primary">
+          Update Assessment
+        </button>
 
-        <h5 class="mt-4">Inspection</h5>
+        {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_2_signed %}
+        <button type="submit" id="btnSignOff" name="action" value="sign_off_section_2" class="btn btn-success">
+          Update & Sign Off Section 2
+        </button>
+        {% endif %}
+      {% endif %}
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Posture</label>
-            <textarea name="inspection_posture" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.inspection_posture|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Gait</label>
-            <textarea name="inspection_gait" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.inspection_gait|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Regional</label>
-            <textarea name="inspection_regional" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.inspection_regional|default_if_none:'' }}</textarea>
-        </div>
-
-        <h5 class="mt-4">Palpation / Percussion / Instrumentation</h5>
-
-        <div class="mb-3">
-            <label class="form-label">Palpation</label>
-            <textarea name="palpation" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.palpation|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Percussion</label>
-            <textarea name="percussion" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.percussion|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Instrumentation</label>
-            <textarea name="instrumentation" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.instrumentation|default_if_none:'' }}</textarea>
-        </div>
-
-        <h5 class="mt-4">Range of Motion (ROM)</h5>
-
-        <div class="mb-3">
-            <label class="form-label">Active</label>
-            <textarea name="rom_active" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.rom_active|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Passive</label>
-            <textarea name="rom_passive" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.rom_passive|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Resisted</label>
-            <textarea name="rom_resisted" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.rom_resisted|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Second Chiropractic Notes</label>
-            <textarea name="second_chiropractic_notes" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.second_chiropractic_notes|default_if_none:'' }}</textarea>
-        </div>
-
-        <h5 class="mt-4">Further Diagnostic Procedures</h5>
-
-        <div class="mb-3">
-            <label class="form-label">Further Diagnostic Procedures</label>
-            <textarea name="further_diagnostic_procedures" class="form-control"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.further_diagnostic_procedures|default_if_none:'' }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">PTT</label>
-            <input type="text" name="ptt" class="form-control"
-                   value="{{ assessment.ptt|default_if_none:'' }}"
-                   {% if is_readonly %}disabled{% endif %}>
-        </div>
-
-        <!-- =========================
-             Submit
-        ========================== -->
-        <div class="mt-4 d-flex justify-content-end gap-2">
-            <a href="{% url 'assessments_list' %}" class="btn btn-secondary">
-                Cancel
-            </a>
-
-            <button type="submit" id="btnSave" name="action" value="save"
-                    class="btn btn-primary">
-                Update Section 2
-            </button>
-
-            {% if request.user.profile.role in "clinician admin" %}
-            {% if not assessment.is_section_2_signed %}
-            <button type="submit" id="btnSignOff" name="action"
-                    value="sign_off_section_2"
-                    class="btn btn-success">
-                Update & Sign Off Section 2
-            </button>
-            {% endif %}
-            {% endif %}
-        </div>
-
-    </form>
+  </form>
 </div>
 
 <script>
-    let clickedAction = "save";
+  document.getElementById("btnSave").addEventListener("click", function () {
+    clickedAction = "save_section_2";
+  }); 
+  {% if assessment and not assessment.is_section_2_signed %}
+  document.getElementById("btnSignOff").addEventListener("click", function () {
+    clickedAction = "sign_off_section_2";
+  }); 
+  {% endif %}
+ 
+  // ===========================
+  // Save confirmation and submission
+  // ===========================
+  document.getElementById("section2Form").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-    document.getElementById("btnSave").addEventListener("click", function () {
-        clickedAction = "save";
-    });
+      let confirmMessage = "Are you sure you want to save the changes? All next sections sign-offs will be reset.";
 
-    {% if not assessment.is_section_2_signed %}
-    document.getElementById("btnSignOff").addEventListener("click", function () {
-        clickedAction = "sign_off_section_2";
-    });
-    {% endif %}
+      if (clickedAction === "sign_off_section_2") {
+        confirmMessage =
+          "Are you sure you want to UPDATE and SIGN OFF Section 2?";
+      }
 
-    document.getElementById("section2Form").addEventListener("submit", function (e) {
-        e.preventDefault();
+      if (!confirm(confirmMessage)) {
+        return;
+      }
 
-        const payload = {};
-        new FormData(this).forEach((v, k) => payload[k] = v);
+    // ==========================
+    // Proceed with save
+    // ==========================
+    const formData = new FormData(this);
+    formData.set("action", clickedAction);
 
-        payload["action"] = clickedAction;
-        payload["assessment_id"] = "{{ assessment.id }}";
+    const payload = {};
+    formData.forEach((v, k) => payload[k] = v);
 
-        fetch("{% url 'assessment_section2_api' %}", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": CSRFTOKEN
-            },
-            body: JSON.stringify(payload)
-        })
-        .then(res => {
-            if (!res.ok) return res.json().then(err => { throw err; });
-            return res.json();
-        })
-        .then(data => {
-            alert(data.message || "Section 2 saved");
-            window.location.href = "{% url 'assessments_list' %}";
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Failed to save Section 2");
+    payload["assessment_id"] = "{{ assessment.id }}";
+    const method = "PUT"; 
+
+    fetch("{% url 'assessment_section1_and_2_api' %}", {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRFTOKEN
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) return res.json().then(err => {
+          throw err;
         });
-    });
+        return res.json();
+      })
+      .then(data => {
+        alert(data.message || "Success");
+        window.location.href = "{% url 'assessments_list' %}";
+      })
+      .catch(err => {
+        console.error(err);
+        alert("Failed. Please check required fields.");
+      });
+  });
+
 </script>
+
 
 {% endblock %}

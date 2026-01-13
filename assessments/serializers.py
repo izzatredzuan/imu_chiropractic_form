@@ -32,7 +32,7 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
 
 
 # serializers.py
-class AssessmentSection1DetailSerializer(serializers.ModelSerializer):
+class AssessmentSection1And2DetailSerializer(serializers.ModelSerializer):
     student = serializers.StringRelatedField()
     evaluator = serializers.StringRelatedField()
 
@@ -68,12 +68,13 @@ class AssessmentSection1DetailSerializer(serializers.ModelSerializer):
             "diet",
             "system_review",
             "is_section_1_signed",
+            "is_section_2_signed",
             "created_at",
             "updated_at",
         ]
 
 
-class AssessmentSection1CreateSerializer(serializers.ModelSerializer):
+class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
     evaluator = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.filter(role="clinician"), required=True
     )
@@ -98,7 +99,7 @@ class AssessmentSection1CreateSerializer(serializers.ModelSerializer):
             "diastolic_bp",
             "summary",
             "special_direction",
-            # Presenting Complaint
+            # Section 2 – Presenting Complaint
             "chief_complaint",
             "history_of_condition",
             "pain",

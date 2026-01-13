@@ -9,8 +9,8 @@ from django.utils import timezone
 from .models import Assessments
 from .serializers import (
     AssessmentsListSerializer,
-    AssessmentSection1DetailSerializer,
-    AssessmentSection1CreateSerializer,
+    AssessmentSection1And2DetailSerializer,
+    AssessmentSection1And2CreateSerializer,
 )
 
 logger = logging.getLogger("assessments")
@@ -38,7 +38,7 @@ class AssessmentsListAPIView(APIView):
         return Response(serializer.data)
 
 
-class AssessmentSection1APIView(APIView):
+class AssessmentSection1And2APIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, assessment_id=None):
@@ -64,14 +64,8 @@ class AssessmentSection1APIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        if profile.role == "clinician" and assessment.evaluator != profile:
-            return Response(
-                {"detail": "You are not assigned to this assessment"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
         # Admin can view all
-        serializer = AssessmentSection1DetailSerializer(assessment)
+        serializer = AssessmentSection1And2DetailSerializer(assessment)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -90,7 +84,7 @@ class AssessmentSection1APIView(APIView):
             f"patient name={request.data.get('patient_name', 'N/A')}"
         )
 
-        serializer = AssessmentSection1CreateSerializer(
+        serializer = AssessmentSection1And2CreateSerializer(
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
@@ -190,10 +184,10 @@ class AssessmentSection1APIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = AssessmentSection1CreateSerializer(
+        serializer = AssessmentSection1And2CreateSerializer(
             assessment,
             data=request.data,
-            partial=False,
+            partial=True,
             context={"request": request},
         )
 
@@ -201,22 +195,50 @@ class AssessmentSection1APIView(APIView):
             serializer.is_valid(raise_exception=True)
             serializer.save()
 
-            # -------------------------
-            # Reset sign-offs on edit
-            # -------------------------
+            # =========================
+            # SECTION SIGN-OFF LOGIC
+            # =========================
 
-            assessment.is_section_1_signed = False
-            assessment.section_1_signed_by = None
-            assessment.section_1_signed_at = None
+            # ---------- SAVE SECTION 1 ----------
+            if action == "save_section_1":
+                logger.info(
+                    f"SAVE - Section 1 | "
+                    f"assessment_id={assessment.id}, "
+                    f"user={profile.official_name} ({profile.role}) | "
+                    f"Resetting Section 1 & Section 2 sign-offs"
+                )
 
-            # -------------------------
-            # SIGN OFF if requested
-            # -------------------------
-            if action == "sign_off_section_1":
-                print("Signing off section 1")
+                assessment.is_section_1_signed = False
+                assessment.section_1_signed_by = None
+                assessment.section_1_signed_at = None
+
+                assessment.is_section_2_signed = False
+                assessment.section_2_signed_by = None
+                assessment.section_2_signed_at = None
+
+            # ---------- SAVE SECTION 2 ----------
+            elif action == "save_section_2":
+                logger.info(
+                    f"SAVE - Section 2 | "
+                    f"assessment_id={assessment.id}, "
+                    f"user={profile.official_name} ({profile.role}) | "
+                    f"Resetting Section 2 sign-off"
+                )
+
+                assessment.is_section_2_signed = False
+                assessment.section_2_signed_by = None
+                assessment.section_2_signed_at = None
+
+            # ---------- SIGN OFF SECTION 1 ----------
+            elif action == "sign_off_section_1":
                 if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - Section 1 | "
+                        f"assessment_id={assessment.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
                     return Response(
-                        {"detail": "Not allowed to sign off"},
+                        {"detail": "Not allowed to sign off Section 1"},
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
@@ -230,6 +252,43 @@ class AssessmentSection1APIView(APIView):
                     f"student={assessment.student.official_name}, "
                     f"signed_by={profile.official_name} ({profile.role})"
                 )
+
+            # ---------- SIGN OFF SECTION 2 ----------
+            elif action == "sign_off_section_2":
+                if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - Section 2 | "
+                        f"assessment_id={assessment.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+                    return Response(
+                        {"detail": "Not allowed to sign off Section 2"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                if not assessment.is_section_1_signed:
+                    logger.warning(
+                        f"SIGN_OFF_BLOCKED - Section 2 | "
+                        f"assessment_id={assessment.id}, "
+                        f"user={profile.official_name} | "
+                        f"reason=Section 1 not signed"
+                    )
+                    return Response(
+                        {"detail": "Section 1 must be signed before Section 2"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                assessment.is_section_2_signed = True
+                assessment.section_2_signed_by = profile
+                assessment.section_2_signed_at = timezone.now()
+
+                logger.info(
+                    f"SIGN_OFF - Section 2 | "
+                    f"assessment_id={assessment.id}, "
+                    f"student={assessment.student.official_name}, "
+                    f"signed_by={profile.official_name} ({profile.role})"
+                )
+
             assessment.save()
 
             logger.info(
@@ -240,16 +299,41 @@ class AssessmentSection1APIView(APIView):
                 f"action={action}"
             )
 
+            # =========================
+            # RESPONSE MESSAGEs
+            # =========================
+            message = "Assessment updated successfully"
+
             if action == "sign_off_section_1":
-                return Response(
-                    {"message": "Section 1 updated and signed-off successfully"},
-                    status=status.HTTP_200_OK,
+                message = "Section 1 signed off successfully"
+
+            elif action == "sign_off_section_2":
+                message = "Section 2 signed off successfully"
+
+            elif action == "save_section_1":
+                message = (
+                    "Section 1 updated successfully. "
+                    "Section 1 and Section 2 sign-offs have been reset."
                 )
 
+            elif action == "save_section_2":
+                message = (
+                    "Section 2 updated successfully. "
+                    "Section 2 sign-off has been reset."
+                )
+
+            logger.info(
+                f"RESPONSE - Assessment | "
+                f"assessment_id={assessment.id}, "
+                f"action={action}, "
+                f"message='{message}'"
+            )
+
             return Response(
-                {"message": "Section 1 updated successfully, sign-offs has been reset"},
+                {"message": message},
                 status=status.HTTP_200_OK,
             )
+        
         except Exception as e:
             logger.error(
                 f"UPDATE_FAILED - Section 1 | "

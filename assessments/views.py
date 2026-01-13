@@ -5,6 +5,9 @@ from django.shortcuts import (
 from django.views import View
 from accounts.models import Profile
 from assessments.models import Assessments
+from assessments.utils.permissions import (
+    clinician_is_readonly,
+)
 
 
 class AssessmentListView(View):
@@ -19,34 +22,37 @@ class AssessmentSection1FormView(View):
 
     def get(self, request):
         profile = request.user.profile
-
-        # Only student & admin allowed
-        # if profile.role not in ["student", "admin"]:
-        #     return HttpResponseForbidden("You are not allowed to access this page.")
-
-        # Check for assessment ID for edit mode
         assessment_id = request.GET.get("id")
         context = {}
+        assessment = None
+        is_readonly = False
 
+        # =========================
+        # Edit mode
+        # =========================
         if assessment_id:
             try:
                 assessment = Assessments.objects.get(id=assessment_id)
             except Assessments.DoesNotExist:
                 return HttpResponseNotFound("Assessment not found.")
 
-            # Permission check for student
+            # Student permission
             if profile.role == "student" and assessment.student != profile:
-                return HttpResponseForbidden("You cannot edit this assessment.")
+                return HttpResponseForbidden("You cannot access this assessment.")
 
-            context["assessment_id"] = assessment_id
+            # Clinician NOT assigned → read-only
+            if clinician_is_readonly(profile, assessment):
+                is_readonly = True
+
             context["assessment"] = assessment
+            context["assessment_id"] = assessment_id
+            
+        context["is_readonly"] = is_readonly
 
-        # Set read-only for clinicians
-        # is_readonly = request.user.profile.role == "clinician"
-        # context["is_readonly"] = is_readonly
-
-        # For admin and clinician, show all students and clinicians
-        if profile.role == "admin" or profile.role == "clinician":
+        # =========================
+        # Role-based dropdowns
+        # =========================
+        if profile.role in ["admin", "clinician"]:
             context["students"] = Profile.objects.filter(role="student").order_by(
                 "official_name"
             )
@@ -54,12 +60,10 @@ class AssessmentSection1FormView(View):
                 "official_name"
             )
 
-        # For student, only show clinicians
-        if profile.role == "student":
+        elif profile.role == "student":
             context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
                 "official_name"
             )
-            
         return render(request, self.template_name, context)
 
 
@@ -69,8 +73,9 @@ class AssessmentSection2FormView(View):
     def get(self, request):
         profile = request.user.profile
         assessment_id = request.GET.get("id")
-
         context = {}
+        assessment = None
+        is_readonly = False
 
         # =========================
         # Edit mode
@@ -88,8 +93,10 @@ class AssessmentSection2FormView(View):
             context["assessment"] = assessment
             context["assessment_id"] = assessment_id
 
-            # Section 2 becomes readonly once signed
-            context["is_readonly"] = assessment.is_section_2_signed
+            if clinician_is_readonly(profile, assessment):
+                is_readonly = True
+
+        context["is_readonly"] = is_readonly
 
         # =========================
         # Role-based dropdowns
