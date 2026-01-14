@@ -37,8 +37,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "accounts",
-    "students",
-    "clinicians",
     "assessments",
     "rest_framework",  # for API
     "django.contrib.admin",
@@ -67,7 +65,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             os.path.join(BASE_DIR, "templates"),
-            "students/templates",
+            "assessments/templates",
         ],
         "APP_DIRS": True,
         "OPTIONS": {
@@ -176,6 +174,9 @@ LOGIN_EXEMPT_URLS = (
 BASE_LOG_PATH = Path(BASE_DIR) / "logs"
 BASE_LOG_PATH.mkdir(exist_ok=True)
 
+AUTH_LOG_PATH = BASE_LOG_PATH / "auth"
+AUTH_LOG_PATH.mkdir(parents=True, exist_ok=True)
+
 ACCOUNTS_LOG_PATH = BASE_LOG_PATH / "accounts"
 ACCOUNTS_LOG_PATH.mkdir(parents=True, exist_ok=True)
 
@@ -191,6 +192,12 @@ LOGGING = {
         },
     },
     "handlers": {
+        "auth_file": {
+            "level": "INFO",
+            "class": "logging.FileHandler",
+            "filename": AUTH_LOG_PATH / "auth.log",
+            "formatter": "default",
+        },
         "userprofile_file": {
             "level": "INFO",
             "class": "logging.FileHandler",
@@ -209,6 +216,11 @@ LOGGING = {
         },
     },
     "loggers": {
+        "auth": {
+            "handlers": ["auth_file", "console"],
+            "level": "INFO",
+            "propagate": False,
+        },
         "userprofile": {
             "handlers": ["userprofile_file", "console"],
             "level": "INFO",

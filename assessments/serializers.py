@@ -67,6 +67,7 @@ class AssessmentSection1And2DetailSerializer(serializers.ModelSerializer):
             "occupational",
             "diet",
             "system_review",
+            "differential_diagnosis",
             "is_section_1_signed",
             "is_section_2_signed",
             "created_at",
@@ -113,6 +114,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "occupational",
             "diet",
             "system_review",
+            "differential_diagnosis",
         ]
 
     def create(self, validated_data):
@@ -130,7 +132,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {"student": "This field is required for admins."}
                 )
-            
+
         # -----------------------------
         # Audit fields (CREATE)
         # -----------------------------

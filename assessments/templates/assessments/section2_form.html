@@ -199,6 +199,11 @@
             {% if is_readonly %}readonly{% endif %}>{{ assessment.system_review|default_if_none:'' }}</textarea>
         </div>
 
+        <div class="mb-3">
+          <label class="form-label required">Differential Diagnosis</label>
+          <textarea name="differential_diagnosis" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.differential_diagnosis|default_if_none:'' }}</textarea>
+        </div>
       </div>
     </div>
 

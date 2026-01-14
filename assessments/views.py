@@ -5,7 +5,7 @@ from django.shortcuts import (
 from django.views import View
 from accounts.models import Profile
 from assessments.models import Assessments
-from assessments.utils.permissions import (
+from assessments.utils.helpers import (
     clinician_is_readonly,
 )
 
