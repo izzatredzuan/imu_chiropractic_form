@@ -79,7 +79,12 @@
         Assignment
       </div>
       <div class="card-body">
-
+        {% if is_readonly %}
+        <div class="alert alert-warning">
+          You are viewing this assessment in read-only mode because you are not the assigned evaluator.
+        </div>
+        {% endif %}
+        
         {% if assessment.is_section_1_signed %}
         <div class="alert alert-success">
           <strong>Signed-off by:</strong>

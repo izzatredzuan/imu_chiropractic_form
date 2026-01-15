@@ -2,6 +2,63 @@
 
 {% block style %}
 <!-- Optional extra styles -->
+<style>
+    /* Base adjustments for all section buttons */
+    /* #assessmentsTable .btn {
+        min-width: 95px;
+        margin: 2px;
+        font-weight: 500;
+    } */
+
+    /* Warning / ready for sign-off button */
+    #assessmentsTable .btn-warning {
+        background-color: #ffc107;
+        /* Bootstrap default yellow */
+        color: #212529;
+        /* dark text for readability */
+        border-color: #e0a800;
+        /* slightly darker border for contrast */
+        font-weight: 600;
+    }
+
+    /* Optional: hover effect to make it feel interactive */
+    #assessmentsTable .btn-warning:hover {
+        background-color: #e0a800;
+        border-color: #d39e00;
+        color: #212529;
+    }
+
+    /* Optional: small shadow for better visibility */
+    #assessmentsTable .btn-warning:focus {
+        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.5);
+    }
+
+    #assessmentsTable .btn:not(.disabled):hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        transition: all 0.15s ease-in-out;
+    }
+
+    /* Active press effect */
+    #assessmentsTable .btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Optional: slightly round corners to soften appearance */
+    #assessmentsTable .btn {
+        border-radius: 0.35rem;
+        font-weight: 600;
+    }
+
+    /* Yellow warning button tweak for readability */
+    #assessmentsTable .btn-warning {
+        color: #212529;
+        /* dark text */
+    }
+</style>
+</style>
+
 {% endblock %}
 
 {% block content %}
@@ -11,7 +68,13 @@
     <a href="{% url 'assessment_section1_form' %}" class="btn btn-primary mb-3">
         Create Assessment
     </a>
-
+    <div class="mb-2 small d-flex justify-content-end align-items-center">
+        <span class="me-2"><strong>Status:</strong></span>
+        <span class="badge bg-success me-1">Signed</span>
+        <span class="badge bg-warning text-dark me-1">Ready for Sign-Off</span>
+        <span class="badge bg-primary me-1">In Progress</span>
+        <span class="badge bg-secondary">Locked</span>
+    </div>
     <table id="assessmentsTable" class="table table-striped table-bordered w-100"></table>
 </div>
 
@@ -40,30 +103,38 @@
                 orderable: false,
                 searchable: false,
                 render: function (row) {
-                    function sectionBtn(sectionNo, isSigned, prevSigned) {
+                    function sectionBtn(sectionNo, isSigned, isComplete, prevSigned) {
                         let cls = "btn btn-sm ";
 
                         if (!prevSigned) {
                             cls += "btn-secondary disabled";
                         } else if (isSigned) {
                             cls += "btn-success";
+                        } else if (isComplete) {
+                            cls += "btn-warning"; // 🟡 Ready for Sign-Off
                         } else {
-                            cls += "btn-primary";
+                            cls += "btn-primary"; // In progress
                         }
 
+                        let titleText = isSigned ? 'Signed' :
+                            isComplete ? 'Completed – Ready for Sign-Off' :
+                            !prevSigned ? 'Locked' :
+                            'In Progress';
+
                         return `
-                            <a href="/assessments/section-${sectionNo}/form/?id=${row.id}" class="${cls}">
+                            <a href="/assessments/section-${sectionNo}/form/?id=${row.id}" 
+                            class="${cls}" title="${titleText}">
                                 Section ${sectionNo}
                             </a>
                         `;
                     }
 
                     return `
-                        ${sectionBtn(1, row.is_section_1_signed, true)}
-                        ${sectionBtn(2, row.is_section_2_signed, row.is_section_1_signed)}
-                        ${sectionBtn(3, row.is_section_3_signed, row.is_section_2_signed)}
-                        ${sectionBtn(4, row.is_section_4_signed, row.is_section_3_signed)}
-                        ${sectionBtn(5, row.is_section_5_signed, row.is_section_4_signed)}
+                        ${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}
+                        ${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}
+                        ${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}
+                        ${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}
+                        ${sectionBtn(5, row.is_section_5_signed, row.is_section_5_complete, row.is_section_4_signed)}
                     `;
                 },
             },

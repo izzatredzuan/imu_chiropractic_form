@@ -2,6 +2,14 @@ from rest_framework import serializers
 from django.utils import timezone
 from accounts.models import Profile
 from .models import Assessments
+from .utils import is_section_complete
+from .constants import (
+    SECTION_1_FIELDS,
+    SECTION_2_FIELDS,
+    SECTION_3_FIELDS,
+    SECTION_4_FIELDS,
+    SECTION_5_FIELDS,
+)
 
 
 class AssessmentsListSerializer(serializers.ModelSerializer):
@@ -14,6 +22,12 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
         source="created_by.official_name", read_only=True
     )
 
+    is_section_1_complete = serializers.SerializerMethodField()
+    is_section_2_complete = serializers.SerializerMethodField()
+    is_section_3_complete = serializers.SerializerMethodField()
+    is_section_4_complete = serializers.SerializerMethodField()
+    is_section_5_complete = serializers.SerializerMethodField()
+
     class Meta:
         model = Assessments
         fields = [
@@ -22,16 +36,37 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "student",
             "clinician",
             "is_section_1_signed",
+            "is_section_1_complete",
             "is_section_2_signed",
+            "is_section_2_complete",
             "is_section_3_signed",
+            "is_section_3_complete",
+            "is_section_4_signed",
+            "is_section_4_complete",
+            "is_section_5_signed",
+            "is_section_5_complete",
             "created_by",
             "created_at",
             "updated_by",
             "updated_at",
         ]
 
+    def get_is_section_1_complete(self, obj):
+        return is_section_complete(obj, SECTION_1_FIELDS)
 
-# serializers.py
+    def get_is_section_2_complete(self, obj):
+        return is_section_complete(obj, SECTION_2_FIELDS)
+
+    def get_is_section_3_complete(self, obj):
+        return is_section_complete(obj, SECTION_3_FIELDS)
+
+    def get_is_section_4_complete(self, obj):
+        return is_section_complete(obj, SECTION_4_FIELDS)
+
+    def get_is_section_5_complete(self, obj):
+        return is_section_complete(obj, SECTION_5_FIELDS)
+
+
 class AssessmentSection1And2DetailSerializer(serializers.ModelSerializer):
     student = serializers.StringRelatedField()
     evaluator = serializers.StringRelatedField()

@@ -4,8 +4,8 @@ from django.shortcuts import (
 )
 from django.views import View
 from accounts.models import Profile
-from assessments.models import Assessments
-from assessments.utils.helpers import (
+from .models import Assessments
+from .utils import (
     clinician_is_readonly,
 )
 
@@ -56,8 +56,12 @@ class AssessmentSection1FormView(View):
         # =========================
         # Dropdown data
         # =========================
-        context["students"] = Profile.objects.filter(role="student").order_by("official_name")
-        context["clinicians"] = Profile.objects.filter(role="clinician").order_by("official_name")
+        context["students"] = Profile.objects.filter(role="student").order_by(
+            "official_name"
+        )
+        context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+            "official_name"
+        )
         return render(request, self.template_name, context)
 
 
@@ -99,7 +103,11 @@ class AssessmentSection2FormView(View):
         # =========================
         # Dropdown data
         # =========================
-        context["students"] = Profile.objects.filter(role="student").order_by("official_name")
-        context["clinicians"] = Profile.objects.filter(role="clinician").order_by("official_name")
+        context["students"] = Profile.objects.filter(role="student").order_by(
+            "official_name"
+        )
+        context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+            "official_name"
+        )
 
         return render(request, self.template_name, context)

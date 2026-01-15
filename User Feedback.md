@@ -16,7 +16,7 @@ To do:
 - Create a new field name "file_number"
 - Evaluator need to be able multi select
 - Filter button for clinician to only see all assessments assigned to them
-- Change button color after student edit a section for clinician to know which assessments to sign-off
+- Change button color after student edit a section for clinician to know which assessments to sign-off [DONE]
 
 DONE:
 - Clinician can view all assessments [DONE]
@@ -32,3 +32,7 @@ DONE:
 
 Bugs:
 - clinician and Student cant save assessment [DONE]
+
+Question to ask in the future to Chiro team:
+- Consent section, how it suppose to look like also does registration form is consider as consent form
+- Section 3, in the middle of it has physical sinf off but not at the end, what is the real format 

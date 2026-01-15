@@ -27,11 +27,6 @@
   </div>
   
   <div class="mb-3">
-    {% if is_readonly %}
-    <div class="alert alert-warning">
-      You are viewing this assessment in read-only mode because you are not the assigned evaluator.
-    </div>
-    {% endif %}
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0">
         Patient: <strong>{{ assessment.patient_name }}</strong>
@@ -57,7 +52,12 @@
         Assignment
       </div>
       <div class="card-body">
-
+        {% if is_readonly %}
+        <div class="alert alert-warning">
+          You are viewing this assessment in read-only mode because you are not the assigned evaluator.
+        </div>
+        {% endif %}
+        
         {% if assessment.is_section_2_signed %}
         <div class="alert alert-success">
           <strong>Signed-off by:</strong>

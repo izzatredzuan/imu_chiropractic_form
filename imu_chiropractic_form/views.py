@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.views import View
-from imu_chiropractic_form.utils.helpers import get_client_ip
+from .utils import get_client_ip
 
 auth_logger = logging.getLogger("auth")
 
