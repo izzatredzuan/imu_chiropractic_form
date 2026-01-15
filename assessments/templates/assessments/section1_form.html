@@ -72,7 +72,7 @@
   <form id="section1Form">
 
     <!-- =========================
-         ASSIGNMENT
+     ASSIGNMENT
     ========================== -->
     <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">
@@ -91,48 +91,42 @@
         </div>
         {% endif %}
 
-        {% if request.user.profile.role == "admin" or request.user.profile.role == "clinician" %}
         <div class="row">
+          <!-- Student dropdown -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
-            <select name="student" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+            <select name="student" class="form-control" required
+                    {% if student_readonly or is_readonly %}disabled{% endif %}>
               <option value="">-- Select Student --</option>
               {% for s in students %}
-              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
+              <option value="{{ s.id }}"
+                      {% if assessment and assessment.student.id == s.id %}selected{% endif %}
+                      {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
               {% endfor %}
             </select>
+            {% if student_readonly %}
+            <!-- preserve value for API since disabled fields are not submitted -->
+            <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+            {% endif %}
           </div>
 
+          <!-- Evaluator dropdown -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Evaluator (Clinician)</label>
-            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+            <select name="evaluator" class="form-control" required
+                    {% if is_readonly %}disabled{% endif %}>
               <option value="">-- Select Clinician --</option>
               {% for c in clinicians %}
-              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+              <option value="{{ c.id }}"
+                      {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
                 {{ c.member_id }} – {{ c.official_name }}
               </option>
               {% endfor %}
             </select>
           </div>
         </div>
-        {% endif %}
-
-        {% if request.user.profile.role == "student" %}
-        <div class="mb-3">
-          <label class="form-label required">Evaluator (Clinician)</label>
-          <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
-            <option value="">-- Select Clinician --</option>
-            {% for c in clinicians %}
-            <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
-              {{ c.member_id }} – {{ c.official_name }}
-            </option>
-            {% endfor %}
-          </select>
-        </div>
-        {% endif %}
-
       </div>
     </div>
 
@@ -288,7 +282,7 @@
   document.getElementById("btnSave").addEventListener("click", function () {
     clickedAction = "save_section_1";
   }); 
-  {% if assessment and not assessment.is_section_1_signed %}
+  {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
   document.getElementById("btnSignOff").addEventListener("click", function () {
     clickedAction = "sign_off_section_1";
   }); 

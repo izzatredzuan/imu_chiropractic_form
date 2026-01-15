@@ -46,24 +46,18 @@ class AssessmentSection1FormView(View):
 
             context["assessment"] = assessment
             context["assessment_id"] = assessment_id
-            
+
+        # =========================
+        # Field-level permissions
+        # =========================
+        context["student_readonly"] = profile.role == "student"
         context["is_readonly"] = is_readonly
 
         # =========================
-        # Role-based dropdowns
+        # Dropdown data
         # =========================
-        if profile.role in ["admin", "clinician"]:
-            context["students"] = Profile.objects.filter(role="student").order_by(
-                "official_name"
-            )
-            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
-                "official_name"
-            )
-
-        elif profile.role == "student":
-            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
-                "official_name"
-            )
+        context["students"] = Profile.objects.filter(role="student").order_by("official_name")
+        context["clinicians"] = Profile.objects.filter(role="clinician").order_by("official_name")
         return render(request, self.template_name, context)
 
 
@@ -96,27 +90,16 @@ class AssessmentSection2FormView(View):
             if clinician_is_readonly(profile, assessment):
                 is_readonly = True
 
+        # =========================
+        # Field-level permissions
+        # =========================
+        context["student_readonly"] = profile.role == "student"
         context["is_readonly"] = is_readonly
 
         # =========================
-        # Role-based dropdowns
+        # Dropdown data
         # =========================
-        if profile.role == "admin":
-            context["students"] = Profile.objects.filter(role="student").order_by(
-                "official_name"
-            )
-            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
-                "official_name"
-            )
-
-        elif profile.role == "student":
-            context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
-                "official_name"
-            )
-
-        elif profile.role == "clinician":
-            context["students"] = Profile.objects.filter(role="student").order_by(
-                "official_name"
-            )
+        context["students"] = Profile.objects.filter(role="student").order_by("official_name")
+        context["clinicians"] = Profile.objects.filter(role="clinician").order_by("official_name")
 
         return render(request, self.template_name, context)
