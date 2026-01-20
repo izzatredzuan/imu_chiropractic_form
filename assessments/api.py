@@ -23,16 +23,25 @@ class AssessmentsListAPIView(APIView):
         profile = request.user.profile
         role = profile.role
 
+        scope = request.GET.get("scope", "all")  # all | assigned
         if role == "student":
             queryset = Assessments.objects.filter(student=profile)
 
-        elif role == "admin" or role == "clinician":
+        elif role == "admin":
             queryset = Assessments.objects.all()
+
+        elif role == "clinician":
+            if scope == "assigned":
+                queryset = Assessments.objects.filter(evaluator=profile)
+            else:
+                queryset = Assessments.objects.all()
 
         else:
             queryset = Assessments.objects.none()
 
-        queryset = queryset.select_related("student", "evaluator")
+        queryset = queryset.select_related("student", "evaluator").order_by(
+            "-updated_at"
+        )
 
         serializer = AssessmentsListSerializer(queryset, many=True)
         return Response(serializer.data)
@@ -333,7 +342,6 @@ class AssessmentSection1And2APIView(APIView):
                 {"message": message},
                 status=status.HTTP_200_OK,
             )
-        
         except Exception as e:
             logger.error(
                 f"UPDATE_FAILED - Section 1 | "

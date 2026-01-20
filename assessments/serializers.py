@@ -27,6 +27,8 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
     is_section_3_complete = serializers.SerializerMethodField()
     is_section_4_complete = serializers.SerializerMethodField()
     is_section_5_complete = serializers.SerializerMethodField()
+    created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
+    updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
 
     class Meta:
         model = Assessments
