@@ -1,5 +1,6 @@
 SECTION_1_FIELDS = [
     "patient_name",
+    "file_number",
     "gender",
     "date_of_birth",
     "pulse",

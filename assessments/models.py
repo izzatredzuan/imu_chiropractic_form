@@ -9,7 +9,6 @@ class Assessments(models.Model):
         ("female", "Female"),
     )
 
-
     # =====================
     # Initial Patient Consent
     # =====================
@@ -21,7 +20,7 @@ class Assessments(models.Model):
     initial_patient_consent_signature = models.ImageField(
         upload_to="assessments/patient_signatures/", null=True, blank=True
     )
-    
+
     # =====================
     # Assignment
     # =====================
@@ -49,6 +48,7 @@ class Assessments(models.Model):
     # Section 1 – Initial Assessment
     # =====================
     patient_name = models.CharField(max_length=150)
+    file_number = models.CharField(max_length=50)
     gender = models.CharField(max_length=30, choices=GENDER_CHOICES)
     date_of_birth = models.DateField()
 
@@ -200,6 +200,8 @@ class Assessments(models.Model):
     )
     section_5_signed_at = models.DateTimeField(null=True, blank=True, default=None)
 
+    is_discharged = models.BooleanField(default=False)
+    
     # =====================
     # Meta
     # =====================

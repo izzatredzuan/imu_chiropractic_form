@@ -10,6 +10,24 @@
         font-weight: 500;
     } */
 
+    #assessmentsTable .btn-sm {
+        height: 32px;
+        /* keep your fixed height */
+        padding: 0 0.75rem;
+        /* horizontal padding */
+        line-height: 32px;
+        /* same as height to center text */
+        display: inline-block;
+        /* ensures line-height works */
+        text-align: center;
+        /* horizontal center */
+        vertical-align: middle;
+        /* safety for older browsers */
+        white-space: nowrap;
+        /* prevent text wrap */
+        font-weight: 600;
+    }
+
     /* Warning / ready for sign-off button */
     #assessmentsTable .btn-warning {
         background-color: #ffc107;
@@ -56,14 +74,26 @@
         color: #212529;
         /* dark text */
     }
-</style>
+
+    #assessmentsTable i.discharge-btn,
+    #assessmentsTable i.notes-btn {
+        font-size: 1.2rem;
+        cursor: pointer;
+        display: inline-block;
+        transition: transform 0.15s ease-in-out;
+    }
+
+    #assessmentsTable i.discharge-btn:hover,
+    #assessmentsTable i.notes-btn:hover {
+        transform: scale(1.15);
+    }
 </style>
 
 {% endblock %}
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container-fluid mt-4 px-4">
 
     <!-- Header -->
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
@@ -93,13 +123,12 @@
                 <!-- RIGHT: Status legend (always right) -->
                 <div class="d-flex align-items-center flex-wrap small">
                     <span class="me-2 fw-semibold text-muted">Status:</span>
-
-                    <span class="badge bg-success me-1 mb-1">Signed</span>
+                    <span class="badge bg-secondary me-1 mb-1">Locked</span>
+                    <span class="badge bg-primary me-1 mb-1">In Progress</span>
                     <span class="badge bg-warning text-dark me-1 mb-1">
                         Ready for Sign-Off
                     </span>
-                    <span class="badge bg-primary me-1 mb-1">In Progress</span>
-                    <span class="badge bg-secondary mb-1">Locked</span>
+                    <span class="badge bg-success me-1 mb-1">Signed</span>
                 </div>
 
             </div>
@@ -108,7 +137,7 @@
 
     <!-- Table -->
     <div class="card shadow-sm">
-        <div class="card-body p-0">
+        <div class="card-body p-2">
             <table id="assessmentsTable" class="table table-striped table-bordered mb-0 w-100">
             </table>
         </div>
@@ -126,6 +155,10 @@
                 data: "patient_name"
             },
             {
+                title: "File Number",
+                data: "file_number"
+            },
+            {
                 title: "Student",
                 data: "student"
             },
@@ -134,11 +167,12 @@
                 data: "clinician"
             },
             {
-                title: "Edit Sections",
-                name: "edit_sections",
+                title: "Assessments",
+                name: "assessments",
                 data: null,
                 orderable: false,
                 searchable: false,
+                className: "text-center align-middle",
                 render: function (row) {
                     function sectionBtn(sectionNo, isSigned, isComplete, prevSigned) {
                         let cls = "btn btn-sm ";
@@ -167,40 +201,134 @@
                     }
 
                     return `
-                        ${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}
-                        ${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}
-                        ${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}
-                        ${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}
-                        ${sectionBtn(5, row.is_section_5_signed, row.is_section_5_complete, row.is_section_4_signed)}
+                        <div class="d-flex gap-1 flex-nowrap align-items-center">
+                            ${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}
+                            ${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}
+                            ${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}
+                            ${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}
+                        </div>
                     `;
                 },
             },
             {
-                title: "Created Date",
-                data: "created_at",
-                render: function (data) {
-                    return data ? moment(data).format("DD/MM/YYYY HH:mm") : "-";
+                title: "Follow-Up",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+                render: function (row) {
+                    // Generate buttons dynamically
+                    const buttons = [{
+                            text: "Treatment Plan",
+                            url: `/assessments/${row.id}/treatment-plan/`,
+                            cls: "btn-primary"
+                        },
+                        {
+                            text: "S.O.A.P",
+                            url: `/assessments/${row.id}/soap/`,
+                            cls: "btn-primary"
+                        },
+                        {
+                            text: "Treatment Log",
+                            url: `/assessments/${row.id}/treatment-log/`,
+                            cls: "btn-primary"
+                        }
+                    ];
+
+                    return `
+                        <div class="d-flex gap-1 flex-nowrap align-items-center">
+                            ${buttons.map(btn => `
+                                <a href="${btn.url}" class="btn btn-sm ${btn.cls}">
+                                    ${btn.text}
+                                </a>
+                            `).join('')}
+                        </div>
+                    `;
                 }
             },
             {
-                title: "Created By",
-                data: "created_by",
-                render: function (data) {
-                    return data ? data : "-";
+                title: "Created",
+                data: "created_at",
+                render: function (data, type, row) {
+
+                    // SORT & FILTER → raw datetime
+                    if (type === "sort" || type === "type") {
+                        return data || "";
+                    }
+
+                    // DISPLAY → formatted + HTML
+                    const by = row.created_by || "-";
+                    const date = data ?
+                        moment(data).format("DD/MM/YYYY HH:mm") :
+                        "-";
+
+                    return `
+                        <div class="small">
+                            <div class="fw-semibold">${by}</div>
+                            <div class="text-muted">${date}</div>
+                        </div>
+                    `;
                 }
             },
             {
                 title: "Last Updated",
                 data: "updated_at",
-                render: function (data) {
-                    return data ? moment(data).format("DD/MM/YYYY HH:mm") : "-";
+                render: function (data, type, row) {
+
+                    if (type === "sort" || type === "type") {
+                        return data || "";
+                    }
+
+                    const by = row.updated_by || "-";
+                    const date = data ?
+                        moment(data).format("DD/MM/YYYY HH:mm") :
+                        "-";
+
+                    return `
+                        <div class="small">
+                            <div class="fw-semibold">${by}</div>
+                            <div class="text-muted">${date}</div>
+                        </div>
+                    `;
                 }
             },
             {
-                title: "Updated By",
-                data: "updated_by",
-                render: function (data) {
-                    return data ? data : "-";
+                title: "Notes",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+                render: function (row) {
+                    return `
+                        <i class="bi bi-journal-text text-primary notes-btn"
+                        data-id="${row.id}"
+                        title="View Notes"
+                        style="cursor:pointer; font-size:1.2rem;"></i>
+                    `;
+                }
+            },
+            {
+                title: "Discharge",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+                render: function (row) {
+                    // If already discharged, show disabled icon
+                    if (row.is_discharged) {
+                        return `
+                            <i class="bi bi-check-circle-fill text-success"
+                            title="Discharged"></i>
+                        `;
+                    }
+
+                    // Otherwise show clickable discharge icon
+                    return `
+                        <i class="bi bi-box-arrow-right text-danger discharge-btn"
+                        role="button"
+                        title="Discharge Assessment"
+                        data-id="${row.id}"></i>
+                    `;
                 }
             }
         ];
@@ -220,9 +348,9 @@
                 dataSrc: ""
             },
             columns: columnsConfig,
+            scrollX: true,
             autoWidth: false, // IMPORTANT
             responsive: true,
-            scrollX: true,
             pageLength: 25,
             lengthMenu: [5, 10, 25, 50, 100],
         });
@@ -240,13 +368,13 @@
             if (currentScope === "all") {
                 currentScope = "assigned";
                 btn
-                    .text("Show All Assessments")
+                    .html('<i class="bi bi-filter-circle me-1"></i> Show All Assessments')
                     .removeClass("btn-outline-primary")
                     .addClass("btn-primary");
             } else {
                 currentScope = "all";
                 btn
-                    .text("Show My Assessments")
+                    .html('<i class="bi bi-filter-circle me-1"></i> Show My Assessments')
                     .removeClass("btn-primary")
                     .addClass("btn-outline-primary");
             }
