@@ -1,4 +1,6 @@
+import base64
 from rest_framework import serializers
+from django.core.files.base import ContentFile
 from django.utils import timezone
 from accounts.models import Profile
 from .models import Assessments
@@ -118,11 +120,10 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
     evaluator = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.filter(role="clinician"), required=True
     )
-
     student = serializers.PrimaryKeyRelatedField(
-        queryset=Profile.objects.filter(role="student"),
-        required=False,  # optional for student users
+        queryset=Profile.objects.filter(role="student"), required=False
     )
+    signature_data = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = Assessments
@@ -140,6 +141,11 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "diastolic_bp",
             "summary",
             "special_direction",
+            "education_consent",
+            "research_consent",
+            "marketing_consent",
+            "initial_patient_consent_signature",
+            "signature_data",
             # Section 2 – Presenting Complaint
             "chief_complaint",
             "history_of_condition",
@@ -164,14 +170,12 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         # If user is a student, override student field
         if user_profile.role == "student":
             validated_data["student"] = user_profile
-
+        
         # If user is admin, must select student manually
-        elif user_profile.role == "admin":
-            student = validated_data.get("student")
-            if not student:
-                raise serializers.ValidationError(
-                    {"student": "This field is required for admins."}
-                )
+        elif user_profile.role == "admin" and not validated_data.get("student"):
+            raise serializers.ValidationError(
+                {"student": "This field is required for admins."}
+            )
 
         # -----------------------------
         # Audit fields (CREATE)
@@ -179,15 +183,41 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         validated_data["created_by"] = user_profile
         validated_data["updated_by"] = user_profile
 
-        return super().create(validated_data)
+        signature_data = validated_data.pop("signature_data", None)
+        instance = super().create(validated_data)
+
+        if signature_data:
+            self._save_signature(instance, signature_data)
+
+        return instance
 
     def update(self, instance, validated_data):
-        request = self.context["request"]
+        request = self.context.get("request")
         user_profile = request.user.profile
-
-        # -----------------------------
-        # Audit field (UPDATE)
-        # -----------------------------
         instance.updated_by = user_profile
 
-        return super().update(instance, validated_data)
+        signature_data = validated_data.pop("signature_data", None)
+        instance = super().update(instance, validated_data)
+
+        if signature_data:
+            self._save_signature(instance, signature_data)
+
+        return instance
+
+    def _save_signature(self, instance, signature_data):
+        if not signature_data:
+            return
+        try:
+            format, imgstr = signature_data.split(";base64,")
+            ext = format.split("/")[-1]
+            data = ContentFile(
+                base64.b64decode(imgstr), name=f"signature_{instance.id}.{ext}"
+            )
+            instance.initial_patient_consent_signature = data
+            instance.is_initial_patient_consent_signed = True
+            instance.initial_patient_consent_signed_at = timezone.now()
+            instance.save()
+        except Exception as e:
+            raise serializers.ValidationError(
+                {"signature_data": f"Invalid image data: {str(e)}"}
+            )

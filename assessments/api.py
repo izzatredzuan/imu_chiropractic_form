@@ -1,4 +1,6 @@
 import logging
+import base64
+from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from accounts.models import Profile
 from rest_framework import status
@@ -51,11 +53,7 @@ class AssessmentSection1And2APIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, assessment_id=None):
-        """
-        GET method to fetch section 1 data for editing or viewing.
-        """
         profile = request.user.profile
-
         if not assessment_id:
             return Response(
                 {"assessment_id": "Assessment ID is required"},
@@ -73,8 +71,10 @@ class AssessmentSection1And2APIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Admin can view all
-        serializer = AssessmentSection1And2DetailSerializer(assessment)
+        serializer = AssessmentSection1And2CreateSerializer(assessment)
+        logger.info(
+            f"VIEW - Assessment {assessment.id} accessed by {profile.official_name} ({profile.role})"
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -97,69 +97,46 @@ class AssessmentSection1And2APIView(APIView):
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
-        data = serializer.validated_data.copy()
 
-        # --------------------------------
-        # Extract controlled fields
-        # --------------------------------
-        evaluator = data.pop("evaluator", None)
-        student_from_payload = data.pop("student", None)
-
-        # --------------------------------
-        # Role-based assignment
-        # --------------------------------
-        if profile.role == "student":
-            student = profile
-            if not evaluator:
+        signature_data = request.data.get("signature_data")
+        if signature_data:
+            try:
+                format, imgstr = signature_data.split(";base64,")
+                ext = format.split("/")[-1]
+                signature_file = ContentFile(
+                    base64.b64decode(imgstr), name=f"signature.{ext}"
+                )
+                serializer.validated_data["initial_patient_consent_signature"] = (
+                    signature_file
+                )
+            except Exception as e:
+                logger.error(f"SIGNATURE_ERROR - Invalid signature data: {str(e)}")
                 return Response(
-                    {"evaluator": "Evaluator is required"},
+                    {"signature_data": f"Invalid image data: {str(e)}"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-
-        elif profile.role == "admin" or profile.role == "clinician":
-            student = student_from_payload
-            if not student:
-                return Response(
-                    {"student": "Student is required"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            if not evaluator:
-                return Response(
-                    {"evaluator": "Evaluator is required"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-        else:
-            return Response(
-                {"detail": "You are not allowed to create assessments."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
 
         # --------------------------------
         # Create assessment
         # --------------------------------
         try:
-            # Use serializer to create to ensure audit fields are set
-            assessment = serializer.save(
-                student=student,
-                evaluator=evaluator,
-                is_section_1_signed=False,
-                is_section_2_signed=False,
-                is_section_3_signed=False,
-            )
+            assessment = serializer.save()
             logger.info(
                 f"CREATE - Assessment created successfully: "
                 f"id={assessment.id}, patient name={assessment.patient_name}, student={student.member_id} - {student.official_name}, "
                 f"evaluator={evaluator.member_id} - {evaluator.official_name},"
                 f"created_by={request.user.username} - {request.user.profile.official_name})"
             )
+
+            if signature_data:
+                logger.info(
+                    f"SIGNATURE_SAVED - Initial patient consent signature saved for assessment {assessment.id}"
+                )
+
             return Response(
-                {
-                    "id": assessment.id,
-                    "message": "Assessment created successfully",
-                },
+                {"id": assessment.id, "message": "Assessment created successfully"},
                 status=status.HTTP_201_CREATED,
             )
-
         except Exception as e:
             logger.error(
                 f"CREATE - Failed to create assessment: patient name={assessment.patient_name}"
@@ -194,49 +171,62 @@ class AssessmentSection1And2APIView(APIView):
             )
 
         serializer = AssessmentSection1And2CreateSerializer(
-            assessment,
-            data=request.data,
-            partial=True,
-            context={"request": request},
+            assessment, data=request.data, partial=True, context={"request": request}
         )
+        serializer.is_valid(raise_exception=True)
 
+        signature_data = request.data.get("signature_data")
         try:
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+            if signature_data:
+                format, imgstr = signature_data.split(";base64,")
+                ext = format.split("/")[-1]
+                signature_file = ContentFile(
+                    base64.b64decode(imgstr), name=f"signature.{ext}"
+                )
+                serializer.save(initial_patient_consent_signature=signature_file)
+                logger.info(
+                    f"SIGNATURE_UPDATED - Signature updated for assessment {assessment.id} by {profile.official_name}"
+                )
+            else:
+                serializer.save()
+        except Exception as e:
+            logger.error(
+                f"SIGNATURE_SAVE_FAILED - Assessment {assessment.id} | Error: {str(e)}",
+                exc_info=True,
+            )
+            return Response(
+                {"detail": "Failed to save signature", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
-            # =========================
-            # SECTION SIGN-OFF LOGIC
-            # =========================
-
-            # ---------- SAVE SECTION 1 ----------
+        # ===== Section sign-off logic =====
+        # ---------- SAVE SECTION 1 ----------
+        try:
             if action == "save_section_1":
+                assessment.is_section_1_signed = False
+                assessment.section_1_signed_by = None
+                assessment.section_1_signed_at = None
+                assessment.is_section_2_signed = False
+                assessment.section_2_signed_by = None
+                assessment.section_2_signed_at = None
                 logger.info(
                     f"SAVE - Section 1 | "
                     f"assessment_id={assessment.id}, "
                     f"user={profile.official_name} ({profile.role}) | "
-                    f"Resetting Section 1 & Section 2 sign-offs"
+                    f"Reset section 1 & 2 sign-offs"
                 )
-
-                assessment.is_section_1_signed = False
-                assessment.section_1_signed_by = None
-                assessment.section_1_signed_at = None
-
-                assessment.is_section_2_signed = False
-                assessment.section_2_signed_by = None
-                assessment.section_2_signed_at = None
 
             # ---------- SAVE SECTION 2 ----------
             elif action == "save_section_2":
+                assessment.is_section_2_signed = False
+                assessment.section_2_signed_by = None
+                assessment.section_2_signed_at = None
                 logger.info(
                     f"SAVE - Section 2 | "
                     f"assessment_id={assessment.id}, "
                     f"user={profile.official_name} ({profile.role}) | "
                     f"Resetting Section 2 sign-off"
                 )
-
-                assessment.is_section_2_signed = False
-                assessment.section_2_signed_by = None
-                assessment.section_2_signed_at = None
 
             # ---------- SIGN OFF SECTION 1 ----------
             elif action == "sign_off_section_1":
@@ -254,7 +244,6 @@ class AssessmentSection1And2APIView(APIView):
                 assessment.is_section_1_signed = True
                 assessment.section_1_signed_by = profile
                 assessment.section_1_signed_at = timezone.now()
-
                 logger.info(
                     f"SIGN_OFF - Section 1 | "
                     f"assessment_id={assessment.id}, "
@@ -290,7 +279,6 @@ class AssessmentSection1And2APIView(APIView):
                 assessment.is_section_2_signed = True
                 assessment.section_2_signed_by = profile
                 assessment.section_2_signed_at = timezone.now()
-
                 logger.info(
                     f"SIGN_OFF - Section 2 | "
                     f"assessment_id={assessment.id}, "
@@ -299,7 +287,6 @@ class AssessmentSection1And2APIView(APIView):
                 )
 
             assessment.save()
-
             logger.info(
                 f"UPDATE - Section 1 | "
                 f"assessment_id={assessment.id}, "
@@ -337,7 +324,6 @@ class AssessmentSection1And2APIView(APIView):
                 f"action={action}, "
                 f"message='{message}'"
             )
-
             return Response(
                 {"message": message},
                 status=status.HTTP_200_OK,
@@ -350,4 +336,7 @@ class AssessmentSection1And2APIView(APIView):
                 f"error={str(e)}",
                 exc_info=True,
             )
-            raise
+            return Response(
+                {"detail": "Failed to update assessment", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

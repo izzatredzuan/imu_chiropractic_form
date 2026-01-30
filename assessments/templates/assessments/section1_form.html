@@ -56,13 +56,13 @@
   /* #markerNotePopup textarea {
     resize: none;
   } */
+
+  .signature-wrapper { width: 100%; max-width: 480px; }
 </style>
 
 <div class="container-fluid py-4">
 
-  <!-- =========================
-       PAGE TITLE
-  ========================== -->
+  <!-- ========================= Page Title ========================== -->
   <div class="mb-4">
     <h2 class="fw-semibold">
       {% if assessment %}Edit Assessment{% else %}Create Assessment{% endif %}
@@ -71,37 +71,27 @@
 
   <form id="section1Form">
 
-    <!-- =========================
-     ASSIGNMENT
-    ========================== -->
+    <!-- ========================= Assignment ========================== -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-header fw-semibold">
-        Assignment
-      </div>
+      <div class="card-header fw-semibold">Assignment</div>
       <div class="card-body">
         {% if is_readonly %}
-        <div class="alert alert-warning">
-          You are viewing this assessment in read-only mode because you are not the assigned evaluator.
-        </div>
+          <div class="alert alert-warning">You are viewing this assessment in read-only mode because you are not the assigned evaluator.</div>
         {% endif %}
-        
+
         {% if assessment.is_section_1_signed %}
-        <div class="alert alert-success">
-          <strong>Signed-off by:</strong>
-          {{ assessment.section_1_signed_by.official_name }}
-          ({{ assessment.section_1_signed_by.role|title }})<br>
-          <small class="text-muted">
-            Signed at: {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}
-          </small>
-        </div>
+          <div class="alert alert-success">
+            <strong>Signed-off by:</strong>
+            {{ assessment.section_1_signed_by.official_name }} ({{ assessment.section_1_signed_by.role|title }})<br>
+            <small class="text-muted">Signed at: {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}</small>
+          </div>
         {% endif %}
 
         <div class="row">
           <!-- Student dropdown -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
-            <select name="student" class="form-control" required
-                    {% if student_readonly or is_readonly %}disabled{% endif %}>
+            <select name="student" class="form-control" required {% if student_readonly or is_readonly %}disabled{% endif %}>
               <option value="">-- Select Student --</option>
               {% for s in students %}
               <option value="{{ s.id }}"
@@ -112,20 +102,17 @@
               {% endfor %}
             </select>
             {% if student_readonly %}
-            <!-- preserve value for API since disabled fields are not submitted -->
-            <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+              <input type="hidden" name="student" value="{{ request.user.profile.id }}">
             {% endif %}
           </div>
 
           <!-- Evaluator dropdown -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Evaluator (Clinician)</label>
-            <select name="evaluator" class="form-control" required
-                    {% if is_readonly %}disabled{% endif %}>
+            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
               <option value="">-- Select Clinician --</option>
               {% for c in clinicians %}
-              <option value="{{ c.id }}"
-                      {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
                 {{ c.member_id }} – {{ c.official_name }}
               </option>
               {% endfor %}
@@ -135,36 +122,27 @@
       </div>
     </div>
 
-    <!-- =========================
-         SECTION 1 – INITIAL ASSESSMENT
-    ========================== -->
+    <!-- ========================= Section 1 ========================== -->
     <h4 class="fw-semibold mb-3">Section 1 – Initial Assessment</h4>
-
     <div class="row g-4">
 
-      <!-- ========== LEFT COLUMN ========== -->
+      <!-- Left column -->
       <div class="col-lg-7">
-
-        <!-- Patient Details -->
+        <!-- Patient Details Card -->
         <div class="card mb-4 shadow-sm">
           <div class="card-header fw-semibold">Patient Details</div>
           <div class="card-body">
             <div class="row">
-              <!-- Patient Name -->
               <div class="col-md-4 mb-3">
                 <label class="form-label required">Patient Name</label>
                 <input type="text" name="patient_name" class="form-control" required
-                  value="{{ assessment.patient_name|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                       value="{{ assessment.patient_name|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
-
-              <!-- File Number -->
               <div class="col-md-4 mb-3">
                 <label class="form-label required">File Number</label>
                 <input type="text" name="file_number" class="form-control" required
-                  value="{{ assessment.file_number|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                       value="{{ assessment.file_number|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
-
-              <!-- Gender -->
               <div class="col-md-2 mb-3">
                 <label class="form-label required">Gender</label>
                 <select name="gender" class="form-control" required {% if is_readonly %}disabled{% endif %}>
@@ -173,19 +151,17 @@
                   <option value="female" {% if assessment.gender == 'female' %}selected{% endif %}>Female</option>
                 </select>
               </div>
-
-              <!-- Date of Birth -->
               <div class="col-md-2 mb-3">
                 <label class="form-label required">Date of Birth</label>
                 <input type="date" name="date_of_birth" class="form-control" required
-                  value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
-                  {% if is_readonly %}disabled{% endif %}>
+                       value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
+                       {% if is_readonly %}disabled{% endif %}>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Vitals -->
+        <!-- Vitals Card -->
         <div class="card mb-4 shadow-sm">
           <div class="card-header fw-semibold">Vitals</div>
           <div class="card-body">
@@ -193,74 +169,55 @@
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Pulse</label>
                 <input type="number" name="pulse" class="form-control" required
-                  value="{{ assessment.pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                       value="{{ assessment.pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Respiratory</label>
                 <input type="number" name="respiratory" class="form-control" required
-                  value="{{ assessment.respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                       value="{{ assessment.respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Systolic BP</label>
                 <input type="number" name="systolic_bp" class="form-control" required
-                  value="{{ assessment.systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                       value="{{ assessment.systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Diastolic BP</label>
                 <input type="number" name="diastolic_bp" class="form-control" required
-                  value="{{ assessment.diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                       value="{{ assessment.diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- =========================
-            Summary & Special Direction (NEW)
-        ========================== -->
+        <!-- Summary & Special Direction -->
         <div class="card mb-4 shadow-sm">
           <div class="card-header fw-semibold">Summary</div>
           <div class="card-body">
             <div class="mb-3">
               <label class="form-label">Summary</label>
               <textarea name="summary" class="form-control" rows="4"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
+                        {% if is_readonly %}readonly{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
             </div>
             <div class="mb-3">
               <label class="form-label">Special Direction</label>
               <textarea name="special_direction" class="form-control" rows="4"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
+                        {% if is_readonly %}readonly{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
             </div>
           </div>
         </div>
-
       </div>
 
-      <!-- ========== RIGHT COLUMN ========== -->
+      <!-- Right column: Anatomy Marking -->
       <div class="col-lg-5">
-        <!-- =========================
-            Anatomy Marking Card
-        ========================== -->
         <div class="card shadow-sm">
-          <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-            <span>Anatomy Marking</span>
-            <!-- <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-secondary active" id="btnFront">Front</button>
-              <button class="btn btn-outline-secondary" id="btnBack">Back</button>
-            </div> -->
-          </div>
-
+          <div class="card-header fw-semibold">Anatomy Marking</div>
           <div id="anatomySection" class="card-body text-center">
-
-            <!-- Instructions -->
             <div class="mb-3 text-muted small">
-              <strong>Instructions:</strong> Click on the body to mark pain or tenderness.
-              Left-click a marker to add/edit a note. Right-click a marker to delete it.
+              <strong>Instructions:</strong> Click on the body to mark pain or tenderness. Left-click a marker to add/edit a note. Right-click to delete.
             </div>
-
-            <!-- Anatomy Image Container -->
             <div id="anatomyWrapper" class="position-relative d-inline-block">
-              <img src="/static/images/Muscles_front_and_back.svg" id="anatomyImage"
-                style="display: block; max-height: 520px; width: auto;" />
+              <img src="/static/images/Muscles_front_and_back.svg" id="anatomyImage" style="display:block; max-height:520px; width:auto;">
               <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
             </div>
           </div>
@@ -268,14 +225,69 @@
       </div>
     </div>
 
-    <!-- =========================
-            SUBMIT
-        ========================== -->
-    <div class="mt-4 d-flex justify-content-end gap-2">
-      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">
-        Cancel
-      </a>
+    <!-- Initial Patient Consent -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Initial Patient Consent</div>
+      <div class="card-body">
 
+        {% if assessment and assessment.is_initial_patient_consent_signed %}
+          <div class="alert alert-success">
+            <strong>Consent Signed</strong><br>
+            <small class="text-muted">Signed at: {{ assessment.initial_patient_consent_signed_at|date:"d M Y, h:i A" }}</small>
+          </div>
+        {% endif %}
+
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="education_consent"
+                 {% if assessment.education_consent %}checked{% endif %}
+                 {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %} required>
+          <label class="form-check-label required">I agree to education usage</label>
+        </div>
+
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="research_consent"
+                 {% if assessment.research_consent %}checked{% endif %}
+                 {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %} required>
+          <label class="form-check-label required">I agree to research usage</label>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" name="marketing_consent"
+                 {% if assessment.marketing_consent %}checked{% endif %}
+                 {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %}>
+          <label class="form-check-label">I agree to marketing communication (optional)</label>
+        </div>
+
+        <!-- Signature -->
+        <label class="form-label required">Patient Signature</label>
+
+        {% if assessment and assessment.is_initial_patient_consent_signed %}
+          <div class="mb-3">
+            <img src="{{ assessment.initial_patient_consent_signature.url }}" class="img-fluid border rounded" style="max-height:150px;">
+          </div>
+        {% else %}
+          <div class="signature-wrapper mx-auto">
+            <canvas id="signaturePad" class="border rounded" style="width:100%; height:200px;"></canvas>
+          </div>
+          <div class="mt-2 d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-warning" id="undoSignature">Undo</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="clearSignature">Clear</button>
+          </div>
+          <input type="hidden" name="signature_data" id="signatureData">
+        {% endif %}
+
+      </div>
+    </div>
+
+    {% if assessment and assessment.is_initial_patient_consent_signed %}
+      <input type="hidden" name="marketing_consent" value="{{ assessment.marketing_consent }}">
+      <input type="hidden" name="education_consent" value="{{ assessment.education_consent }}">
+      <input type="hidden" name="research_consent" value="{{ assessment.research_consent }}">
+    {% endif %}
+
+    <!-- Submit buttons -->
+    <div class="mt-4 d-flex justify-content-end gap-2">
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">Cancel</a>
       <!-- Hide button if user is only able to readonly -->
       {% if not is_readonly %}
         <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary">
@@ -294,53 +306,166 @@
 </div>
 
 <script>
-  document.getElementById("btnSave").addEventListener("click", function () {
-    clickedAction = "save_section_1";
-  }); 
+  let clickedAction = "save_section_1";
+
+  document.getElementById("btnSave")?.addEventListener("click", () => clickedAction = "save_section_1");
   {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
-  document.getElementById("btnSignOff").addEventListener("click", function () {
-    clickedAction = "sign_off_section_1";
-  }); 
+  document.getElementById("btnSignOff")?.addEventListener("click", () => clickedAction = "sign_off_section_1");
   {% endif %}
 
-  // ===========================
-  // Save confirmation and submission
-  // ===========================
-  document.getElementById("section1Form").addEventListener("submit", function (e) {
-    e.preventDefault();
+  (() => {
+    /* ======================================================
+    Signature Pad (OPTIONAL – only if canvas exists)
+    ====================================================== */
 
-    const isUpdate = {% if assessment %}true{% else %}false{% endif %};
+    let canvas = document.getElementById("signaturePad");
+    let ctx = null;
+    let strokes = [];
+    let currentStroke = [];
+    let isDrawing = false;
+    let signatureWrapper = null;
 
-    if (isUpdate) {
-      let confirmMessage = "Are you sure you want to save the changes? All sections sign-offs will be reset.";
+    if (canvas) {
+      ctx = canvas.getContext("2d");
+      signatureWrapper = canvas.parentElement;
 
-      if (clickedAction === "sign_off_section_1") {
-        confirmMessage =
-          "Are you sure you want to UPDATE and SIGN OFF Section 1?";
-      }
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const point = e.touches ? e.touches[0] : e;
+        return {
+          x: point.clientX - rect.left,
+          y: point.clientY - rect.top
+        };
+      };
 
-      if (!confirm(confirmMessage)) {
+      const redraw = () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (strokes.length === 0) {
+          ctx.save();
+          ctx.font = "16px Arial";
+          ctx.fillStyle = "#aaa";
+          ctx.textAlign = "center";
+          ctx.fillText("Sign inside the box", canvas.width / 2, canvas.height / 2);
+          ctx.restore();
+          signatureWrapper?.classList.remove("border-danger");
+          return;
+        }
+
+        ctx.beginPath();
+        strokes.forEach(stroke => {
+          ctx.moveTo(stroke[0].x, stroke[0].y);
+          stroke.forEach(p => ctx.lineTo(p.x, p.y));
+        });
+        ctx.stroke();
+      };
+
+      const resizeCanvas = () => {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+        ctx.lineWidth = 2;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#000";
+        redraw();
+      };
+
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      const startDraw = (e) => {
+        e.preventDefault();
+        isDrawing = true;
+        currentStroke = [];
+        strokes.push(currentStroke);
+        currentStroke.push(getPos(e));
+      };
+
+      const draw = (e) => {
+        if (!isDrawing) return;
+        e.preventDefault();
+        currentStroke.push(getPos(e));
+        redraw();
+      };
+
+      const stopDraw = () => {
+        isDrawing = false;
+      };
+
+      canvas.addEventListener("mousedown", startDraw);
+      canvas.addEventListener("mousemove", draw);
+      canvas.addEventListener("mouseup", stopDraw);
+      canvas.addEventListener("mouseleave", stopDraw);
+
+      canvas.addEventListener("touchstart", startDraw);
+      canvas.addEventListener("touchmove", draw);
+      canvas.addEventListener("touchend", stopDraw);
+
+      document.getElementById("undoSignature")?.addEventListener("click", () => {
+        strokes.pop();
+        redraw();
+      });
+
+      document.getElementById("clearSignature")?.addEventListener("click", () => {
+        strokes = [];
+        redraw();
+      });
+    }
+    
+    /* ======================================================
+    FORM SUBMISSION (ALWAYS ATTACHED)
+    ====================================================== */
+
+    document.getElementById("section1Form").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      /* -------------------------
+        Consent validation (CREATE ONLY)
+        ------------------------- */
+      {% if not assessment %}
+      if (
+        !document.querySelector('input[name="education_consent"]').checked ||
+        !document.querySelector('input[name="research_consent"]').checked
+      ) {
+        alert("Education and Research consent are required.");
         return;
       }
-    }
+      {% endif %}
 
-    // ==========================
-    // Proceed with save
-    // ==========================
-    const formData = new FormData(this);
-    formData.set("action", clickedAction);
+      /* -------------------------
+        Signature validation (ONLY if canvas exists)
+        ------------------------- */
+      if (canvas && strokes.length === 0) {
+        alert("Patient signature is required.");
+        signatureWrapper?.classList.add("border-danger");
+        return;
+      }
 
-    const payload = {};
-    formData.forEach((v, k) => payload[k] = v);
+      /* -------------------------
+        Build payload
+        ------------------------- */
+      const formData = new FormData(this);
+      formData.set("action", clickedAction);
 
-    {% if assessment %}
-    payload["assessment_id"] = "{{ assessment.id }}";
-    const method = "PUT"; 
-    {% else %}
-    const method = "POST";
-    {% endif %}
+      if (canvas && strokes.length > 0) {
+        formData.set("signature_data", canvas.toDataURL("image/png"));
+      }
 
-    fetch("{% url 'assessment_section1_and_2_api' %}", {
+      const payload = {};
+      formData.forEach((value, key) => {
+        payload[key] = value;
+      });
+
+      {% if assessment %}
+        payload["assessment_id"] = "{{ assessment.id }}";
+        const method = "PUT";
+      {% else %}
+        const method = "POST";
+      {% endif %}
+
+      /* -------------------------
+        API call
+        ------------------------- */
+      fetch("{% url 'assessment_section1_and_2_api' %}", {
         method: method,
         headers: {
           "Content-Type": "application/json",
@@ -349,170 +474,171 @@
         body: JSON.stringify(payload)
       })
       .then(res => {
-        if (!res.ok) return res.json().then(err => {
-          throw err;
-        });
+        if (!res.ok) {
+          return res.json().then(err => { throw err; });
+        }
         return res.json();
       })
       .then(data => {
-        alert(data.message || "Success");
+        alert(data.message || "Saved successfully");
         window.location.href = "{% url 'assessments_list' %}";
       })
       .catch(err => {
-        console.error(err);
-        alert("Failed. Please check required fields.");
+        console.error("Save failed:", err);
+        alert("Failed to save. Please check required fields.");
       });
-  });
-
-  // ===========================
-  // Anatomy Marking Logic
-  // ===========================
-  (() => {
-    const anatomySection = document.getElementById("anatomySection");
-    const anatomyImage = document.getElementById("anatomyImage");
-    const markerLayer = document.getElementById("markerLayer");
-
-    // Prevent right-click menu in the anatomy section
-    anatomySection.addEventListener("contextmenu", function (e) {
-      e.preventDefault();
-    });
-
-    // ===========================
-    // Save markers to JSON
-    // ===========================
-    function saveMarkers() {
-      const markers = markerLayer.querySelectorAll(".anatomy-marker");
-
-      const markersData = Array.from(markers).map(m => ({
-        x: parseFloat(m.style.left) / 100,
-        y: parseFloat(m.style.top) / 100,
-        note: m.title || ""
-      }));
-
-      console.log("Markers saved:", markersData);
-
-      return markersData;
-    }
-
-    // ===========================
-    // Floating textarea popup
-    // ===========================
-    function createNotePopup(marker) {
-      const existing = document.getElementById("markerNotePopup");
-      if (existing) existing.remove();
-
-      const popup = document.createElement("div");
-      popup.id = "markerNotePopup";
-      popup.style.position = "absolute";
-      popup.style.zIndex = "1000";
-      popup.style.background = "#fff";
-      popup.style.border = "1px solid #ccc";
-      popup.style.padding = "8px";
-      popup.style.borderRadius = "4px";
-      popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
-      popup.style.width = "400px";
-      popup.style.height = "220px";
-
-      const textarea = document.createElement("textarea");
-      textarea.rows = 8;
-      textarea.style.width = "100%";
-      textarea.style.height = "calc(100% - 40px)";
-      textarea.style.resize = "vertical";
-      textarea.value = marker.title || "";
-      popup.appendChild(textarea);
-
-      const btnSave = document.createElement("button");
-      btnSave.textContent = "Save";
-      btnSave.className = "btn btn-sm btn-primary";
-      popup.appendChild(btnSave);
-
-      let saved = false;
-      const originalText = marker.title || "";
-
-      btnSave.addEventListener("click", () => {
-        marker.title = textarea.value;
-        saved = true;
-        popup.remove();
-        saveMarkers();
-        document.removeEventListener("click", outsideHandler);
-      });
-
-      document.body.appendChild(popup);
-
-      // position near marker
-      const rect = marker.getBoundingClientRect();
-      popup.style.left = rect.right + 5 + "px";
-      popup.style.top = rect.top + window.scrollY + "px";
-
-      // ===========================
-      // Outside click close with alert
-      // ===========================
-      function outsideHandler(event) {
-        // click on popup or marker → do nothing
-        if (popup.contains(event.target) || event.target === marker) return;
-        // unsaved changes
-        if (textarea.value !== originalText) {
-          console.log("Unsaved changes detected.");
-          const discard = confirm("You have unsaved changes. Discard the note?");
-          if (!discard) {
-            // user wants to keep editing → stop closing
-            return;
-          }
-        }
-
-        // remove popup
-        popup.remove();
-        document.removeEventListener("click", outsideHandler);
-      }
-
-      // attach listener after current call stack
-      setTimeout(() => {
-        document.addEventListener("click", outsideHandler);
-      }, 0);
-
-    }
-
-    // ===========================
-    // Create marker on image click
-    // ===========================
-    anatomyImage.addEventListener("click", function (e) {
-      const rect = anatomyImage.getBoundingClientRect();
-
-      const x = (e.clientX - rect.left) / rect.width;
-      const y = (e.clientY - rect.top) / rect.height;
-
-      const marker = document.createElement("div");
-      marker.className = "anatomy-marker";
-
-      marker.style.left = (x * 100) + "%";
-      marker.style.top = (y * 100) + "%";
-
-      // reopen popup later
-      marker.addEventListener("click", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        createNotePopup(marker);
-      });
-
-      // right-click delete
-      marker.addEventListener("contextmenu", function (ev) {
-        ev.preventDefault();
-        ev.stopPropagation();
-
-        if (confirm("Remove this marking?")) {
-          marker.remove();
-          saveMarkers();
-        }
-      });
-
-      markerLayer.appendChild(marker);
-
-      // instantly open popup
-      createNotePopup(marker);
     });
 
   })();
-</script>
 
+// ===========================
+  // Anatomy Marking Logic
+  // ===========================
+  // (() => {
+  //   const anatomySection = document.getElementById("anatomySection");
+  //   const anatomyImage = document.getElementById("anatomyImage");
+  //   const markerLayer = document.getElementById("markerLayer");
+
+  //   // Prevent right-click menu in the anatomy section
+  //   anatomySection.addEventListener("contextmenu", function (e) {
+  //     e.preventDefault();
+  //   });
+
+  //   // ===========================
+  //   // Save markers to JSON
+  //   // ===========================
+  //   function saveMarkers() {
+  //     const markers = markerLayer.querySelectorAll(".anatomy-marker");
+
+  //     const markersData = Array.from(markers).map(m => ({
+  //       x: parseFloat(m.style.left) / 100,
+  //       y: parseFloat(m.style.top) / 100,
+  //       note: m.title || ""
+  //     }));
+
+  //     console.log("Markers saved:", markersData);
+
+  //     return markersData;
+  //   }
+
+  //   // ===========================
+  //   // Floating textarea popup
+  //   // ===========================
+  //   function createNotePopup(marker) {
+  //     const existing = document.getElementById("markerNotePopup");
+  //     if (existing) existing.remove();
+
+  //     const popup = document.createElement("div");
+  //     popup.id = "markerNotePopup";
+  //     popup.style.position = "absolute";
+  //     popup.style.zIndex = "1000";
+  //     popup.style.background = "#fff";
+  //     popup.style.border = "1px solid #ccc";
+  //     popup.style.padding = "8px";
+  //     popup.style.borderRadius = "4px";
+  //     popup.style.boxShadow = "0 2px 8px rgba(0,0,0,0.2)";
+  //     popup.style.width = "400px";
+  //     popup.style.height = "220px";
+
+  //     const textarea = document.createElement("textarea");
+  //     textarea.rows = 8;
+  //     textarea.style.width = "100%";
+  //     textarea.style.height = "calc(100% - 40px)";
+  //     textarea.style.resize = "vertical";
+  //     textarea.value = marker.title || "";
+  //     popup.appendChild(textarea);
+
+  //     const btnSave = document.createElement("button");
+  //     btnSave.textContent = "Save";
+  //     btnSave.className = "btn btn-sm btn-primary";
+  //     popup.appendChild(btnSave);
+
+  //     let saved = false;
+  //     const originalText = marker.title || "";
+
+  //     btnSave.addEventListener("click", () => {
+  //       marker.title = textarea.value;
+  //       saved = true;
+  //       popup.remove();
+  //       saveMarkers();
+  //       document.removeEventListener("click", outsideHandler);
+  //     });
+
+  //     document.body.appendChild(popup);
+
+  //     // position near marker
+  //     const rect = marker.getBoundingClientRect();
+  //     popup.style.left = rect.right + 5 + "px";
+  //     popup.style.top = rect.top + window.scrollY + "px";
+
+  //     // ===========================
+  //     // Outside click close with alert
+  //     // ===========================
+  //     function outsideHandler(event) {
+  //       // click on popup or marker → do nothing
+  //       if (popup.contains(event.target) || event.target === marker) return;
+  //       // unsaved changes
+  //       if (textarea.value !== originalText) {
+  //         console.log("Unsaved changes detected.");
+  //         const discard = confirm("You have unsaved changes. Discard the note?");
+  //         if (!discard) {
+  //           // user wants to keep editing → stop closing
+  //           return;
+  //         }
+  //       }
+
+  //       // remove popup
+  //       popup.remove();
+  //       document.removeEventListener("click", outsideHandler);
+  //     }
+
+  //     // attach listener after current call stack
+  //     setTimeout(() => {
+  //       document.addEventListener("click", outsideHandler);
+  //     }, 0);
+
+  //   }
+
+  //   // ===========================
+  //   // Create marker on image click
+  //   // ===========================
+  //   anatomyImage.addEventListener("click", function (e) {
+  //     const rect = anatomyImage.getBoundingClientRect();
+
+  //     const x = (e.clientX - rect.left) / rect.width;
+  //     const y = (e.clientY - rect.top) / rect.height;
+
+  //     const marker = document.createElement("div");
+  //     marker.className = "anatomy-marker";
+
+  //     marker.style.left = (x * 100) + "%";
+  //     marker.style.top = (y * 100) + "%";
+
+  //     // reopen popup later
+  //     marker.addEventListener("click", function (ev) {
+  //       ev.preventDefault();
+  //       ev.stopPropagation();
+  //       createNotePopup(marker);
+  //     });
+
+  //     // right-click delete
+  //     marker.addEventListener("contextmenu", function (ev) {
+  //       ev.preventDefault();
+  //       ev.stopPropagation();
+
+  //       if (confirm("Remove this marking?")) {
+  //         marker.remove();
+  //         saveMarkers();
+  //       }
+  //     });
+
+  //     markerLayer.appendChild(marker);
+
+  //     // instantly open popup
+  //     createNotePopup(marker);
+  //   });
+  // })();
+  
+</script>
 
 {% endblock %}
