@@ -1,98 +1,6 @@
 {% extends 'base.html' %}
 
-{% block style %}
-<!-- Optional extra styles -->
-<style>
-    /* Base adjustments for all section buttons */
-    /* #assessmentsTable .btn {
-        min-width: 95px;
-        margin: 2px;
-        font-weight: 500;
-    } */
-
-    #assessmentsTable .btn-sm {
-        height: 32px;
-        /* keep your fixed height */
-        padding: 0 0.75rem;
-        /* horizontal padding */
-        line-height: 32px;
-        /* same as height to center text */
-        display: inline-block;
-        /* ensures line-height works */
-        text-align: center;
-        /* horizontal center */
-        vertical-align: middle;
-        /* safety for older browsers */
-        white-space: nowrap;
-        /* prevent text wrap */
-        font-weight: 600;
-    }
-
-    /* Warning / ready for sign-off button */
-    #assessmentsTable .btn-warning {
-        background-color: #ffc107;
-        /* Bootstrap default yellow */
-        color: #212529;
-        /* dark text for readability */
-        border-color: #e0a800;
-        /* slightly darker border for contrast */
-        font-weight: 600;
-    }
-
-    /* Optional: hover effect to make it feel interactive */
-    #assessmentsTable .btn-warning:hover {
-        background-color: #e0a800;
-        border-color: #d39e00;
-        color: #212529;
-    }
-
-    /* Optional: small shadow for better visibility */
-    #assessmentsTable .btn-warning:focus {
-        box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.5);
-    }
-
-    #assessmentsTable .btn:not(.disabled):hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-        transition: all 0.15s ease-in-out;
-    }
-
-    /* Active press effect */
-    #assessmentsTable .btn:active {
-        transform: translateY(1px);
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-    }
-
-    /* Optional: slightly round corners to soften appearance */
-    #assessmentsTable .btn {
-        border-radius: 0.35rem;
-        font-weight: 600;
-    }
-
-    /* Yellow warning button tweak for readability */
-    #assessmentsTable .btn-warning {
-        color: #212529;
-        /* dark text */
-    }
-
-    #assessmentsTable i.discharge-btn,
-    #assessmentsTable i.notes-btn {
-        font-size: 1.2rem;
-        cursor: pointer;
-        display: inline-block;
-        transition: transform 0.15s ease-in-out;
-    }
-
-    #assessmentsTable i.discharge-btn:hover,
-    #assessmentsTable i.notes-btn:hover {
-        transform: scale(1.15);
-    }
-</style>
-
-{% endblock %}
-
 {% block content %}
-
 <div class="container-fluid mt-4 px-4">
 
     <!-- Header -->
@@ -106,7 +14,7 @@
     </div>
 
     <!-- Controls bar -->
-    <div class="card shadow-sm mb-3">
+    <div class="mb-3">
         <div class="card-body py-2">
             <div class="d-flex align-items-center justify-content-between">
 
@@ -123,12 +31,10 @@
                 <!-- RIGHT: Status legend (always right) -->
                 <div class="d-flex align-items-center flex-wrap small">
                     <span class="me-2 fw-semibold text-muted">Status:</span>
-                    <span class="badge bg-secondary me-1 mb-1">Locked</span>
-                    <span class="badge bg-primary me-1 mb-1">In Progress</span>
-                    <span class="badge bg-warning text-dark me-1 mb-1">
-                        Ready for Sign-Off
-                    </span>
-                    <span class="badge bg-success me-1 mb-1">Signed</span>
+                    <span class="badge locked me-1 mb-1">Locked</span>
+                    <span class="badge in-progress me-1 mb-1">In Progress</span>
+                    <span class="badge ready me-1 mb-1">Ready for Sign-Off</span>
+                    <span class="badge signed me-1 mb-1">Signed</span>
                 </div>
 
             </div>
@@ -152,19 +58,23 @@
          * ---------------------------------- */
         const columnsConfig = [{
                 title: "Patient Name",
-                data: "patient_name"
+                data: "patient_name",
+                className: "text-left align-middle"
             },
             {
                 title: "File Number",
-                data: "file_number"
+                data: "file_number",
+                className: "text-center align-middle"
             },
             {
                 title: "Student",
-                data: "student"
+                data: "student",
+                className: "text-left align-middle"
             },
             {
                 title: "Clinician",
-                data: "clinician"
+                data: "clinician",
+                className: "text-left align-middle"
             },
             {
                 title: "Assessments",
@@ -172,19 +82,19 @@
                 data: null,
                 orderable: false,
                 searchable: false,
-                className: "text-center align-middle",
+                className: "text-center align-middle no-padding",
                 render: function (row) {
                     function sectionBtn(sectionNo, isSigned, isComplete, prevSigned) {
                         let cls = "btn btn-sm ";
 
                         if (!prevSigned) {
-                            cls += "btn-secondary disabled";
+                            cls += "full-width locked disabled";
                         } else if (isSigned) {
-                            cls += "btn-success";
+                            cls += "full-width signed";
                         } else if (isComplete) {
-                            cls += "btn-warning"; // 🟡 Ready for Sign-Off
+                            cls += "full-width ready";
                         } else {
-                            cls += "btn-primary"; // In progress
+                            cls += "full-width in-progress";
                         }
 
                         let titleText = isSigned ? 'Signed' :
@@ -201,11 +111,11 @@
                     }
 
                     return `
-                        <div class="d-flex gap-1 flex-nowrap align-items-center">
-                            ${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}
-                            ${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}
-                            ${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}
-                            ${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}
+                        <div class="d-flex align-items-center">
+                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}</div>
+                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}</div>
+                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}</div>
+                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}</div>
                         </div>
                     `;
                 },
@@ -221,22 +131,22 @@
                     const buttons = [{
                             text: "Treatment Plan",
                             url: `/assessments/${row.id}/treatment-plan/`,
-                            cls: "btn-primary"
+                            cls: "btn-primary plan"
                         },
                         {
                             text: "S.O.A.P",
                             url: `/assessments/${row.id}/soap/`,
-                            cls: "btn-primary"
+                            cls: "btn-primary note"
                         },
                         {
                             text: "Treatment Log",
                             url: `/assessments/${row.id}/treatment-log/`,
-                            cls: "btn-primary"
+                            cls: "btn-primary log"
                         }
                     ];
 
                     return `
-                        <div class="d-flex gap-1 flex-nowrap align-items-center">
+                        <div class="d-flex gap-1 justify-center align-items-center">
                             ${buttons.map(btn => `
                                 <a href="${btn.url}" class="btn btn-sm ${btn.cls}">
                                     ${btn.text}
@@ -249,6 +159,7 @@
             {
                 title: "Created",
                 data: "created_at",
+                className: "text-center align-middle",
                 render: function (data, type, row) {
 
                     // SORT & FILTER → raw datetime
@@ -273,6 +184,7 @@
             {
                 title: "Last Updated",
                 data: "updated_at",
+                className: "text-center align-middle",
                 render: function (data, type, row) {
 
                     if (type === "sort" || type === "type") {

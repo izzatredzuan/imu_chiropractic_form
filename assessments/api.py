@@ -123,9 +123,11 @@ class AssessmentSection1And2APIView(APIView):
             assessment = serializer.save()
             logger.info(
                 f"CREATE - Assessment created successfully: "
-                f"id={assessment.id}, patient name={assessment.patient_name}, student={student.member_id} - {student.official_name}, "
-                f"evaluator={evaluator.member_id} - {evaluator.official_name},"
-                f"created_by={request.user.username} - {request.user.profile.official_name})"
+                f"id={assessment.id}, "
+                f"patient name={assessment.patient_name}, "
+                f"student={assessment.student.member_id} - {assessment.student.official_name}, "
+                f"evaluator={assessment.evaluator.member_id} - {assessment.evaluator.official_name}, "
+                f"created_by={request.user.username} - {request.user.profile.official_name}"
             )
 
             if signature_data:
