@@ -60,11 +60,11 @@
   .signature-wrapper { width: 100%; max-width: 480px; }
 </style>
 
-<div class="container-fluid py-4">
+<div class="container-fluid mt-4 mb-4 px-4">
 
   <!-- ========================= Page Title ========================== -->
   <div class="mb-4">
-    <h2 class="fw-semibold">
+    <h2 class="fw-semibold mobile-fonts">
       {% if assessment %}Edit Assessment{% else %}Create Assessment{% endif %}
     </h2>
   </div>
@@ -123,8 +123,8 @@
     </div>
 
     <!-- ========================= Section 1 ========================== -->
-    <h4 class="fw-semibold mb-3">Section 1 – Initial Assessment</h4>
-    <div class="row g-4">
+    <h4 class="fw-semibold mb-3 mobile-fonts">Section 1 – Initial Assessment</h4>
+    <div class="row">
 
       <!-- Left column -->
       <div class="col-lg-7">
@@ -210,14 +210,14 @@
 
       <!-- Right column: Anatomy Marking -->
       <div class="col-lg-5">
-        <div class="card shadow-sm">
+        <div class="card shadow-sm mb-4">
           <div class="card-header fw-semibold">Anatomy Marking</div>
           <div id="anatomySection" class="card-body text-center">
             <div class="mb-3 text-muted small">
               <strong>Instructions:</strong> Click on the body to mark pain or tenderness. Left-click a marker to add/edit a note. Right-click to delete.
             </div>
             <div id="anatomyWrapper" class="position-relative d-inline-block">
-              <img src="/static/images/Muscles_front_and_back.svg" id="anatomyImage" style="display:block; max-height:520px; width:auto;">
+              <img src="/static/images/Muscles_front_and_back.svg" id="anatomyImage" style="display:block; height:auto; width:100%;">
               <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
             </div>
           </div>
@@ -287,10 +287,10 @@
 
     <!-- Submit buttons -->
     <div class="mt-4 d-flex justify-content-end gap-2">
-      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">Cancel</a>
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
       <!-- Hide button if user is only able to readonly -->
       {% if not is_readonly %}
-        <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary">
+        <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary btn-mobile">
           {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
         </button>
 

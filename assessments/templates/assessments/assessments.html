@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container-fluid mt-4 px-4">
+<div class="container-fluid mt-4 mb-4 py-x">
 
     <!-- Header -->
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
-        <h2 class="mb-0">My Assessments</h2>
+        <h2 class="mb-0 mobile-fonts">My Assessments</h2>
 
-        <a href="{% url 'assessment_section1_form' %}" class="btn btn-primary">
+        <a href="{% url 'assessment_section1_form' %}" class="btn btn-primary btn-mobile">
             <i class="bi bi-plus-circle me-1"></i>
             Create Assessment
         </a>
@@ -30,7 +30,7 @@
 
                 <!-- RIGHT: Status legend (always right) -->
                 <div class="d-flex align-items-center flex-wrap small">
-                    <span class="me-2 fw-semibold text-muted">Status:</span>
+                    <span class="me-2 fw-semibold text-muted push-down">Status:</span>
                     <span class="badge locked me-1 mb-1">Locked</span>
                     <span class="badge in-progress me-1 mb-1">In Progress</span>
                     <span class="badge ready me-1 mb-1">Ready for Sign-Off</span>
@@ -82,7 +82,7 @@
                 data: null,
                 orderable: false,
                 searchable: false,
-                className: "text-center align-middle no-padding",
+                className: "text-center align-middle",
                 render: function (row) {
                     function sectionBtn(sectionNo, isSigned, isComplete, prevSigned) {
                         let cls = "btn btn-sm ";
@@ -112,10 +112,10 @@
 
                     return `
                         <div class="d-flex align-items-center">
-                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}</div>
-                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}</div>
-                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}</div>
-                            <div style="width:100%; border:1px solid var(--bs-table-border-color);">${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}</div>
+                            <div style="width:100%; padding:0px 2px;">${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}</div>
+                            <div style="width:100%; padding:0px 2px;">${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}</div>
+                            <div style="width:100%; padding:0px 2px;">${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}</div>
+                            <div style="width:100%; padding:0px 2px;">${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}</div>
                         </div>
                     `;
                 },

@@ -15,17 +15,15 @@
   }
 </style>
 
-<div class="container-fluid py-4">
+<div class="container-fluid mt-4 mb-4 px-4">
 
   <!-- =========================
        PAGE TITLE
   ========================== -->
   <div class="mb-4">
-    <h2 class="fw-semibold">
-      Edit Assessment
-    </h2>
+    <h2 class="fw-semibold mobile-fonts">Edit Assessment</h2>
   </div>
-  
+
   <div class="mb-3">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="mb-0">
@@ -42,7 +40,7 @@
     <!-- =========================
          SECTION 2 – PRESENTING COMPLAINT
     ========================== -->
-    <h4 class="fw-semibold mb-3">Section 2 – Presenting Complaint</h4>
+    <h4 class="fw-semibold mb-3 mobile-fonts">Section 2 – Presenting Complaint</h4>
 
     <!-- =========================
          ASSIGNMENT
@@ -57,7 +55,7 @@
           You are viewing this assessment in read-only mode because you are not the assigned evaluator.
         </div>
         {% endif %}
-        
+
         {% if assessment.is_section_2_signed %}
         <div class="alert alert-success">
           <strong>Signed-off by:</strong>
@@ -74,12 +72,11 @@
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
             <select name="student" class="form-control" required
-                    {% if student_readonly or is_readonly %}disabled{% endif %}>
+              {% if student_readonly or is_readonly %}disabled{% endif %}>
               <option value="">-- Select Student --</option>
               {% for s in students %}
-              <option value="{{ s.id }}"
-                      {% if assessment and assessment.student.id == s.id %}selected{% endif %}
-                      {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}
+                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
               {% endfor %}
@@ -93,12 +90,10 @@
           <!-- Evaluator dropdown -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Evaluator (Clinician)</label>
-            <select name="evaluator" class="form-control" required
-                    {% if is_readonly %}disabled{% endif %}>
+            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
               <option value="">-- Select Clinician --</option>
               {% for c in clinicians %}
-              <option value="{{ c.id }}"
-                      {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
                 {{ c.member_id }} – {{ c.official_name }}
               </option>
               {% endfor %}
@@ -206,18 +201,18 @@
             SUBMIT
         ========================== -->
     <div class="mt-4 d-flex justify-content-end gap-2">
-      <a href="{% url 'assessments_list' %}" class="btn btn-secondary">Cancel</a>
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
       <!-- Hide button if user is only able to readonly -->
       {% if not is_readonly %}
-        <button type="submit" id="btnSave" name="action" value="save_section_2" class="btn btn-primary">
-          Update Assessment
-        </button>
+      <button type="submit" id="btnSave" name="action" value="save_section_2" class="btn btn-primary btn-mobile">
+        Update Assessment
+      </button>
 
-        {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_2_signed %}
-        <button type="submit" id="btnSignOff" name="action" value="sign_off_section_2" class="btn btn-success">
-          Update & Sign Off Section 2
-        </button>
-        {% endif %}
+      {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_2_signed %}
+      <button type="submit" id="btnSignOff" name="action" value="sign_off_section_2" class="btn btn-success btn-mobile">
+        Update & Sign Off Section 2
+      </button>
+      {% endif %}
       {% endif %}
     </div>
 
@@ -233,23 +228,23 @@
     clickedAction = "sign_off_section_2";
   }); 
   {% endif %}
- 
+
   // ===========================
   // Save confirmation and submission
   // ===========================
   document.getElementById("section2Form").addEventListener("submit", function (e) {
     e.preventDefault();
 
-      let confirmMessage = "Are you sure you want to save the changes? All next sections sign-offs will be reset.";
+    let confirmMessage = "Are you sure you want to save the changes? All next sections sign-offs will be reset.";
 
-      if (clickedAction === "sign_off_section_2") {
-        confirmMessage =
-          "Are you sure you want to UPDATE and SIGN OFF Section 2?";
-      }
+    if (clickedAction === "sign_off_section_2") {
+      confirmMessage =
+        "Are you sure you want to UPDATE and SIGN OFF Section 2?";
+    }
 
-      if (!confirm(confirmMessage)) {
-        return;
-      }
+    if (!confirm(confirmMessage)) {
+      return;
+    }
 
     // ==========================
     // Proceed with save
@@ -261,7 +256,7 @@
     formData.forEach((v, k) => payload[k] = v);
 
     payload["assessment_id"] = "{{ assessment.id }}";
-    const method = "PUT"; 
+    const method = "PUT";
 
     fetch("{% url 'assessment_section1_and_2_api' %}", {
         method: method,
@@ -286,7 +281,6 @@
         alert("Failed. Please check required fields.");
       });
   });
-
 </script>
 
 
