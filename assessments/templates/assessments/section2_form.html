@@ -3,18 +3,6 @@
 
 {% block content %}
 
-<style>
-  body {
-    background-color: #f7f9fb;
-  }
-
-  .required::after {
-    content: " *";
-    color: red;
-    font-weight: bold;
-  }
-</style>
-
 <div class="container-fluid mt-4 mb-4 px-4">
 
   <!-- =========================
@@ -222,12 +210,17 @@
 <script>
   document.getElementById("btnSave").addEventListener("click", function () {
     clickedAction = "save_section_2";
-  }); 
-  {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_2_signed %}
+  }); {
+    %
+    if assessment and request.user.profile.role in "clinician admin"
+    and not assessment.is_section_2_signed %
+  }
   document.getElementById("btnSignOff").addEventListener("click", function () {
     clickedAction = "sign_off_section_2";
-  }); 
-  {% endif %}
+  }); {
+    %
+    endif %
+  }
 
   // ===========================
   // Save confirmation and submission

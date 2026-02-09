@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Assessments
 
+
 class AssessmentsAdmin(admin.ModelAdmin):
     # =====================
     # List view
@@ -15,6 +16,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "is_section_3_signed",
         "is_section_4_signed",
         "is_section_5_signed",
+        "is_discharged",
         "updated_at",
     )
 
@@ -26,6 +28,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "is_section_3_signed",
         "is_section_4_signed",
         "is_section_5_signed",
+        "is_discharged",
         "created_at",
     )
 
@@ -33,7 +36,6 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "patient_name",
         "student__user__username",
         "evaluator__user__username",
-        "initial_patient_consent_signed_by",
     )
 
     ordering = ("-updated_at",)
@@ -70,9 +72,11 @@ class AssessmentsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "is_initial_patient_consent_signed",
-                    "initial_patient_consent_signed_by",
-                    "initial_patient_consent_signed_at",
+                    "marketing_consent",
+                    "education_consent",
+                    "research_consent",
                     "initial_patient_consent_signature",
+                    "initial_patient_consent_signed_at",
                 )
             },
         ),
@@ -181,6 +185,10 @@ class AssessmentsAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "Discharge",
+            {"fields": ("is_discharged",)},
+        ),
+        (
             "Meta",
             {
                 "fields": (
@@ -208,7 +216,6 @@ class AssessmentsAdmin(admin.ModelAdmin):
             obj.updated_by = profile
 
         super().save_model(request, obj, form, change)
-
 
 
 # Register the model and the custom admin class

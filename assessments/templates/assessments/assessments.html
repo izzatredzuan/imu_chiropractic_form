@@ -121,38 +121,50 @@
                 },
             },
             {
-                title: "Follow-Up",
+                title: "Treatment Plan",
                 data: null,
                 orderable: false,
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
-                    // Generate buttons dynamically
-                    const buttons = [{
-                            text: "Treatment Plan",
-                            url: `/assessments/${row.id}/treatment-plan/`,
-                            cls: "btn-primary plan"
-                        },
-                        {
-                            text: "S.O.A.P",
-                            url: `/assessments/${row.id}/soap/`,
-                            cls: "btn-primary note"
-                        },
-                        {
-                            text: "Treatment Log",
-                            url: `/assessments/${row.id}/treatment-log/`,
-                            cls: "btn-primary log"
-                        }
-                    ];
-
                     return `
-                        <div class="d-flex gap-1 justify-center align-items-center">
-                            ${buttons.map(btn => `
-                                <a href="${btn.url}" class="btn btn-sm ${btn.cls}">
-                                    ${btn.text}
-                                </a>
-                            `).join('')}
-                        </div>
+                        <i class="bi bi-clipboard2-pulse text-primary treatment-plan-btn"
+                        role="button"
+                        title="Treatment Plan"
+                        data-id="${row.id}"
+                        style="cursor:pointer; font-size:1.25rem;"></i>
+                    `;
+                }
+            },
+            {
+                title: "S.O.A.P",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+                render: function (row) {
+                    return `
+                        <i class="bi bi-journal-medical text-primary soap-btn"
+                        role="button"
+                        title="S.O.A.P Note"
+                        data-id="${row.id}"
+                        style="cursor:pointer; font-size:1.25rem;"></i>
+                    `;
+                }
+            },
+            {
+                title: "Treatment Log",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+                render: function (row) {
+                    return `
+                        <i class="bi bi-clock-history text-primary treatment-log-btn"
+                        role="button"
+                        title="Treatment Log"
+                        data-id="${row.id}"
+                        style="cursor:pointer; font-size:1.25rem;"></i>
                     `;
                 }
             },
@@ -293,6 +305,71 @@
 
             table.ajax.reload();
         });
+
+        /* ----------------------------------
+         * Discharge Modal Logic
+         * ---------------------------------- */
+        const dischargeModal = new bootstrap.Modal(
+            document.getElementById('dischargeModal')
+        );
+
+        /* ----------------------------------
+         * Open discharge modal
+         * ---------------------------------- */
+        $('#assessmentsTable').on('click', '.discharge-btn', function () {
+            const rowData = table.row($(this).closest('tr')).data();
+            setModalValue('modalPatientName', rowData.patient_name);
+            setModalValue('modalFileNumber', rowData.file_number);
+            setModalValue('modalClinician', rowData.clinician);
+            setModalValue('modalStudent', rowData.student);
+            $('#dischargeAssessmentId').val(rowData.id);
+
+            dischargeModal.show();
+        });
+
+        /* ----------------------------------
+         * Confirm discharge (PUT)
+         * ---------------------------------- */
+        $('#confirmDischargeBtn').on('click', function () {
+            const assessmentId = $('#dischargeAssessmentId').val();
+            if (!assessmentId) return;
+
+            const btn = $(this);
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: "{% url 'assessment_section1_and_2_api' %}",
+                method: "PUT",
+                contentType: "application/json",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                data: JSON.stringify({
+                    assessment_id: assessmentId,
+                    is_discharged: true
+                }),
+                success: function () {
+                    dischargeModal.hide();
+
+                    // Reload table but keep pagination
+                    table.ajax.reload(null, false);
+                },
+                error: function (xhr) {
+                    let msg = "Failed to discharge assessment.";
+
+                    if (xhr.responseJSON ?.detail) {
+                        msg = xhr.responseJSON.detail;
+                    }
+
+                    alert(msg);
+                },
+                complete: function () {
+                    btn.prop('disabled', false);
+                }
+            });
+        });
     });
 </script>
+
+{% include 'assessments/modal/_discharge_confirmation.html' %}
 {% endblock %}

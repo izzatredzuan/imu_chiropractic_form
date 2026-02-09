@@ -190,6 +190,7 @@ class Assessments(models.Model):
     phase_1 = models.TextField(blank=True, default="")
     phase_2 = models.TextField(blank=True, default="")
     phase_3 = models.TextField(blank=True, default="")
+    treatment_remarks = models.TextField(blank=True, default="")
 
     is_section_5_signed = models.BooleanField(default=False)
     section_5_signed_by = models.ForeignKey(

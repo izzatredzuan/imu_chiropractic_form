@@ -50,6 +50,7 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "is_section_4_complete",
             "is_section_5_signed",
             "is_section_5_complete",
+            "is_discharged",
             "created_by",
             "created_at",
             "updated_by",
@@ -111,6 +112,7 @@ class AssessmentSection1And2DetailSerializer(serializers.ModelSerializer):
             "differential_diagnosis",
             "is_section_1_signed",
             "is_section_2_signed",
+            "is_discharged",
             "created_at",
             "updated_at",
         ]
@@ -161,6 +163,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "diet",
             "system_review",
             "differential_diagnosis",
+            "is_discharged",
         ]
 
     def create(self, validated_data):
@@ -170,7 +173,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         # If user is a student, override student field
         if user_profile.role == "student":
             validated_data["student"] = user_profile
-        
+
         # If user is admin, must select student manually
         elif user_profile.role == "admin" and not validated_data.get("student"):
             raise serializers.ValidationError(

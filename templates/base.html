@@ -40,14 +40,7 @@
             {% block content %}
             {% endblock %}
         </div>
-
-        <footer>
-            <div class="text-center">
-            &copy; {% now "Y" %}
-            </div>
-        </footer>
-        {% block footer %}
-        {% endblock %}
+        {% include 'footer.html' %}
         <script>
         </script>
     </body>
