@@ -84,6 +84,11 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    // If discharged → lock icon (highest priority), no link
+                    if (row.is_discharged) {
+                        return lock_if_discharged()
+                    }
+
                     function sectionBtn(sectionNo, isSigned, isComplete, prevSigned) {
                         let cls = "btn btn-sm ";
 
@@ -127,12 +132,31 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    // If discharged → lock icon (highest priority), no link
+                    if (row.is_discharged) {
+                        return lock_if_discharged()
+                    }
+
+                    const url = "{% url 'assessment_treatment_plan_form' %}?id=" + row.id;
+
+                    let icon = "bi-clipboard2-pulse";
+                    let iconColor = "text-primary";
+                    let tooltip = "Edit Treatment Plan";
+
+                    // If signed → green clipboard
+                    if (row.is_treatment_plan_signed) {
+                        iconColor = "text-success";
+                        tooltip = "View Treatment Plan (Signed)";
+                    }
+
+                    // Otherwise clickable
                     return `
-                        <i class="bi bi-clipboard2-pulse text-primary treatment-plan-btn"
-                        role="button"
-                        title="Treatment Plan"
-                        data-id="${row.id}"
-                        style="cursor:pointer; font-size:1.25rem;"></i>
+                        <a href="${url}">
+                            <i class="bi ${icon} ${iconColor}"
+                            title="${tooltip}"
+                            style="font-size:1.25rem; cursor:pointer;">
+                            </i>
+                        </a>
                     `;
                 }
             },
@@ -143,6 +167,11 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    // If discharged → lock icon (highest priority), no link
+                    if (row.is_discharged) {
+                        return lock_if_discharged()
+                    }
+
                     return `
                         <i class="bi bi-journal-medical text-primary soap-btn"
                         role="button"
@@ -159,6 +188,11 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    // If discharged → lock icon (highest priority), no link
+                    if (row.is_discharged) {
+                        return lock_if_discharged()
+                    }
+
                     return `
                         <i class="bi bi-clock-history text-primary treatment-log-btn"
                         role="button"
@@ -256,6 +290,20 @@
                 }
             }
         ];
+
+        // Utility to show lock icon if patient is discharged
+        function lock_if_discharged() {
+            icon = "bi-lock-fill";
+            iconColor = "text-secondary";
+            tooltip = "Patient Discharged";
+
+            return `
+                    <i class="bi ${icon} ${iconColor}"
+                    title="${tooltip}"
+                    style="font-size:1.25rem; cursor:default;">
+                    </i>
+                `;
+        }
 
         /* ----------------------------------
          * DataTable init

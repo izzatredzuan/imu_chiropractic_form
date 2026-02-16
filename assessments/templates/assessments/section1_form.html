@@ -4,16 +4,6 @@
 {% block content %}
 
 <style>
-  body {
-    background-color: #f7f9fb;
-  }
-
-  .required::after {
-    content: " *";
-    color: red;
-    font-weight: bold;
-  }
-
   #markerLayer {
     position: absolute;
     top: 0;
@@ -57,7 +47,10 @@
     resize: none;
   } */
 
-  .signature-wrapper { width: 100%; max-width: 480px; }
+  .signature-wrapper {
+    width: 100%;
+    max-width: 480px;
+  }
 </style>
 
 <div class="container-fluid mt-4 mb-4 px-4">
@@ -76,33 +69,39 @@
       <div class="card-header fw-semibold">Assignment</div>
       <div class="card-body">
         {% if is_readonly %}
-          <div class="alert alert-warning">You are viewing this assessment in read-only mode because you are not the assigned evaluator.</div>
+        <div class="alert alert-warning">You are viewing this assessment in read-only mode because you are not the
+          assigned evaluator.</div>
         {% endif %}
 
         {% if assessment.is_section_1_signed %}
-          <div class="alert alert-success">
-            <strong>Signed-off by:</strong>
-            {{ assessment.section_1_signed_by.official_name }} ({{ assessment.section_1_signed_by.role|title }})<br>
-            <small class="text-muted">Signed at: {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}</small>
-          </div>
+        <div class="alert alert-success">
+          <strong>Signed-off by:</strong>
+          {{ assessment.section_1_signed_by.official_name }} ({{ assessment.section_1_signed_by.role|title }})<br>
+          <small class="text-muted">Signed at: {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}</small>
+        </div>
         {% endif %}
 
+        {% if assessment.is_discharged %}
+        <div class="alert alert-info">
+          <strong>Patient has been discharged.</strong>
+        </div>
+        {% endif %}
         <div class="row">
           <!-- Student dropdown -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
-            <select name="student" class="form-control" required {% if student_readonly or is_readonly %}disabled{% endif %}>
+            <select name="student" class="form-control" required
+              {% if student_readonly or is_readonly %}disabled{% endif %}>
               <option value="">-- Select Student --</option>
               {% for s in students %}
-              <option value="{{ s.id }}"
-                      {% if assessment and assessment.student.id == s.id %}selected{% endif %}
-                      {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}
+                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
               {% endfor %}
             </select>
             {% if student_readonly %}
-              <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+            <input type="hidden" name="student" value="{{ request.user.profile.id }}">
             {% endif %}
           </div>
 
@@ -136,12 +135,12 @@
               <div class="col-md-4 mb-3">
                 <label class="form-label required">Patient Name</label>
                 <input type="text" name="patient_name" class="form-control" required
-                       value="{{ assessment.patient_name|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                  value="{{ assessment.patient_name|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label required">File Number</label>
                 <input type="text" name="file_number" class="form-control" required
-                       value="{{ assessment.file_number|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                  value="{{ assessment.file_number|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-2 mb-3">
                 <label class="form-label required">Gender</label>
@@ -154,8 +153,8 @@
               <div class="col-md-2 mb-3">
                 <label class="form-label required">Date of Birth</label>
                 <input type="date" name="date_of_birth" class="form-control" required
-                       value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
-                       {% if is_readonly %}disabled{% endif %}>
+                  value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
+                  {% if is_readonly %}disabled{% endif %}>
               </div>
             </div>
           </div>
@@ -169,22 +168,22 @@
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Pulse</label>
                 <input type="number" name="pulse" class="form-control" required
-                       value="{{ assessment.pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                  value="{{ assessment.pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Respiratory</label>
                 <input type="number" name="respiratory" class="form-control" required
-                       value="{{ assessment.respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                  value="{{ assessment.respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Systolic BP</label>
                 <input type="number" name="systolic_bp" class="form-control" required
-                       value="{{ assessment.systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                  value="{{ assessment.systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
               <div class="col-md-3 mb-3">
                 <label class="form-label required">Diastolic BP</label>
                 <input type="number" name="diastolic_bp" class="form-control" required
-                       value="{{ assessment.diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                  value="{{ assessment.diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
               </div>
             </div>
           </div>
@@ -197,12 +196,12 @@
             <div class="mb-3">
               <label class="form-label">Summary</label>
               <textarea name="summary" class="form-control" rows="4"
-                        {% if is_readonly %}readonly{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
             </div>
             <div class="mb-3">
               <label class="form-label">Special Direction</label>
               <textarea name="special_direction" class="form-control" rows="4"
-                        {% if is_readonly %}readonly{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
+                {% if is_readonly %}readonly{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
             </div>
           </div>
         </div>
@@ -214,10 +213,12 @@
           <div class="card-header fw-semibold">Anatomy Marking</div>
           <div id="anatomySection" class="card-body text-center">
             <div class="mb-3 text-muted small">
-              <strong>Instructions:</strong> Click on the body to mark pain or tenderness. Left-click a marker to add/edit a note. Right-click to delete.
+              <strong>Instructions:</strong> Click on the body to mark pain or tenderness. Left-click a marker to
+              add/edit a note. Right-click to delete.
             </div>
             <div id="anatomyWrapper" class="position-relative d-inline-block">
-              <img src="/media/assessments/anatomy/Muscles_front_and_back.svg" id="anatomyImage" style="display:block; height:auto; width:100%;">
+              <img src="/media/assessments/anatomy/Muscles_front_and_back.svg" id="anatomyImage"
+                style="display:block; height:auto; width:100%;">
               <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
             </div>
           </div>
@@ -231,30 +232,31 @@
       <div class="card-body">
 
         {% if assessment and assessment.is_initial_patient_consent_signed %}
-          <div class="alert alert-success">
-            <strong>Consent Signed</strong><br>
-            <small class="text-muted">Signed at: {{ assessment.initial_patient_consent_signed_at|date:"d M Y, h:i A" }}</small>
-          </div>
+        <div class="alert alert-success">
+          <strong>Consent Signed</strong><br>
+          <small class="text-muted">Signed at:
+            {{ assessment.initial_patient_consent_signed_at|date:"d M Y, h:i A" }}</small>
+        </div>
         {% endif %}
 
         <div class="form-check mb-2">
           <input class="form-check-input" type="checkbox" name="education_consent"
-                 {% if assessment.education_consent %}checked{% endif %}
-                 {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %} required>
+            {% if assessment.education_consent %}checked{% endif %}
+            {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %} required>
           <label class="form-check-label required">I agree to education usage</label>
         </div>
 
         <div class="form-check mb-2">
           <input class="form-check-input" type="checkbox" name="research_consent"
-                 {% if assessment.research_consent %}checked{% endif %}
-                 {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %} required>
+            {% if assessment.research_consent %}checked{% endif %}
+            {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %} required>
           <label class="form-check-label required">I agree to research usage</label>
         </div>
 
         <div class="form-check mb-4">
           <input class="form-check-input" type="checkbox" name="marketing_consent"
-                 {% if assessment.marketing_consent %}checked{% endif %}
-                 {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %}>
+            {% if assessment.marketing_consent %}checked{% endif %}
+            {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %}>
           <label class="form-check-label">I agree to marketing communication (optional)</label>
         </div>
 
@@ -262,27 +264,28 @@
         <label class="form-label required">Patient Signature</label>
 
         {% if assessment and assessment.is_initial_patient_consent_signed %}
-          <div class="mb-3">
-            <img src="{{ assessment.initial_patient_consent_signature.url }}" class="img-fluid border rounded" style="max-height:150px;">
-          </div>
+        <div class="mb-3">
+          <img src="{{ assessment.initial_patient_consent_signature.url }}" class="img-fluid border rounded"
+            style="max-height:150px;">
+        </div>
         {% else %}
-          <div class="signature-wrapper mx-auto">
-            <canvas id="signaturePad" class="border rounded" style="width:100%; height:200px;"></canvas>
-          </div>
-          <div class="mt-2 d-flex gap-2">
-            <button type="button" class="btn btn-sm btn-outline-warning" id="undoSignature">Undo</button>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="clearSignature">Clear</button>
-          </div>
-          <input type="hidden" name="signature_data" id="signatureData">
+        <div class="signature-wrapper mx-auto">
+          <canvas id="signaturePad" class="border rounded" style="width:100%; height:200px;"></canvas>
+        </div>
+        <div class="mt-2 d-flex gap-2">
+          <button type="button" class="btn btn-sm btn-outline-warning" id="undoSignature">Undo</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="clearSignature">Clear</button>
+        </div>
+        <input type="hidden" name="signature_data" id="signatureData">
         {% endif %}
 
       </div>
     </div>
 
     {% if assessment and assessment.is_initial_patient_consent_signed %}
-      <input type="hidden" name="marketing_consent" value="{{ assessment.marketing_consent }}">
-      <input type="hidden" name="education_consent" value="{{ assessment.education_consent }}">
-      <input type="hidden" name="research_consent" value="{{ assessment.research_consent }}">
+    <input type="hidden" name="marketing_consent" value="{{ assessment.marketing_consent }}">
+    <input type="hidden" name="education_consent" value="{{ assessment.education_consent }}">
+    <input type="hidden" name="research_consent" value="{{ assessment.research_consent }}">
     {% endif %}
 
     <!-- Submit buttons -->
@@ -290,15 +293,15 @@
       <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
       <!-- Hide button if user is only able to readonly -->
       {% if not is_readonly %}
-        <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary btn-mobile">
-          {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
-        </button>
+      <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary btn-mobile">
+        {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
+      </button>
 
-        {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
-          <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
-            Update & Sign Off Section 1
-          </button>
-        {% endif %}
+      {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
+      <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
+        Update & Sign Off Section 1
+      </button>
+      {% endif %}
       {% endif %}
     </div>
 
@@ -410,13 +413,30 @@
         redraw();
       });
     }
-    
+
     /* ======================================================
     FORM SUBMISSION (ALWAYS ATTACHED)
     ====================================================== */
 
     document.getElementById("section1Form").addEventListener("submit", function (e) {
       e.preventDefault();
+
+      let confirmMessage =
+        {% if assessment %}
+        "Are you sure you want to save the changes? Sign-off will be reset.";
+        {% else %}
+        "Are you sure you want to save the changes?";
+        {% endif %}
+            
+
+      if (clickedAction === "sign_off_section_1") {
+          confirmMessage =
+              "Are you sure you want to UPDATE and SIGN OFF Section 1?";
+      }
+
+      if (!confirm(confirmMessage)) {
+          return;
+      }
 
       /* -------------------------
         Consent validation (CREATE ONLY)
@@ -428,7 +448,7 @@
       ) {
         alert("Education and Research consent are required.");
         return;
-      }
+      } 
       {% endif %}
 
       /* -------------------------
@@ -456,42 +476,44 @@
       });
 
       {% if assessment %}
-        payload["assessment_id"] = "{{ assessment.id }}";
-        const method = "PUT";
+      payload["assessment_id"] = "{{ assessment.id }}";
+      const method = "PUT"; 
       {% else %}
-        const method = "POST";
+      const method = "POST"; 
       {% endif %}
 
       /* -------------------------
         API call
         ------------------------- */
       fetch("{% url 'assessment_section1_and_2_api' %}", {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": CSRFTOKEN
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(res => {
-        if (!res.ok) {
-          return res.json().then(err => { throw err; });
-        }
-        return res.json();
-      })
-      .then(data => {
-        alert(data.message || "Saved successfully");
-        window.location.href = "{% url 'assessments_list' %}";
-      })
-      .catch(err => {
-        console.error("Save failed:", err);
-        alert("Failed to save. Please check required fields.");
-      });
+          method: method,
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": CSRFTOKEN
+          },
+          body: JSON.stringify(payload)
+        })
+        .then(res => {
+          if (!res.ok) {
+            return res.json().then(err => {
+              throw err;
+            });
+          }
+          return res.json();
+        })
+        .then(data => {
+          alert(data.message || "Saved successfully");
+          window.location.href = "{% url 'assessments_list' %}";
+        })
+        .catch(err => {
+          console.error("Save failed:", err);
+          alert("Failed to save. Please check required fields.");
+        });
     });
 
   })();
 
-// ===========================
+  // ===========================
   // Anatomy Marking Logic
   // ===========================
   // (() => {
@@ -638,7 +660,6 @@
   //     createNotePopup(marker);
   //   });
   // })();
-  
 </script>
 
 {% endblock %}

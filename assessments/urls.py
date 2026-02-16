@@ -19,6 +19,12 @@ urlpatterns = [
         name="assessment_section2_form",
     ),
     path(
+        "treatment-plan/form/",
+        views.AssessmentTreatmentPlanFormView.as_view(),
+        name="assessment_treatment_plan_form",
+    ),
+    # API endpoints
+    path(
         "api/assessments/",
         api.AssessmentsListAPIView.as_view(),
         name="assessments_list_api",
@@ -29,4 +35,11 @@ urlpatterns = [
         api.AssessmentSection1And2APIView.as_view(),
         name="assessment_section1_and_2_api",
     ),
+    path(
+        "api/assessments/treatment-plan/",
+        api.AssessmentTreatmentPlanAPIView.as_view(),
+        name="assessment_treatment_plan_api",
+    ),
 ]
+
+

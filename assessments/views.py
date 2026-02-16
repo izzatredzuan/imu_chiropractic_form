@@ -111,3 +111,50 @@ class AssessmentSection2FormView(View):
         )
 
         return render(request, self.template_name, context)
+
+
+class AssessmentTreatmentPlanFormView(View):
+    template_name = "assessments/treatment_plan_form.html"
+
+    def get(self, request):
+        profile = request.user.profile
+        assessment_id = request.GET.get("id")
+
+        context = {}
+        assessment = None
+        is_readonly = False
+
+        if assessment_id:
+            try:
+                assessment = Assessments.objects.get(id=assessment_id)
+            except Assessments.DoesNotExist:
+                return HttpResponseNotFound("Assessment not found.")
+
+            # Student can only view their own
+            if profile.role == "student" and assessment.student != profile:
+                return HttpResponseForbidden("You cannot access this assessment.")
+
+            # Clinician not assigned → readonly
+            if clinician_is_readonly(profile, assessment):
+                is_readonly = True
+
+            context["assessment"] = assessment
+            context["assessment_id"] = assessment_id
+
+        # =========================
+        # Field-level permissions
+        # =========================
+        context["student_readonly"] = profile.role == "student"
+        context["is_readonly"] = is_readonly
+
+        # =========================
+        # Dropdown data
+        # =========================
+        context["students"] = Profile.objects.filter(role="student").order_by(
+            "official_name"
+        )
+        context["clinicians"] = Profile.objects.filter(role="clinician").order_by(
+            "official_name"
+        )
+
+        return render(request, self.template_name, context)

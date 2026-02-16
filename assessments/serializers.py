@@ -10,7 +10,7 @@ from .constants import (
     SECTION_2_FIELDS,
     SECTION_3_FIELDS,
     SECTION_4_FIELDS,
-    SECTION_5_FIELDS,
+    TREATMENT_PLAN_FIELDS,
 )
 
 
@@ -28,7 +28,7 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
     is_section_2_complete = serializers.SerializerMethodField()
     is_section_3_complete = serializers.SerializerMethodField()
     is_section_4_complete = serializers.SerializerMethodField()
-    is_section_5_complete = serializers.SerializerMethodField()
+    is_treatment_plan_complete = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
     updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
 
@@ -48,8 +48,8 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "is_section_3_complete",
             "is_section_4_signed",
             "is_section_4_complete",
-            "is_section_5_signed",
-            "is_section_5_complete",
+            "is_treatment_plan_signed",
+            "is_treatment_plan_complete",
             "is_discharged",
             "created_by",
             "created_at",
@@ -69,8 +69,8 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
     def get_is_section_4_complete(self, obj):
         return is_section_complete(obj, SECTION_4_FIELDS)
 
-    def get_is_section_5_complete(self, obj):
-        return is_section_complete(obj, SECTION_5_FIELDS)
+    def get_is_treatment_plan_complete(self, obj):
+        return is_section_complete(obj, TREATMENT_PLAN_FIELDS)
 
 
 class AssessmentSection1And2DetailSerializer(serializers.ModelSerializer):
@@ -224,3 +224,19 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"signature_data": f"Invalid image data: {str(e)}"}
             )
+
+
+class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assessments
+        fields = [
+            "id",
+            "phase_1",
+            "phase_2",
+            "phase_3",
+            "treatment_remarks",
+            "is_treatment_plan_signed",
+        ]
+        read_only_fields = [
+            "is_treatment_plan_signed",
+        ]

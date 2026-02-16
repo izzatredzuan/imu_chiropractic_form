@@ -22,7 +22,6 @@ class Assessments(models.Model):
     initial_patient_consent_signed_at = models.DateTimeField(
         null=True, blank=True, default=None
     )
-    
 
     # =====================
     # Assignment
@@ -192,8 +191,8 @@ class Assessments(models.Model):
     phase_3 = models.TextField(blank=True, default="")
     treatment_remarks = models.TextField(blank=True, default="")
 
-    is_section_5_signed = models.BooleanField(default=False)
-    section_5_signed_by = models.ForeignKey(
+    is_treatment_plan_signed = models.BooleanField(default=False)
+    treatment_plan_signed_by = models.ForeignKey(
         Profile,
         on_delete=models.SET_NULL,
         null=True,
@@ -202,10 +201,10 @@ class Assessments(models.Model):
         limit_choices_to={"role": "clinician"},
         default=None,
     )
-    section_5_signed_at = models.DateTimeField(null=True, blank=True, default=None)
+    treatment_plan_signed_at = models.DateTimeField(null=True, blank=True, default=None)
 
     is_discharged = models.BooleanField(default=False)
-    
+
     # =====================
     # Meta
     # =====================

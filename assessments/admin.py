@@ -15,7 +15,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "is_section_2_signed",
         "is_section_3_signed",
         "is_section_4_signed",
-        "is_section_5_signed",
+        "is_treatment_plan_signed",
         "is_discharged",
         "updated_at",
     )
@@ -27,7 +27,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "is_section_2_signed",
         "is_section_3_signed",
         "is_section_4_signed",
-        "is_section_5_signed",
+        "is_treatment_plan_signed",
         "is_discharged",
         "created_at",
     )
@@ -51,7 +51,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "section_2_signed_at",
         "section_3_signed_at",
         "section_4_signed_at",
-        "section_5_signed_at",
+        "treatment_plan_signed_at",
     )
 
     # =====================
@@ -178,9 +178,9 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "phase_1",
                     "phase_2",
                     "phase_3",
-                    "is_section_5_signed",
-                    "section_5_signed_by",
-                    "section_5_signed_at",
+                    "is_treatment_plan_signed",
+                    "treatment_plan_signed_by",
+                    "treatment_plan_signed_at",
                 )
             },
         ),

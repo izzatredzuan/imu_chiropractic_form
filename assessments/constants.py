@@ -60,4 +60,9 @@ SECTION_3_FIELDS = [
 
 SECTION_4_FIELDS = []
 
-SECTION_5_FIELDS = []
+TREATMENT_PLAN_FIELDS = [
+    "phase_1",
+    "phase_2",
+    "phase_3",
+    "treatment_remarks",
+]

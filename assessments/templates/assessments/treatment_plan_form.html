@@ -1,0 +1,315 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<div class="container-fluid mt-4 mb-4 px-4">
+    <!-- ========================= Page Title ========================== -->
+    <div class="mb-4">
+        <h2 class="fw-semibold mobile-fonts">
+            Treatment Plan
+        </h2>
+    </div>
+
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                Patient: <strong>{{ assessment.patient_name }}</strong>
+            </h5>
+
+            <h6 class="mb-0 text-muted">
+                File No: <strong>{{ assessment.file_number }}</strong>
+            </h6>
+        </div>
+    </div>
+    <form id="treatmentPlanForm">
+
+        <!-- ========================= Assignment Info ========================== -->
+        {% if assessment %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">Assignment</div>
+            <div class="card-body">
+
+                {% if is_readonly %}
+                <div class="alert alert-warning">
+                    You are viewing this section in read-only mode because you are not the assigned evaluator.
+                </div>
+                {% endif %}
+
+                {% if assessment.is_treatment_plan_signed %}
+                <div class="alert alert-success">
+                    <strong>Signed-off by:</strong>
+                    {{ assessment.treatment_plan_signed_by.official_name }}
+                    ({{ assessment.treatment_plan_signed_by.role|title }})<br>
+                    <small class="text-muted">
+                        Signed at: {{ assessment.treatment_plan_signed_at|date:"d M Y, h:i A" }}
+                    </small>
+                </div>
+                {% endif %}
+
+                {% if assessment.is_discharged %}
+                <div class="alert alert-info">
+                    <strong>Patient has been discharged.</strong>
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    <!-- Student dropdown -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">Student</label>
+                        <select name="student" class="form-control" required
+                            {% if student_readonly or is_readonly %}disabled{% endif %}>
+                            <option value="">-- Select Student --</option>
+                            {% for s in students %}
+                            <option value="{{ s.id }}"
+                                {% if assessment and assessment.student.id == s.id %}selected{% endif %}
+                                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+                                {{ s.member_id }} – {{ s.official_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if student_readonly %}
+                        <!-- preserve value for API since disabled fields are not submitted -->
+                        <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+                        {% endif %}
+                    </div>
+
+                    <!-- Evaluator dropdown -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">Evaluator (Clinician)</label>
+                        <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+                            <option value="">-- Select Clinician --</option>
+                            {% for c in clinicians %}
+                            <option value="{{ c.id }}"
+                                {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+                                {{ c.member_id }} – {{ c.official_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========================= Section 5 ========================== -->
+        <!-- <h4 class="fw-semibold mb-3 mobile-fonts">
+            Section 5 – Treatment Plan
+        </h4> -->
+
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">Treatment Phases</div>
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label class="form-label">Phase 1</label>
+                    <textarea name="phase_1" class="form-control" rows="4"
+                    {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_1|default_if_none:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phase 2</label>
+                    <textarea name="phase_2" class="form-control" rows="4"
+                    {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_2|default_if_none:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Phase 3</label>
+                    <textarea name="phase_3" class="form-control" rows="4"
+                    {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_3|default_if_none:'' }}</textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================= Treatment Remarks ========================== -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span>Treatment Remarks</span>
+
+                {% if not is_readonly and not assessment.is_treatment_plan_signed %}
+                <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                    data-bs-target="#addRemarkModal">
+                    + Add Remark
+                </button>
+                {% endif %}
+            </div>
+
+            <div class="card-body">
+                <textarea id="treatmentRemarks" name="treatment_remarks" class="form-control" rows="8" readonly>{{assessment.treatment_remarks|default_if_none:""}}</textarea>
+
+            </div>
+        </div>
+
+
+        <!-- ========================= Submit Buttons ========================== -->
+        <div class="mt-4 d-flex justify-content-end gap-2">
+            <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
+                Cancel
+            </a>
+
+            {% if not is_readonly and not assessment.is_treatment_plan_signed %}
+            <button type="submit" id="btnSave" name="action" value="save_treatment_plan"
+                class="btn btn-primary btn-mobile">
+                Update Treatment Plan
+            </button>
+
+            {% if assessment and request.user.profile.role in "clinician admin" %}
+            <button type="submit" id="btnSignOff" name="action" value="sign_off_treatment_plan" class="btn btn-success">
+                Update & Sign Off Section 5
+            </button>
+            {% endif %}
+            {% endif %}
+        </div>
+    </form>
+    <!-- ========================= Add Remark Modal ========================== -->
+    <div class="modal fade" id="addRemarkModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Treatment Remark</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <textarea id="newRemarkText" class="form-control" rows="4"
+                        placeholder="Enter remark here..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnAddRemark">
+                        Add
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let clickedAction = "save_treatment_plan";
+
+    // =========================
+    // Button Click Handlers
+    // =========================
+    const btnSave = document.getElementById("btnSave");
+    const btnSignOff = document.getElementById("btnSignOff");
+
+    if (btnSave) {
+        btnSave.addEventListener("click", function () {
+            clickedAction = "save_treatment_plan";
+        });
+    }
+
+    if (btnSignOff) {
+        btnSignOff.addEventListener("click", function () {
+            clickedAction = "sign_off_treatment_plan";
+        });
+    }
+
+    // =========================
+    // Form Submit
+    // =========================
+    document.getElementById("treatmentPlanForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        let confirmMessage =
+            "Are you sure you want to save the changes? Sign-off will be reset.";
+
+        if (clickedAction === "sign_off_treatment_plan") {
+            confirmMessage =
+                "Are you sure you want to UPDATE and SIGN OFF Treatment Plan?";
+        }
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        const formData = new FormData(this);
+        formData.set("action", clickedAction);
+
+        const payload = {};
+        formData.forEach((value, key) => {
+            payload[key] = value;
+        });
+
+        payload["assessment_id"] = "{{ assessment.id }}";
+
+        fetch("{% url 'assessment_treatment_plan_api' %}", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": CSRFTOKEN
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => {
+                        throw err;
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                alert(data.message || "Treatment Plan updated successfully");
+                window.location.href = "{% url 'assessments_list' %}";
+            })
+            .catch(err => {
+                console.error(err);
+                alert(err.detail || "Failed. Please check required fields.");
+            });
+    });
+
+    // =========================
+    // Add Remark Logic
+    // =========================
+    const btnAddRemark = document.getElementById("btnAddRemark");
+
+    if (btnAddRemark) {
+        btnAddRemark.addEventListener("click", function () {
+
+            const textarea = document.getElementById("treatmentRemarks");
+            const newRemark = document.getElementById("newRemarkText").value.trim();
+
+            if (!newRemark) {
+                alert("Remark cannot be empty.");
+                return;
+            }
+
+            const now = new Date();
+
+            const formattedDate =
+                String(now.getDate()).padStart(2, '0') + "/" +
+                String(now.getMonth() + 1).padStart(2, '0') + "/" +
+                now.getFullYear() + " " +
+                String(now.getHours()).padStart(2, '0') + ":" +
+                String(now.getMinutes()).padStart(2, '0');
+
+            const formattedRemark = `${formattedDate}:\n${newRemark}`;
+
+            if (textarea.value.trim() !== "") {
+                textarea.value = textarea.value.trimEnd() + "\n\n" + formattedRemark;
+            } else {
+                textarea.value = formattedRemark;
+            }
+
+            document.getElementById("newRemarkText").value = "";
+
+            const modal = bootstrap.Modal.getInstance(
+                document.getElementById('addRemarkModal')
+            );
+            modal.hide();
+        });
+    }
+</script>
+
+
+{% endblock %}

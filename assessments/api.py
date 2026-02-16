@@ -11,8 +11,8 @@ from django.utils import timezone
 from .models import Assessments
 from .serializers import (
     AssessmentsListSerializer,
-    AssessmentSection1And2DetailSerializer,
     AssessmentSection1And2CreateSerializer,
+    AssessmentTreatmentPlanSerializer,
 )
 
 logger = logging.getLogger("assessments")
@@ -340,5 +340,160 @@ class AssessmentSection1And2APIView(APIView):
             )
             return Response(
                 {"detail": "Failed to update assessment", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+# api.py
+
+
+class AssessmentTreatmentPlanAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # =========================
+    # GET
+    # =========================
+    def get(self, request):
+        profile = request.user.profile
+        assessment_id = request.query_params.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # Permission check
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot view this treatment plan"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AssessmentTreatmentPlanSerializer(assessment)
+
+        logger.info(
+            f"VIEW - Treatment Plan | "
+            f"assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role})"
+        )
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # =========================
+    # PUT
+    # =========================
+    def put(self, request):
+        profile = request.user.profile
+        assessment_id = request.data.get("assessment_id")
+        action = request.data.get("action", "save_treatment_plan")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # Permission check
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot edit this treatment plan"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AssessmentTreatmentPlanSerializer(
+            assessment,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            serializer.save()
+
+            # =========================
+            # ACTION LOGIC
+            # =========================
+
+            # ---------- SAVE ----------
+            if action == "save_treatment_plan":
+                assessment.is_treatment_plan_signed = False
+                assessment.treatment_plan_signed_by = None
+                assessment.treatment_plan_signed_at = None
+
+                logger.info(
+                    f"SAVE - Treatment Plan | "
+                    f"assessment_id={assessment.id}, "
+                    f"user={profile.official_name} ({profile.role}) | "
+                    f"Sign-off reset"
+                )
+
+            # ---------- SIGN OFF ----------
+            elif action == "sign_off_treatment_plan":
+
+                if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - Treatment Plan | "
+                        f"assessment_id={assessment.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+                    return Response(
+                        {"detail": "Not allowed to sign off Treatment Plan"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                assessment.is_treatment_plan_signed = True
+                assessment.treatment_plan_signed_by = profile
+                assessment.treatment_plan_signed_at = timezone.now()
+
+                logger.info(
+                    f"SIGN_OFF - Treatment Plan | "
+                    f"assessment_id={assessment.id}, "
+                    f"signed_by={profile.official_name} ({profile.role})"
+                )
+
+            assessment.save()
+
+            # =========================
+            # RESPONSE MESSAGE
+            # =========================
+            message = "Treatment Plan updated successfully"
+
+            if action == "save_treatment_plan":
+                message = (
+                    "Treatment Plan updated successfully. " "Sign-off has been reset."
+                )
+
+            elif action == "sign_off_treatment_plan":
+                message = "Treatment Plan signed off successfully"
+
+            logger.info(
+                f"RESPONSE - Treatment Plan | "
+                f"assessment_id={assessment.id}, "
+                f"action={action}, "
+                f"message='{message}'"
+            )
+
+            return Response(
+                {"message": message},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            logger.error(
+                f"UPDATE_FAILED - Treatment Plan | "
+                f"assessment_id={assessment_id}, "
+                f"user={profile.official_name}, "
+                f"error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {"detail": "Failed to update treatment plan", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

@@ -55,6 +55,12 @@
         </div>
         {% endif %}
 
+        {% if assessment.is_discharged %}
+        <div class="alert alert-info">
+          <strong>Patient has been discharged.</strong>
+        </div>
+        {% endif %}
+
         <div class="row">
           <!-- Student dropdown -->
           <div class="col-md-6 mb-3">
@@ -210,17 +216,12 @@
 <script>
   document.getElementById("btnSave").addEventListener("click", function () {
     clickedAction = "save_section_2";
-  }); {
-    %
-    if assessment and request.user.profile.role in "clinician admin"
-    and not assessment.is_section_2_signed %
-  }
+  }); 
+  {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_2_signed %}
   document.getElementById("btnSignOff").addEventListener("click", function () {
     clickedAction = "sign_off_section_2";
-  }); {
-    %
-    endif %
-  }
+  }); 
+  {% endif %}
 
   // ===========================
   // Save confirmation and submission
