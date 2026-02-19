@@ -297,7 +297,7 @@
         {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
       </button>
 
-      {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
+      {% if assessment and request.user.profile.role in "clinician admin" %}
       <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
         Update & Sign Off Section 1
       </button>
@@ -312,7 +312,7 @@
   let clickedAction = "save_section_1";
 
   document.getElementById("btnSave")?.addEventListener("click", () => clickedAction = "save_section_1");
-  {% if assessment and request.user.profile.role in "clinician admin" and not assessment.is_section_1_signed %}
+  {% if assessment and request.user.profile.role in "clinician admin" %}
   document.getElementById("btnSignOff")?.addEventListener("click", () => clickedAction = "sign_off_section_1");
   {% endif %}
 

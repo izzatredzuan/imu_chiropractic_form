@@ -93,7 +93,7 @@
         </div>
         {% endif %}
 
-        <!-- ========================= Section 5 ========================== -->
+        <!-- ========================= Treatment Plan ========================== -->
         <!-- <h4 class="fw-semibold mb-3 mobile-fonts">
             Section 5 – Treatment Plan
         </h4> -->
@@ -103,20 +103,20 @@
             <div class="card-body">
 
                 <div class="mb-3">
-                    <label class="form-label">Phase 1</label>
-                    <textarea name="phase_1" class="form-control" rows="4"
+                    <label class="form-label required">Phase 1</label>
+                    <textarea name="phase_1" class="form-control" rows="4" required
                     {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_1|default_if_none:'' }}</textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Phase 2</label>
-                    <textarea name="phase_2" class="form-control" rows="4"
+                    <label class="form-label required">Phase 2</label>
+                    <textarea name="phase_2" class="form-control" rows="4" required
                     {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_2|default_if_none:'' }}</textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Phase 3</label>
-                    <textarea name="phase_3" class="form-control" rows="4"
+                    <label class="form-label required">Phase 3</label>
+                    <textarea name="phase_3" class="form-control" rows="4" required
                     {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_3|default_if_none:'' }}</textarea>
                 </div>
 
@@ -128,12 +128,10 @@
             <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
                 <span>Treatment Remarks</span>
 
-                {% if not is_readonly and not assessment.is_treatment_plan_signed %}
                 <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
                     data-bs-target="#addRemarkModal">
                     + Add Remark
                 </button>
-                {% endif %}
             </div>
 
             <div class="card-body">
@@ -149,7 +147,7 @@
                 Cancel
             </a>
 
-            {% if not is_readonly and not assessment.is_treatment_plan_signed %}
+            {% if not is_readonly %}
             <button type="submit" id="btnSave" name="action" value="save_treatment_plan"
                 class="btn btn-primary btn-mobile">
                 Update Treatment Plan
@@ -165,7 +163,7 @@
     </form>
     <!-- ========================= Add Remark Modal ========================== -->
     <div class="modal fade" id="addRemarkModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
 
                 <div class="modal-header">
@@ -174,7 +172,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <textarea id="newRemarkText" class="form-control" rows="4"
+                    <textarea id="newRemarkText" class="form-control" rows="10"
                         placeholder="Enter remark here..."></textarea>
                 </div>
 
@@ -207,12 +205,13 @@
             clickedAction = "save_treatment_plan";
         });
     }
-
+    {% if assessment and request.user.profile.role in "clinician admin" %}
     if (btnSignOff) {
         btnSignOff.addEventListener("click", function () {
             clickedAction = "sign_off_treatment_plan";
         });
     }
+    {% endif %}
 
     // =========================
     // Form Submit
@@ -278,6 +277,7 @@
 
             const textarea = document.getElementById("treatmentRemarks");
             const newRemark = document.getElementById("newRemarkText").value.trim();
+            const editorName = "{{ request.user.profile.official_name|escapejs }}";
 
             if (!newRemark) {
                 alert("Remark cannot be empty.");
@@ -286,14 +286,9 @@
 
             const now = new Date();
 
-            const formattedDate =
-                String(now.getDate()).padStart(2, '0') + "/" +
-                String(now.getMonth() + 1).padStart(2, '0') + "/" +
-                now.getFullYear() + " " +
-                String(now.getHours()).padStart(2, '0') + ":" +
-                String(now.getMinutes()).padStart(2, '0');
+            const formattedDate = moment().format("DD/MM/YYYY h:mm A");
 
-            const formattedRemark = `${formattedDate}:\n${newRemark}`;
+            const formattedRemark = `[${formattedDate} - ${editorName}]\n${newRemark}`;
 
             if (textarea.value.trim() !== "") {
                 textarea.value = textarea.value.trimEnd() + "\n\n" + formattedRemark;

@@ -11,7 +11,7 @@ Part 2 = Section5, SOAP, Treatment Log
 - SOAP will need to sign-off, before and after treatment
 - Treatment log is just a list of SOAP done, can click to open the designated SOAP
 - Change the flow, clinician only need to sign off one section that has been edited by student
-- Section 5 will be move to Part 2
+
 
 Minor existing Changes
 To do:
@@ -45,6 +45,7 @@ Minor:
 - Create a new field name "file_number" [DONE]
 - Change Legend sequence [DONE]
 - Combine date field with at and by into 1 column [DONE]
+- Section 5 will be move to Part 2 [DONE]
 
 Question to ask in the future to Chiro team:
 
