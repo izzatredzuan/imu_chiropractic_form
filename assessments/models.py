@@ -184,7 +184,7 @@ class Assessments(models.Model):
     section_4_signed_at = models.DateTimeField(null=True, blank=True, default=None)
 
     # =====================
-    # Section 5 – Treatment Plan
+    # Treatment Plan
     # =====================
     phase_1 = models.TextField(blank=True, default="")
     phase_2 = models.TextField(blank=True, default="")
@@ -203,7 +203,22 @@ class Assessments(models.Model):
     )
     treatment_plan_signed_at = models.DateTimeField(null=True, blank=True, default=None)
 
+    # =====================
+    # Discharge
+    # =====================
+    DISCHARGE_CHOICES = (
+        ("discharged_full_recovery", "Discharged - Full Recovery"),
+        ("patient_discharged_against_advice", "Patient Discharged Against Advice"),
+        ("lost_to_follow_up", "Lost to Follow-up"),
+        ("referred_to_physician","Referred to Physician"),
+        ("transferred_to_another_Intern","Transferred to Another Intern"),
+        ("transferred_to_community_chiropractor","Transferred to Community Chiropractor"),
+        ("moved_away","Moved Away"),
+        ("deceased","Deceased"),
+    )
     is_discharged = models.BooleanField(default=False)
+    # reason_for_discharge = models.CharField(max_length=30, choices=DISCHARGE_CHOICES, blank=True, default="discharged_full_recovery")
+    # discharge_remarks = models.TextField(blank=True, default="")
 
     # =====================
     # Meta

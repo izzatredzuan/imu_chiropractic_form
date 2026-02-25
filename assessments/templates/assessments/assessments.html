@@ -7,7 +7,7 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
         <h2 class="mb-0 mobile-fonts">My Assessments</h2>
 
-        <a href="{% url 'assessment_section1_form' %}" class="btn btn-primary btn-mobile">
+        <a href="{% url 'assessment_create' %}" class="btn btn-primary btn-mobile">
             <i class="bi bi-plus-circle me-1"></i>
             Create Assessment
         </a>
@@ -108,7 +108,7 @@
                             'In Progress';
 
                         return `
-                            <a href="/assessments/section-${sectionNo}/form/?id=${row.id}" 
+                            <a href="/assessments/${row.id}/section-${sectionNo}" 
                             class="${cls}" title="${titleText}">
                                 Section ${sectionNo}
                             </a>
@@ -137,7 +137,8 @@
                         return lock_if_discharged()
                     }
 
-                    const url = "{% url 'assessment_treatment_plan_form' %}?id=" + row.id;
+                    const urlTemplate = "{% url 'assessment_treatment_plan_form' 0 %}";
+                    const url = urlTemplate.replace("0", row.id);
 
                     let icon = "bi-clipboard2-pulse";
                     let iconColor = "text-primary";
