@@ -12,8 +12,6 @@ SECTION_1_FIELDS = [
 ]
 
 SECTION_2_FIELDS = [
-    "inspection_posture",
-    "inspection_gait",
     "chief_complaint",
     "history_of_condition",
     "pain",

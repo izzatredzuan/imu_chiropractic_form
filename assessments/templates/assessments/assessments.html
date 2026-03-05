@@ -84,43 +84,65 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
-                    // If discharged → lock icon (highest priority), no link
+                    // If discharged → lock icon (highest priority)
                     if (row.is_discharged) {
-                        return lock_if_discharged()
+                        return lock_if_discharged();
                     }
 
-                    function sectionBtn(sectionNo, isSigned, isComplete, prevSigned) {
-                        let cls = "btn btn-sm ";
+                    function sectionBtn(sectionNo, isSigned, isComplete, canAccess) {
 
-                        if (!prevSigned) {
-                            cls += "full-width locked disabled";
-                        } else if (isSigned) {
-                            cls += "full-width signed";
-                        } else if (isComplete) {
-                            cls += "full-width ready";
-                        } else {
-                            cls += "full-width in-progress";
+                        let cls = "btn btn-sm full-width ";
+                        let titleText = "";
+
+                        if (!canAccess) {
+                            cls += "locked disabled";
+                            titleText = "Locked";
                         }
-
-                        let titleText = isSigned ? 'Signed' :
-                            isComplete ? 'Completed – Ready for Sign-Off' :
-                            !prevSigned ? 'Locked' :
-                            'In Progress';
+                        else if (isSigned) {
+                            cls += "signed";
+                            titleText = "Signed";
+                        }
+                        else if (isComplete) {
+                            cls += "ready";
+                            titleText = "Completed – Ready for Sign-Off";
+                        }
+                        else {
+                            cls += "in-progress";
+                            titleText = "In Progress";
+                        }
 
                         return `
                             <a href="/assessments/${row.id}/section-${sectionNo}" 
-                            class="${cls}" title="${titleText}">
+                            class="${cls}" 
+                            title="${titleText}">
                                 Section ${sectionNo}
                             </a>
                         `;
                     }
 
+                    const canAccess2 =
+                        row.section_1_signed_at || row.is_section_1_signed;
+
+                    const canAccess3 =
+                        row.section_2_signed_at || row.is_section_2_signed;
+
+                    const canAccess4 =
+                        row.section_3_signed_at || row.is_section_3_signed;
+                    
                     return `
                         <div class="d-flex align-items-center">
-                            <div style="width:100%; padding:0px 2px;">${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}</div>
-                            <div style="width:100%; padding:0px 2px;">${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, row.is_section_1_signed)}</div>
-                            <div style="width:100%; padding:0px 2px;">${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, row.is_section_2_signed)}</div>
-                            <div style="width:100%; padding:0px 2px;">${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, row.is_section_3_signed)}</div>
+                            <div style="width:100%; padding:0px 2px;">
+                                ${sectionBtn(1, row.is_section_1_signed, row.is_section_1_complete, true)}
+                            </div>
+                            <div style="width:100%; padding:0px 2px;">
+                                ${sectionBtn(2, row.is_section_2_signed, row.is_section_2_complete, canAccess2)}
+                            </div>
+                            <div style="width:100%; padding:0px 2px;">
+                                ${sectionBtn(3, row.is_section_3_signed, row.is_section_3_complete, canAccess3)}
+                            </div>
+                            <div style="width:100%; padding:0px 2px;">
+                                ${sectionBtn(4, row.is_section_4_signed, row.is_section_4_complete, canAccess4)}
+                            </div>
                         </div>
                     `;
                 },

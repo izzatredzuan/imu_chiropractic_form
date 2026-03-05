@@ -206,23 +206,16 @@ class AssessmentSection1And2APIView(APIView):
         try:
             if action == "save_section_1":
                 assessment.is_section_1_signed = False
-                assessment.section_1_signed_by = None
-                assessment.section_1_signed_at = None
-                assessment.is_section_2_signed = False
-                assessment.section_2_signed_by = None
-                assessment.section_2_signed_at = None
                 logger.info(
                     f"SAVE - Section 1 | "
                     f"assessment_id={assessment.id}, "
                     f"user={profile.official_name} ({profile.role}) | "
-                    f"Reset section 1 & 2 sign-offs"
+                    f"Reset section 1 sign-offs"
                 )
 
             # ---------- SAVE SECTION 2 ----------
             elif action == "save_section_2":
                 assessment.is_section_2_signed = False
-                assessment.section_2_signed_by = None
-                assessment.section_2_signed_at = None
                 logger.info(
                     f"SAVE - Section 2 | "
                     f"assessment_id={assessment.id}, "
@@ -311,7 +304,7 @@ class AssessmentSection1And2APIView(APIView):
             elif action == "save_section_1":
                 message = (
                     "Section 1 updated successfully. "
-                    "Section 1 and Section 2 sign-offs have been reset."
+                    "Section 1 sign-offs have been reset."
                 )
 
             elif action == "save_section_2":
