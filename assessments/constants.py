@@ -57,7 +57,10 @@ SECTION_3_FIELDS = [
     "working_diagnosis",
 ]
 
-SECTION_4_FIELDS = []
+SECTION_4_FIELDS = [
+    "diagnosis",
+    "diagnosis_date",
+]
 
 TREATMENT_PLAN_FIELDS = [
     "phase_1",

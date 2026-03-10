@@ -154,17 +154,21 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    const urlTemplate = "{% url 'assessment_treatment_plan_form' 0 %}";
+                    const url = urlTemplate.replace("0", row.id);
+                    let icon = "bi-clipboard2-pulse";
+                    let iconColor = "text-primary";
+                    let tooltip = "Edit Treatment Plan";
+
                     // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
-
-                    const urlTemplate = "{% url 'assessment_treatment_plan_form' 0 %}";
-                    const url = urlTemplate.replace("0", row.id);
-
-                    let icon = "bi-clipboard2-pulse";
-                    let iconColor = "text-primary";
-                    let tooltip = "Edit Treatment Plan";
+                    
+                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
+                    if (!section4Signed) {
+                        return lock_until_section4_signed(icon);
+                    }
 
                     // If signed → green clipboard
                     if (row.is_treatment_plan_signed) {
@@ -190,15 +194,24 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    let icon = "bi-journal-medical";
+                    let iconColor = "text-primary";
+                    let tooltip = "Edit S.O.A.P Note";
+
                     // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
 
+                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
+                    if (!section4Signed) {
+                        return lock_until_section4_signed(icon);
+                    }
+
                     return `
-                        <i class="bi bi-journal-medical text-primary soap-btn"
+                        <i class="bi ${icon} ${iconColor} soap-btn"
                         role="button"
-                        title="S.O.A.P Note"
+                        title="${tooltip}"
                         data-id="${row.id}"
                         style="cursor:pointer; font-size:1.25rem;"></i>
                     `;
@@ -211,15 +224,24 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    let icon = "bi-clock-history";
+                    let iconColor = "text-primary";
+                    let tooltip = "View Treatment Log";
+
                     // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
 
+                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
+                    if (!section4Signed) {
+                        return lock_until_section4_signed(icon);
+                    }
+
                     return `
-                        <i class="bi bi-clock-history text-primary treatment-log-btn"
+                        <i class="bi ${icon} ${iconColor} treatment-log-btn"
                         role="button"
-                        title="Treatment Log"
+                        title="${tooltip}"
                         data-id="${row.id}"
                         style="cursor:pointer; font-size:1.25rem;"></i>
                     `;
@@ -315,17 +337,35 @@
         ];
 
         // Utility to show lock icon if patient is discharged
-        function lock_if_discharged() {
-            icon = "bi-lock-fill";
-            iconColor = "text-secondary";
-            tooltip = "Patient Discharged";
-
+        function lock_icon({
+            icon = "bi-lock-fill",
+            color = "text-secondary",
+            tooltip = "Locked",
+            opacity = 0.5,
+            cursor = "not-allowed"
+        } = {}) {
             return `
-                    <i class="bi ${icon} ${iconColor}"
-                    title="${tooltip}"
-                    style="font-size:1.25rem; cursor:default;">
-                    </i>
-                `;
+                <i class="bi ${icon} ${color}"
+                title="${tooltip}"
+                style="font-size:1.25rem; opacity:${opacity}; cursor:${cursor};">
+                </i>
+            `;
+        }
+
+        function lock_until_section4_signed(icon) {
+            return lock_icon({
+                icon: icon,
+                tooltip: "Locked until Section 4 is signed off"
+            });
+        }
+
+        function lock_if_discharged() {
+            return lock_icon({
+                icon: "bi-lock-fill",
+                tooltip: "Patient Discharged",
+                opacity: 1,
+                cursor: "default"
+            });
         }
 
         /* ----------------------------------

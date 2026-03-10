@@ -14,7 +14,6 @@ def clinician_is_readonly(profile, assessment):
 def is_section_complete(obj, fields):
     for field in fields:
         value = getattr(obj, field)
-
         if value is None:
             return False
 

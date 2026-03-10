@@ -29,6 +29,11 @@ urlpatterns = [
         name="assessment_section3_form",
     ),
     path(
+        "<int:assessment_id>/section-4/",
+        views.AssessmentSection4FormView.as_view(),
+        name="assessment_section4_form",
+    ),
+    path(
         "<int:assessment_id>/treatment-plan/",
         views.AssessmentTreatmentPlanFormView.as_view(),
         name="assessment_treatment_plan_form",
@@ -48,6 +53,11 @@ urlpatterns = [
         "api/assessments/section-3/",
         api.AssessmentSection3APIView.as_view(),
         name="assessment_section3_api",
+    ),
+    path(
+        "api/assessments/section-4/",
+        api.AssessmentSection4APIView.as_view(),
+        name="assessment_section4_api",
     ),
     path(
         "api/assessments/treatment-plan/",

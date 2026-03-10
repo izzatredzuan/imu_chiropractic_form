@@ -31,7 +31,6 @@
       <div class="card-header fw-semibold">Assignment</div>
 
       <div class="card-body">
-
         {% if is_readonly %}
         <div class="alert alert-warning">
           You are viewing this section in read-only mode because you are not the assigned evaluator.
@@ -61,19 +60,15 @@
           <!-- Student -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
-
             <select name="student" class="form-control" required
               {% if student_readonly or is_readonly %}disabled{% endif %}>
-
               <option value="">-- Select Student --</option>
-
               {% for s in students %}
               <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}
                 {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
               {% endfor %}
-
             </select>
 
             {% if student_readonly %}
@@ -97,7 +92,6 @@
 
             </select>
           </div>
-
         </div>
       </div>
     </div>
@@ -108,7 +102,6 @@
       <div class="card-header fw-semibold">Inspection</div>
 
       <div class="card-body">
-
         <div class="mb-3">
           <label class="form-label required">Posture</label>
           <textarea name="inspection_posture" class="form-control" rows="3" required
@@ -126,7 +119,6 @@
           <textarea name="inspection_regional" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.inspection_regional }}</textarea>
         </div>
-
       </div>
     </div>
 
@@ -135,7 +127,6 @@
       <div class="card-header fw-semibold">Palpation / Percussion</div>
 
       <div class="card-body">
-
         <div class="mb-3">
           <label class="form-label required">Palpation</label>
           <textarea name="palpation" class="form-control" rows="3" required
@@ -153,7 +144,6 @@
           <textarea name="instrumentation" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.instrumentation }}</textarea>
         </div>
-
       </div>
     </div>
 
@@ -162,7 +152,6 @@
       <div class="card-header fw-semibold">Range of Motion (ROM)</div>
 
       <div class="card-body">
-
         <div class="mb-3">
           <label class="form-label required">Active</label>
           <textarea name="rom_active" class="form-control" rows="3" required
@@ -180,7 +169,6 @@
           <textarea name="rom_resisted" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.rom_resisted }}</textarea>
         </div>
-
       </div>
     </div>
 
@@ -189,7 +177,6 @@
       <div class="card-header fw-semibold">Additional Notes & Diagnostic Procedures</div>
 
       <div class="card-body">
-
         <div class="mb-3">
           <label class="form-label required">Chiropractic Notes</label>
           <textarea name="second_chiropractic_notes" class="form-control" rows="3" required
@@ -201,7 +188,6 @@
           <textarea name="further_diagnostic_procedures" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.further_diagnostic_procedures }}</textarea>
         </div>
-
       </div>
     </div>
 
@@ -210,7 +196,6 @@
       <div class="card-header fw-semibold">Neurological Examination</div>
 
       <div class="card-body">
-
         <div class="mb-3">
           <label class="form-label required">PTT</label>
           <input type="text" name="ptt" class="form-control" required value="{{ assessment.ptt }}"
@@ -252,7 +237,6 @@
           <textarea name="pathological" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.pathological }}</textarea>
         </div>
-
       </div>
     </div>
 
@@ -266,6 +250,12 @@
           <label class="form-label required">Orthopedic Assessment</label>
           <textarea name="orthopedic_assessment" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.orthopedic_assessment }}</textarea>
+        </div>
+        
+        <div class="mb-3">
+          <label class="form-label required">Chiropractic Notes</label>
+          <textarea name="third_chiropractic_notes" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.third_chiropractic_notes }}</textarea>
         </div>
 
         <div class="mb-3">
@@ -285,13 +275,11 @@
           <textarea name="working_diagnosis" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.working_diagnosis }}</textarea>
         </div>
-
       </div>
     </div>
 
     <!-- ========================= Buttons ========================== -->
     <div class="mt-4 d-flex justify-content-end gap-2">
-
       <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
         Cancel
       </a>
@@ -309,9 +297,7 @@
       {% endif %}
 
     </div>
-
   </form>
-
 </div>
 
 <script>
@@ -347,9 +333,7 @@
     }
 
     const formData = new FormData(this);
-
     formData.set("action", clickedAction);
-
     const payload = {};
 
     formData.forEach((value, key) => {

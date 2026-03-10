@@ -96,5 +96,9 @@ class AssessmentSection3FormView(BaseAssessmentFormView):
     template_name = "assessments/section3_form.html"
 
 
+class AssessmentSection4FormView(BaseAssessmentFormView):
+    template_name = "assessments/section4_form.html"
+
+
 class AssessmentTreatmentPlanFormView(BaseAssessmentFormView):
     template_name = "assessments/treatment_plan_form.html"

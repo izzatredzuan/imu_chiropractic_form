@@ -265,9 +265,26 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "working_diagnosis",
             "is_section_3_signed",
         ]
-
         read_only_fields = [
             "is_section_3_signed",
+        ]
+
+
+class AssessmentSection4Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assessments
+        fields = [
+            "id",
+            "student",
+            "evaluator",
+            "diagnosis",
+            "diagnosis_date",
+            "is_section_4_signed",
+            "section_4_signed_by",
+            "section_4_signed_at",
+        ]
+        read_only_fields = [
+            "is_section_4_signed",
         ]
 
 

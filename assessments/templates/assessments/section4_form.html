@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid mt-4 mb-4 px-4">
+
+    <!-- ========================= Page Title ========================== -->
+    <div class="mb-4">
+        <h2 class="fw-semibold mobile-fonts">
+            Section 4 – Problem & Interventions List
+        </h2>
+    </div>
+
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+                Patient: <strong>{{ assessment.patient_name }}</strong>
+            </h5>
+
+            <h6 class="mb-0 text-muted">
+                File No: <strong>{{ assessment.file_number }}</strong>
+            </h6>
+        </div>
+    </div>
+
+    <form id="section4Form">
+        <!-- ========================= Assignment ========================== -->
+        {% if assessment %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">
+                Assignment
+            </div>
+
+            <div class="card-body">
+                {% if is_readonly %}
+                <div class="alert alert-warning">
+                    You are viewing this section in read-only mode because you are not the assigned evaluator.
+                </div>
+                {% endif %}
+
+                {% if assessment.is_section_4_signed %}
+                <div class="alert alert-success">
+                    <strong>Signed-off by:</strong>
+                    {{ assessment.section_4_signed_by.official_name }}
+                    ({{ assessment.section_4_signed_by.role|title }})
+                    <br>
+                    <small class="text-muted">
+                        Signed at: {{ assessment.section_4_signed_at|date:"d M Y, h:i A" }}
+                    </small>
+                </div>
+                {% endif %}
+
+                {% if assessment.is_discharged %}
+                <div class="alert alert-info">
+                    <strong>Patient has been discharged.</strong>
+                </div>
+                {% endif %}
+                <div class="row">
+
+                    <!-- Student -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">Student</label>
+                        <select name="student" class="form-control" required
+                            {% if student_readonly or is_readonly %}disabled{% endif %}>
+                            <option value="">-- Select Student --</option>
+                            {% for s in students %}
+                            <option value="{{ s.id }}"
+                                {% if assessment and assessment.student.id == s.id %}selected{% endif %}
+                                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+                                {{ s.member_id }} – {{ s.official_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+
+                        {% if student_readonly %}
+                        <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+                        {% endif %}
+                    </div>
+
+                    <!-- Evaluator -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">
+                            Evaluator (Clinician)
+                        </label>
+
+                        <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+                            <option value="">-- Select Clinician --</option>
+                            {% for c in clinicians %}
+                            <option value="{{ c.id }}"
+                                {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+                                {{ c.member_id }} – {{ c.official_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        <!-- ========================= Diagnosis ========================== -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">
+                Diagnosis
+            </div>
+
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Diagnosis
+                    </label>
+                    <textarea name="diagnosis" class="form-control" rows="4" required
+                        {% if is_readonly or assessment.is_section_4_signed %}readonly{% endif %}>{{ assessment.diagnosis }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Diagnosis Date
+                    </label>
+
+                    <input type="date" name="diagnosis_date" class="form-control" required
+                        value="{{ assessment.diagnosis_date|date:'Y-m-d' }}"
+                        {% if is_readonly or assessment.is_section_4_signed %}readonly{% endif %}>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ========================= Buttons ========================== -->
+        <div class="mt-4 d-flex justify-content-end gap-2">
+
+            <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
+                Cancel
+            </a>
+
+            {% if not is_readonly %}
+            <button type="submit" id="btnSave" name="action" value="save_section_4" class="btn btn-primary btn-mobile">
+                Update Section 4
+            </button>
+
+            {% if assessment and request.user.profile.role in "clinician admin" %}
+            <button type="submit" id="btnSignOff" name="action" value="sign_off_section_4" class="btn btn-success">
+                Update & Sign Off Section 4
+            </button>
+            {% endif %}
+            {% endif %}
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script>
+    let clickedAction = "save_section_4";
+    const btnSave = document.getElementById("btnSave");
+    const btnSignOff = document.getElementById("btnSignOff");
+
+    if (btnSave) {
+        btnSave.addEventListener("click", function () {
+            clickedAction = "save_section_4";
+        });
+    }
+
+    {% if assessment and request.user.profile.role in "clinician admin" %}
+    if (btnSignOff) {
+        btnSignOff.addEventListener("click", function () {
+            clickedAction = "sign_off_section_4";
+        });
+    }
+    {% endif %}
+
+
+    document.getElementById("section4Form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        let confirmMessage =
+            "Are you sure you want to save the changes? Sign-off will be reset.";
+
+        if (clickedAction === "sign_off_section_4") {
+            confirmMessage =
+                "Are you sure you want to UPDATE and SIGN OFF Section 4?";
+        }
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        const formData = new FormData(this);
+        formData.set("action", clickedAction);
+        const payload = {};
+
+        formData.forEach((value, key) => {
+            payload[key] = value;
+        });
+
+        payload["assessment_id"] = "{{ assessment.id }}";
+
+        fetch("{% url 'assessment_section4_api' %}", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": CSRFTOKEN
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(err => {
+                        throw err;
+                    });
+                }
+                return res.json();
+            })
+            .then(data => {
+                alert(data.message || "Section 4 updated successfully");
+                window.location.href = "{% url 'assessments_list' %}";
+            })
+            .catch(err => {
+                console.error(err);
+                alert(err.detail || "Failed. Please check required fields.");
+
+            });
+
+    });
+</script>
+
+{% endblock %}

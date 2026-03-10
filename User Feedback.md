@@ -1,37 +1,28 @@
 This are the minute and change request requested by user Chow Kit Yee and Nashereena Kaur Dhillon
 
 Major Request
-
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment
 
-Major 22/1/2026
-Part 2 = Section5, SOAP, Treatment Log
-
-- SOAP will need to sign-off, before and after treatment
-- Treatment log is just a list of SOAP done, can click to open the designated SOAP
-- Change the flow, clinician only need to sign off one section that has been edited by student
-
-
-Minor existing Changes
-To do:
-
+Minor existing Changes To do:
 - Evaluator need to be able multi select
 
-Bugs:
-
-- Datatable sorting is incorrect
-
 06/03/2026
-
+- SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment
+- Treatment log is just a list of SOAP done, can click to open the designated SOAP
 - Discharge only need discharge reason and remark, only clinician and admin can discharge patient
-- Add Patient Re-evaluation Form and Patient New Complain Form, can create multiple for 1 assessment like S.O.A.P
-- Everything can only access after section 4 complete
-- 2 more section will need to be discuss or added in the future "Patient Re-Evaluation Form" and "Patient Complain Form"
+- Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P
 
+QUESTION to ask in the future to Chiro team:
+- If clinician assign their assessment to another clinician, they can't edit that assessment anymore, its sort of a handover to another clinician, is that ok?
+- Are we still doing the multi assign clinician to an assessment.
+- Where does patient need to sign again during final phase of the assessment
+
+
+Bugs:
+- Datatable sorting is incorrect
 
 DONE:
 Major:
-
 - Original Section 1 will be split into 2 section and original section 2 and 3 will be combine into 1 section [DONE]
 - Add PDPA consent section on section 1 [DONE]
 Major
@@ -59,8 +50,9 @@ Minor:
 - Change Legend sequence [DONE]
 - Combine date field with at and by into 1 column [DONE]
 - Section 5 will be move to Part 2 [DONE]
+- Everything can only access after section 4 complete [DONE]
+- Change the flow, clinician only need to sign off one section that has been edited by student [DONE]
 
-Question to ask in the future to Chiro team:
 
 - Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
 - Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
