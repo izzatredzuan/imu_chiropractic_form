@@ -9,7 +9,7 @@
        PAGE TITLE
   ========================== -->
   <div class="mb-4">
-    <h2 class="fw-semibold mobile-fonts">Edit Assessment</h2>
+    <h2 class="fw-semibold mobile-fonts">Section 2 – Patient Assessment</h2>
   </div>
 
   <div class="mb-3">
@@ -17,26 +17,19 @@
       <h5 class="mb-0">
         Patient: <strong>{{ assessment.patient_name }}</strong>
       </h5>
-
       <h6 class="mb-0 text-muted">
         File No: <strong>{{ assessment.file_number }}</strong>
       </h6>
     </div>
   </div>
-  <form id="section2Form">
 
-    <!-- =========================
-         SECTION 2 – PRESENTING COMPLAINT
-    ========================== -->
-    <h4 class="fw-semibold mb-3 mobile-fonts">Section 2 – Presenting Complaint</h4>
+  <form id="section2Form">
 
     <!-- =========================
          ASSIGNMENT
     ========================== -->
     <div class="card mb-4 shadow-sm">
-      <div class="card-header fw-semibold">
-        Assignment
-      </div>
+      <div class="card-header fw-semibold">Assignment</div>
       <div class="card-body">
         {% if is_readonly %}
         <div class="alert alert-warning">
@@ -62,26 +55,24 @@
         {% endif %}
 
         <div class="row">
-          <!-- Student dropdown -->
+          <!-- Student -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
             <select name="student" class="form-control" required
               {% if student_readonly or is_readonly %}disabled{% endif %}>
               <option value="">-- Select Student --</option>
               {% for s in students %}
-              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}
-                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}>
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
               {% endfor %}
             </select>
             {% if student_readonly %}
-            <!-- preserve value for API since disabled fields are not submitted -->
             <input type="hidden" name="student" value="{{ request.user.profile.id }}">
             {% endif %}
           </div>
 
-          <!-- Evaluator dropdown -->
+          <!-- Evaluator -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Evaluator (Clinician)</label>
             <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
@@ -98,9 +89,9 @@
     </div>
 
     <!-- =========================
-        PRESENTING COMPLAINT
+         Presenting Complaint
     ========================== -->
-    <div class="card mt-4 shadow-sm">
+    <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">Presenting Complaint</div>
       <div class="card-body">
 
@@ -115,6 +106,16 @@
           <textarea name="history_of_condition" class="form-control" rows="3" required
             {% if is_readonly %}readonly{% endif %}>{{ assessment.history_of_condition|default_if_none:'' }}</textarea>
         </div>
+
+      </div>
+    </div>
+
+    <!-- =========================
+         Pain & Symptom Details
+    ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Pain & Symptom Details</div>
+      <div class="card-body">
 
         <div class="mb-3">
           <label class="form-label required">Pain</label>
@@ -140,6 +141,16 @@
             {% if is_readonly %}readonly{% endif %}>{{ assessment.associated_symptoms|default_if_none:'' }}</textarea>
         </div>
 
+      </div>
+    </div>
+
+    <!-- =========================
+         Medical History
+    ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Medical History</div>
+      <div class="card-body">
+
         <div class="mb-3">
           <label class="form-label required">Health History Review</label>
           <textarea name="health_hx_review" class="form-control" rows="3" required
@@ -157,6 +168,16 @@
           <textarea name="family_hx" class="form-control" rows="3" required
             {% if is_readonly %}readonly{% endif %}>{{ assessment.family_hx|default_if_none:'' }}</textarea>
         </div>
+
+      </div>
+    </div>
+
+    <!-- =========================
+         Lifestyle & Social History
+    ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Lifestyle & Social History</div>
+      <div class="card-body">
 
         <div class="mb-3">
           <label class="form-label required">Psycho Social History</label>
@@ -176,6 +197,16 @@
             {% if is_readonly %}readonly{% endif %}>{{ assessment.diet|default_if_none:'' }}</textarea>
         </div>
 
+      </div>
+    </div>
+
+    <!-- =========================
+         Clinical Assessment
+    ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Clinical Assessment</div>
+      <div class="card-body">
+
         <div class="mb-3">
           <label class="form-label required">System Review</label>
           <textarea name="system_review" class="form-control" rows="3" required
@@ -187,19 +218,47 @@
           <textarea name="differential_diagnosis" class="form-control" rows="3" required
             {% if is_readonly %}readonly{% endif %}>{{ assessment.differential_diagnosis|default_if_none:'' }}</textarea>
         </div>
+
       </div>
     </div>
 
+    <!-- =========================
+         Risk Screening
+    ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Risk Screening</div>
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">Red Flags</label>
+          <textarea name="red_flags" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.red_flags|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Yellow Flags</label>
+          <textarea name="yellow_flags" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.yellow_flags|default_if_none:'' }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Contraindications</label>
+          <textarea name="contraindications" class="form-control" rows="3" required
+            {% if is_readonly %}readonly{% endif %}>{{ assessment.contraindications|default_if_none:'' }}</textarea>
+        </div>
+
+      </div>
+    </div>
 
     <!-- =========================
-            SUBMIT
-        ========================== -->
+         SUBMIT BUTTONS
+    ========================== -->
     <div class="mt-4 d-flex justify-content-end gap-2">
       <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
-      <!-- Hide button if user is only able to readonly -->
+
       {% if not is_readonly %}
       <button type="submit" id="btnSave" name="action" value="save_section_2" class="btn btn-primary btn-mobile">
-        Update Assessment
+        Update Section 2
       </button>
 
       {% if assessment and request.user.profile.role in "clinician admin" %}
@@ -214,68 +273,50 @@
 </div>
 
 <script>
-  document.getElementById("btnSave").addEventListener("click", function () {
-    clickedAction = "save_section_2";
-  }); 
+  let clickedAction = "save_section_2";
+
+  const btnSave = document.getElementById("btnSave");
+  const btnSignOff = document.getElementById("btnSignOff");
+
+  if (btnSave) btnSave.addEventListener("click", () => clickedAction = "save_section_2");
   {% if assessment and request.user.profile.role in "clinician admin" %}
-  document.getElementById("btnSignOff").addEventListener("click", function () {
-    clickedAction = "sign_off_section_2";
-  }); 
+  if (btnSignOff) btnSignOff.addEventListener("click", () => clickedAction = "sign_off_section_2");
   {% endif %}
 
-  // ===========================
-  // Save confirmation and submission
-  // ===========================
   document.getElementById("section2Form").addEventListener("submit", function (e) {
     e.preventDefault();
 
-    let confirmMessage = "Are you sure you want to save the changes? All next sections sign-offs will be reset.";
-
+    let confirmMessage = "Are you sure you want to save the changes?";
     if (clickedAction === "sign_off_section_2") {
-      confirmMessage =
-        "Are you sure you want to UPDATE and SIGN OFF Section 2?";
+      confirmMessage = "Are you sure you want to UPDATE and SIGN OFF Section 2?";
     }
+    if (!confirm(confirmMessage)) return;
 
-    if (!confirm(confirmMessage)) {
-      return;
-    }
-
-    // ==========================
-    // Proceed with save
-    // ==========================
     const formData = new FormData(this);
     formData.set("action", clickedAction);
 
     const payload = {};
     formData.forEach((v, k) => payload[k] = v);
-
     payload["assessment_id"] = "{{ assessment.id }}";
-    const method = "PUT";
 
     fetch("{% url 'assessment_section1_and_2_api' %}", {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": CSRFTOKEN
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(res => {
-        if (!res.ok) return res.json().then(err => {
-          throw err;
-        });
-        return res.json();
-      })
-      .then(data => {
-        alert(data.message || "Success");
-        window.location.href = "{% url 'assessments_list' %}";
-      })
-      .catch(err => {
-        console.error(err);
-        alert("Failed. Please check required fields.");
-      });
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": CSRFTOKEN
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.ok ? res.json() : res.json().then(err => {throw err;}))
+    .then(data => {
+      alert(data.message || "Section 2 updated successfully");
+      window.location.href = "{% url 'assessments_list' %}";
+    })
+    .catch(err => {
+      console.error(err);
+      alert(err.detail || "Failed. Please check required fields.");
+    });
   });
 </script>
-
 
 {% endblock %}

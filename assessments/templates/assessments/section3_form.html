@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid mt-4 mb-4 px-4">
+
+  <!-- ========================= Page Title ========================== -->
+  <div class="mb-4">
+    <h2 class="fw-semibold mobile-fonts">
+      Section 3 – Physical Examination
+    </h2>
+  </div>
+
+  <div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">
+        Patient: <strong>{{ assessment.patient_name }}</strong>
+      </h5>
+
+      <h6 class="mb-0 text-muted">
+        File No: <strong>{{ assessment.file_number }}</strong>
+      </h6>
+    </div>
+  </div>
+
+  <form id="section3Form">
+    <!-- ========================= Assignment ========================== -->
+    {% if assessment %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Assignment</div>
+
+      <div class="card-body">
+
+        {% if is_readonly %}
+        <div class="alert alert-warning">
+          You are viewing this section in read-only mode because you are not the assigned evaluator.
+        </div>
+        {% endif %}
+
+        {% if assessment.is_section_3_signed %}
+        <div class="alert alert-success">
+          <strong>Signed-off by:</strong>
+          {{ assessment.section_3_signed_by.official_name }}
+          ({{ assessment.section_3_signed_by.role|title }})<br>
+
+          <small class="text-muted">
+            Signed at: {{ assessment.section_3_signed_at|date:"d M Y, h:i A" }}
+          </small>
+        </div>
+        {% endif %}
+
+        {% if assessment.is_discharged %}
+        <div class="alert alert-info">
+          <strong>Patient has been discharged.</strong>
+        </div>
+        {% endif %}
+
+        <div class="row">
+
+          <!-- Student -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Student</label>
+
+            <select name="student" class="form-control" required
+              {% if student_readonly or is_readonly %}disabled{% endif %}>
+
+              <option value="">-- Select Student --</option>
+
+              {% for s in students %}
+              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}
+                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+                {{ s.member_id }} – {{ s.official_name }}
+              </option>
+              {% endfor %}
+
+            </select>
+
+            {% if student_readonly %}
+            <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+            {% endif %}
+          </div>
+
+          <!-- Evaluator -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Evaluator (Clinician)</label>
+
+            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+
+              <option value="">-- Select Clinician --</option>
+
+              {% for c in clinicians %}
+              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+                {{ c.member_id }} – {{ c.official_name }}
+              </option>
+              {% endfor %}
+
+            </select>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ========================= Inspection ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Inspection</div>
+
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">Posture</label>
+          <textarea name="inspection_posture" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.inspection_posture }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Gait</label>
+          <textarea name="inspection_gait" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.inspection_gait }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Regional</label>
+          <textarea name="inspection_regional" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.inspection_regional }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================= Palpation / Percussion ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Palpation / Percussion</div>
+
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">Palpation</label>
+          <textarea name="palpation" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.palpation }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Percussion</label>
+          <textarea name="percussion" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.percussion }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Instrumentation</label>
+          <textarea name="instrumentation" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.instrumentation }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================= ROM ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Range of Motion (ROM)</div>
+
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">Active</label>
+          <textarea name="rom_active" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.rom_active }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Passive</label>
+          <textarea name="rom_passive" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.rom_passive }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Resisted</label>
+          <textarea name="rom_resisted" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.rom_resisted }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================= ROM ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Additional Notes & Diagnostic Procedures</div>
+
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">Chiropractic Notes</label>
+          <textarea name="second_chiropractic_notes" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.second_chiropractic_notes }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Further Diagnostic Procedures</label>
+          <textarea name="further_diagnostic_procedures" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.further_diagnostic_procedures }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================= Neurological ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Neurological Examination</div>
+
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">PTT</label>
+          <input type="text" name="ptt" class="form-control" required value="{{ assessment.ptt }}"
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Cranial Nerves</label>
+          <textarea name="cranial_nerves" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.cranial_nerves }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Cerebellar</label>
+          <textarea name="cerebellar" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.cerebellar }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Spinal Cord</label>
+          <textarea name="spinal_cord" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.spinal_cord }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Nerve Root</label>
+          <textarea name="nerve_root" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.nerve_root }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Peripheral</label>
+          <textarea name="peripheral" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.peripheral }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Pathological</label>
+          <textarea name="pathological" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.pathological }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================= Diagnosis ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Diagnosis</div>
+
+      <div class="card-body">
+
+        <div class="mb-3">
+          <label class="form-label required">Orthopedic Assessment</label>
+          <textarea name="orthopedic_assessment" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.orthopedic_assessment }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Imaging</label>
+          <textarea name="imaging" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.imaging }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Lab</label>
+          <textarea name="lab" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.lab }}</textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label required">Working Diagnosis</label>
+          <textarea name="working_diagnosis" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.working_diagnosis }}</textarea>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================= Buttons ========================== -->
+    <div class="mt-4 d-flex justify-content-end gap-2">
+
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
+        Cancel
+      </a>
+
+      {% if not is_readonly %}
+      <button type="submit" id="btnSave" name="action" value="save_section_3" class="btn btn-primary btn-mobile">
+        Update Section 3
+      </button>
+
+      {% if assessment and request.user.profile.role in "clinician admin" %}
+      <button type="submit" id="btnSignOff" name="action" value="sign_off_section_3" class="btn btn-success">
+        Update & Sign Off Section 3
+      </button>
+      {% endif %}
+      {% endif %}
+
+    </div>
+
+  </form>
+
+</div>
+
+<script>
+  let clickedAction = "save_section_3";
+  const btnSave = document.getElementById("btnSave");
+  const btnSignOff = document.getElementById("btnSignOff");
+
+  if (btnSave) {
+    btnSave.addEventListener("click", function () {
+      clickedAction = "save_section_3";
+    });
+  }
+
+  {% if assessment and request.user.profile.role in "clinician admin" %}
+  if (btnSignOff) {
+    btnSignOff.addEventListener("click", function () {
+      clickedAction = "sign_off_section_3";
+    });
+  } 
+  {% endif %}
+
+  document.getElementById("section3Form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    let confirmMessage = "Are you sure you want to save the changes? Sign-off will be reset.";
+
+    if (clickedAction === "sign_off_section_3") {
+      confirmMessage =
+        "Are you sure you want to UPDATE and SIGN OFF Section 3?";
+    }
+
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    const formData = new FormData(this);
+
+    formData.set("action", clickedAction);
+
+    const payload = {};
+
+    formData.forEach((value, key) => {
+      payload[key] = value;
+    });
+    payload["assessment_id"] = "{{ assessment.id }}";
+
+    fetch("{% url 'assessment_section3_api' %}", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRFTOKEN
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => {
+            throw err;
+          });
+        }
+        return res.json();
+      })
+      .then(data => {
+        alert(data.message || "Section 3 updated successfully");
+        window.location.href = "{% url 'assessments_list' %}";
+      })
+      .catch(err => {
+        console.error(err);
+        alert(err.detail || "Failed. Please check required fields.");
+      });
+  });
+</script>
+
+{% endblock %}

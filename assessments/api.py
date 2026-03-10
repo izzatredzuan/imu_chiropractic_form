@@ -12,6 +12,7 @@ from .models import Assessments
 from .serializers import (
     AssessmentsListSerializer,
     AssessmentSection1And2CreateSerializer,
+    AssessmentSection3Serializer,
     AssessmentTreatmentPlanSerializer,
 )
 
@@ -337,7 +338,98 @@ class AssessmentSection1And2APIView(APIView):
             )
 
 
-# api.py
+class AssessmentSection3APIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # =========================
+    # GET
+    # =========================
+    def get(self, request):
+
+        profile = request.user.profile
+        assessment_id = request.query_params.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot view this section"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AssessmentSection3Serializer(assessment)
+
+        return Response(serializer.data)
+
+
+    # =========================
+    # PUT
+    # =========================
+    def put(self, request):
+
+        profile = request.user.profile
+        assessment_id = request.data.get("assessment_id")
+        action = request.data.get("action", "save_section_3")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot edit this section"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AssessmentSection3Serializer(
+            assessment,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save()
+
+        # =========================
+        # ACTION LOGIC
+        # =========================
+
+        if action == "save_section_3":
+
+            assessment.is_section_3_signed = False
+            assessment.section_3_signed_by = None
+            assessment.section_3_signed_at = None
+
+        elif action == "sign_off_section_3":
+
+            if profile.role not in ["clinician", "admin"]:
+                return Response(
+                    {"detail": "Not allowed to sign off"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            assessment.is_section_3_signed = True
+            assessment.section_3_signed_by = profile
+            assessment.section_3_signed_at = timezone.now()
+
+        assessment.save()
+
+        return Response(
+            {"message": "Section 3 updated successfully"},
+            status=status.HTTP_200_OK,
+        )
 
 
 class AssessmentTreatmentPlanAPIView(APIView):

@@ -95,6 +95,10 @@ class Assessments(models.Model):
     system_review = models.TextField(blank=True, default="")
     differential_diagnosis = models.TextField(blank=True, default="")
 
+    red_flags = models.TextField(blank=True, default="")
+    yellow_flags = models.TextField(blank=True, default="")
+    contraindications = models.TextField(blank=True, default="")
+
     # Clinician sign-off (Section 2)
     is_section_2_signed = models.BooleanField(default=False)
     section_2_signed_by = models.ForeignKey(
@@ -129,17 +133,6 @@ class Assessments(models.Model):
 
     further_diagnostic_procedures = models.TextField(blank=True, default="")
     ptt = models.CharField(max_length=150, blank=True, default="")
-    procedures_signed_at = models.DateTimeField(null=True, blank=True, default=None)
-    procedures_signed_by = models.ForeignKey(
-        Profile,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="second_signed_sections",
-        limit_choices_to={"role": "clinician"},
-        default=None,
-    )
-
     cranial_nerves = models.TextField(blank=True, default="")
     cerebellar = models.TextField(blank=True, default="")
     spinal_cord = models.TextField(blank=True, default="")

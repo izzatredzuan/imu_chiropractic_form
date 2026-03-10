@@ -167,6 +167,9 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "diet",
             "system_review",
             "differential_diagnosis",
+            "red_flags",
+            "yellow_flags",
+            "contraindications",
             "is_discharged",
         ]
 
@@ -230,6 +233,44 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             )
 
 
+class AssessmentSection3Serializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assessments
+        fields = [
+            "id",
+            "student",
+            "evaluator",
+            "inspection_posture",
+            "inspection_gait",
+            "inspection_regional",
+            "palpation",
+            "percussion",
+            "instrumentation",
+            "rom_active",
+            "rom_passive",
+            "rom_resisted",
+            "second_chiropractic_notes",
+            "further_diagnostic_procedures",
+            "ptt",
+            "cranial_nerves",
+            "cerebellar",
+            "spinal_cord",
+            "nerve_root",
+            "peripheral",
+            "pathological",
+            "orthopedic_assessment",
+            "third_chiropractic_notes",
+            "imaging",
+            "lab",
+            "working_diagnosis",
+            "is_section_3_signed",
+        ]
+
+        read_only_fields = [
+            "is_section_3_signed",
+        ]
+
+
 class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assessments
@@ -244,3 +285,4 @@ class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "is_treatment_plan_signed",
         ]
+

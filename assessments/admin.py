@@ -121,6 +121,9 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "is_section_2_signed",
                     "section_2_signed_by",
                     "section_2_signed_at",
+                    "red_flags",
+                    "yellow_flags",
+                    "contraindications"
                 )
             },
         ),
@@ -140,8 +143,6 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "second_chiropractic_notes",
                     "further_diagnostic_procedures",
                     "ptt",
-                    "procedures_signed_by",
-                    "procedures_signed_at",
                     "cranial_nerves",
                     "cerebellar",
                     "spinal_cord",

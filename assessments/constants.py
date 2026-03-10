@@ -26,6 +26,9 @@ SECTION_2_FIELDS = [
     "diet",
     "system_review",
     "differential_diagnosis",
+    "red_flags",
+    "yellow_flags",
+    "contraindications"
 ]
 
 SECTION_3_FIELDS = [
@@ -41,8 +44,6 @@ SECTION_3_FIELDS = [
     "second_chiropractic_notes",
     "further_diagnostic_procedures",
     "ptt",
-    "procedures_signed_at",
-    "procedures_signed_by",
     "cranial_nerves",
     "cerebellar",
     "spinal_cord",

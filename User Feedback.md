@@ -3,7 +3,6 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 Major Request
 
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment
-- 2 more section will need to be discuss or added in the future "Patient Re-Evaluation Form" and "Patient Complain Form"
 
 Major 22/1/2026
 Part 2 = Section5, SOAP, Treatment Log
@@ -22,11 +21,25 @@ Bugs:
 
 - Datatable sorting is incorrect
 
+06/03/2026
+
+- Discharge only need discharge reason and remark, only clinician and admin can discharge patient
+- Add Patient Re-evaluation Form and Patient New Complain Form, can create multiple for 1 assessment like S.O.A.P
+- Everything can only access after section 4 complete
+- 2 more section will need to be discuss or added in the future "Patient Re-Evaluation Form" and "Patient Complain Form"
+
+
 DONE:
 Major:
 
 - Original Section 1 will be split into 2 section and original section 2 and 3 will be combine into 1 section [DONE]
 - Add PDPA consent section on section 1 [DONE]
+Major
+- 3 New column need to be added in Section 2  [DONE]
+ . Red flags
+ . Yellow flags 
+ . Contraindications
+
 
 Minor:
 
@@ -49,5 +62,5 @@ Minor:
 
 Question to ask in the future to Chiro team:
 
-- Consent section, how it suppose to look like also does registration form is consider as consent form
-- Section 3, in the middle of it has physical sinf off but not at the end, what is the real format
+- Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
+- Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
