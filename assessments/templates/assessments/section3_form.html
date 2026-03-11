@@ -172,21 +172,15 @@
       </div>
     </div>
 
-    <!-- ========================= ROM ========================== -->
+    <!-- ========================= Additional Notes & Diagnostic Procedures ========================== -->
     <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">Additional Notes & Diagnostic Procedures</div>
 
       <div class="card-body">
         <div class="mb-3">
-          <label class="form-label required">Chiropractic Notes</label>
-          <textarea name="second_chiropractic_notes" class="form-control" rows="3" required
-            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.second_chiropractic_notes }}</textarea>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label required">Further Diagnostic Procedures</label>
-          <textarea name="further_diagnostic_procedures" class="form-control" rows="3" required
-            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.further_diagnostic_procedures }}</textarea>
+          <label class="form-label required">Chiropractic</label>
+          <textarea name="first_chiropractic" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.first_chiropractic }}</textarea>
         </div>
       </div>
     </div>
@@ -196,12 +190,6 @@
       <div class="card-header fw-semibold">Neurological Examination</div>
 
       <div class="card-body">
-        <div class="mb-3">
-          <label class="form-label required">PTT</label>
-          <input type="text" name="ptt" class="form-control" required value="{{ assessment.ptt }}"
-            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>
-        </div>
-
         <div class="mb-3">
           <label class="form-label required">Cranial Nerves</label>
           <textarea name="cranial_nerves" class="form-control" rows="3" required
@@ -253,9 +241,9 @@
         </div>
         
         <div class="mb-3">
-          <label class="form-label required">Chiropractic Notes</label>
-          <textarea name="third_chiropractic_notes" class="form-control" rows="3" required
-            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.third_chiropractic_notes }}</textarea>
+          <label class="form-label required">Chiropractic</label>
+          <textarea name="second_chiropractic" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.second_chiropractic }}</textarea>
         </div>
 
         <div class="mb-3">

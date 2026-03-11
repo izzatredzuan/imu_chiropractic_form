@@ -1,22 +1,22 @@
 This are the minute and change request requested by user Chow Kit Yee and Nashereena Kaur Dhillon
 
-Major Request
+
+
+06/03/2026
+- Discharge only need discharge reason and remark, only clinician and admin can discharge patient
+- SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment
+- Treatment log is just a list of SOAP done, can click to open the designated SOAP
+- Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment
 
 Minor existing Changes To do:
 - Evaluator need to be able multi select
 
-06/03/2026
-- SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment
-- Treatment log is just a list of SOAP done, can click to open the designated SOAP
-- Discharge only need discharge reason and remark, only clinician and admin can discharge patient
-- Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P
-
 QUESTION to ask in the future to Chiro team:
-- If clinician assign their assessment to another clinician, they can't edit that assessment anymore, its sort of a handover to another clinician, is that ok?
+- In Section 3 theres 2 part with Chiropractic Notes, is it correct?
+- If clinician assign their assessment to another clinician, they can't edit that assessment anymore, is it sort of a handover to another clinician process?
 - Are we still doing the multi assign clinician to an assessment.
 - Where does patient need to sign again during final phase of the assessment
-
 
 Bugs:
 - Datatable sorting is incorrect

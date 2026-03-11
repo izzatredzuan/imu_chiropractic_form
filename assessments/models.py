@@ -129,10 +129,8 @@ class Assessments(models.Model):
     rom_passive = models.TextField(blank=True, default="")
     rom_resisted = models.TextField(blank=True, default="")
 
-    second_chiropractic_notes = models.TextField(blank=True, default="")
+    first_chiropractic = models.TextField(blank=True, default="")
 
-    further_diagnostic_procedures = models.TextField(blank=True, default="")
-    ptt = models.CharField(max_length=150, blank=True, default="")
     cranial_nerves = models.TextField(blank=True, default="")
     cerebellar = models.TextField(blank=True, default="")
     spinal_cord = models.TextField(blank=True, default="")
@@ -141,7 +139,7 @@ class Assessments(models.Model):
     pathological = models.TextField(blank=True, default="")
 
     orthopedic_assessment = models.TextField(blank=True, default="")
-    third_chiropractic_notes = models.TextField(blank=True, default="")
+    second_chiropractic = models.TextField(blank=True, default="")
     imaging = models.TextField(blank=True, default="")
     lab = models.TextField(blank=True, default="")
     working_diagnosis = models.TextField(blank=True, default="")
@@ -209,9 +207,9 @@ class Assessments(models.Model):
         ("moved_away","Moved Away"),
         ("deceased","Deceased"),
     )
+    reason_for_discharge = models.CharField(max_length=50, choices=DISCHARGE_CHOICES, blank=True, default="")
+    discharge_remarks = models.TextField(blank=True, default="")
     is_discharged = models.BooleanField(default=False)
-    # reason_for_discharge = models.CharField(max_length=30, choices=DISCHARGE_CHOICES, blank=True, default="discharged_full_recovery")
-    # discharge_remarks = models.TextField(blank=True, default="")
 
     # =====================
     # Meta

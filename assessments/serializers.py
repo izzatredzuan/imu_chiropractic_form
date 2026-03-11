@@ -24,6 +24,11 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
         source="created_by.official_name", read_only=True
     )
 
+    reason_for_discharge_text = serializers.CharField(
+        source="get_reason_for_discharge_display",
+        read_only=True
+    )
+    
     is_section_1_complete = serializers.SerializerMethodField()
     is_section_2_complete = serializers.SerializerMethodField()
     is_section_3_complete = serializers.SerializerMethodField()
@@ -55,6 +60,9 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "is_treatment_plan_signed",
             "is_treatment_plan_complete",
             "is_discharged",
+            "reason_for_discharge",
+            "reason_for_discharge_text",
+            "discharge_remarks",
             "created_by",
             "created_at",
             "updated_by",
@@ -117,6 +125,8 @@ class AssessmentSection1And2DetailSerializer(serializers.ModelSerializer):
             "is_section_1_signed",
             "is_section_2_signed",
             "is_discharged",
+            "reason_for_discharge",
+            "discharge_remarks",
             "created_at",
             "updated_at",
         ]
@@ -171,6 +181,8 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "yellow_flags",
             "contraindications",
             "is_discharged",
+            "reason_for_discharge",
+            "discharge_remarks",
         ]
 
     def create(self, validated_data):
@@ -249,9 +261,7 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "rom_active",
             "rom_passive",
             "rom_resisted",
-            "second_chiropractic_notes",
-            "further_diagnostic_procedures",
-            "ptt",
+            "first_chiropractic",
             "cranial_nerves",
             "cerebellar",
             "spinal_cord",
@@ -259,7 +269,7 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "peripheral",
             "pathological",
             "orthopedic_assessment",
-            "third_chiropractic_notes",
+            "second_chiropractic",
             "imaging",
             "lab",
             "working_diagnosis",

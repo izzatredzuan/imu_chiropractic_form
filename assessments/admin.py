@@ -140,9 +140,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "rom_active",
                     "rom_passive",
                     "rom_resisted",
-                    "second_chiropractic_notes",
-                    "further_diagnostic_procedures",
-                    "ptt",
+                    "first_chiropractic",
                     "cranial_nerves",
                     "cerebellar",
                     "spinal_cord",
@@ -150,7 +148,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "peripheral",
                     "pathological",
                     "orthopedic_assessment",
-                    "third_chiropractic_notes",
+                    "second_chiropractic",
                     "imaging",
                     "lab",
                     "working_diagnosis",
@@ -187,7 +185,13 @@ class AssessmentsAdmin(admin.ModelAdmin):
         ),
         (
             "Discharge",
-            {"fields": ("is_discharged",)},
+            {
+                "fields": (
+                    "is_discharged", 
+                    "reason_for_discharge", 
+                    "discharge_remarks"
+                )
+            },
         ),
         (
             "Meta",

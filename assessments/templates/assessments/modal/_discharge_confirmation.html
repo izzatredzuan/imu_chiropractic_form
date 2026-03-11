@@ -15,50 +15,77 @@
                     Please confirm you want to discharge this patient.
                 </p>
 
-                <div class="border rounded p-3 bg-light small">
+                <!-- Patient info -->
+                <div class="border rounded p-3 bg-light small mb-3">
 
                     <div class="row mb-2">
                         <div class="col-3 text-muted fw-semibold">
                             Patient Name:
                         </div>
-                        <div class="col-9" id="modalPatientName">
-                            -
-                        </div>
+                        <div class="col-9" id="modalPatientName">-</div>
                     </div>
 
                     <div class="row mb-2">
                         <div class="col-3 text-muted fw-semibold">
                             File Number:
                         </div>
-                        <div class="col-9" id="modalFileNumber">
-                            -
-                        </div>
+                        <div class="col-9" id="modalFileNumber">-</div>
                     </div>
 
                     <div class="row mb-2">
                         <div class="col-3 text-muted fw-semibold">
                             Clinician:
                         </div>
-                        <div class="col-9" id="modalClinician">
-                            -
-                        </div>
+                        <div class="col-9" id="modalClinician">-</div>
                     </div>
 
                     <div class="row mb-0">
                         <div class="col-3 text-muted fw-semibold">
                             Student:
                         </div>
-                        <div class="col-9" id="modalStudent">
-                            -
-                        </div>
+                        <div class="col-9" id="modalStudent">-</div>
                     </div>
+
                 </div>
+
+                <!-- Reason for discharge -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        Reason for Discharge <span class="text-danger">*</span>
+                    </label>
+
+                    <select class="form-select form-select-sm" id="reasonForDischarge">
+                        <option value="">-- Select Reason --</option>
+                        <option value="discharged_full_recovery">Discharged - Full Recovery</option>
+                        <option value="patient_discharged_against_advice">Patient Discharged Against Advice</option>
+                        <option value="lost_to_follow_up">Lost to Follow-up</option>
+                        <option value="referred_to_physician">Referred to Physician</option>
+                        <option value="transferred_to_another_Intern">Transferred to Another Intern</option>
+                        <option value="transferred_to_community_chiropractor">Transferred to Community Chiropractor
+                        </option>
+                        <option value="moved_away">Moved Away</option>
+                        <option value="deceased">Deceased</option>
+                    </select>
+                </div>
+
+                <!-- Discharge remarks -->
+                <div class="mb-2">
+                    <label class="form-label fw-semibold">
+                        Discharge Remarks <span class="text-danger">*</span>
+                    </label>
+
+                    <textarea class="form-control form-control-sm" id="dischargeRemarks" rows="3"
+                        placeholder="Enter remarks about the discharge..."></textarea>
+                </div>
+
                 <div class="text-danger mt-3 small">
                     This action cannot be undone.
                 </div>
+
             </div>
 
             <div class="modal-footer border-top">
+
                 <input type="hidden" id="dischargeAssessmentId">
 
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
@@ -68,6 +95,7 @@
                 <button type="button" class="btn btn-danger btn-sm" id="confirmDischargeBtn">
                     Confirm Discharge
                 </button>
+
             </div>
 
         </div>
