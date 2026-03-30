@@ -5,7 +5,7 @@ from django.shortcuts import (
 )
 from django.views import View
 from accounts.models import Profile
-from .models import Assessments
+from .models import Assessments, SoapModality
 from .utils import (
     clinician_is_readonly,
 )
@@ -102,3 +102,17 @@ class AssessmentSection4FormView(BaseAssessmentFormView):
 
 class AssessmentTreatmentPlanFormView(BaseAssessmentFormView):
     template_name = "assessments/treatment_plan_form.html"
+
+
+class SoapFormView(BaseAssessmentFormView):
+    template_name = "assessments/soap.html"
+
+    def get(self, request, assessment_id=None):
+        response = super().get(request, assessment_id)
+
+        # extract context from response
+        context = response.context_data if hasattr(response, "context_data") else {}
+
+        context["MODALITIES_CHOICES"] = SoapModality._meta.get_field("modality").choices
+
+        return render(request, self.template_name, context)

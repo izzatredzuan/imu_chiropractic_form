@@ -1,0 +1,587 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid mt-4 mb-4 px-4">
+  <!-- ========================= Page Title ========================== -->
+  <div class="mb-4">
+    <h2 class="fw-semibold mobile-fonts">
+      S.O.A.P. Note
+    </h2>
+  </div>
+
+  <div class="mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="mb-0">
+        Patient: <strong>{{ assessment.patient_name }}</strong>
+      </h5>
+      <h6 class="mb-0 text-muted">
+        File No: <strong>{{ assessment.file_number }}</strong>
+      </h6>
+    </div>
+  </div>
+  <form id="soapForm">
+    <!-- ========================= Assignment Info ========================== -->
+    {% if assessment %}
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">Assignment</div>
+      <div class="card-body">
+
+        {% if is_readonly %}
+        <div class="alert alert-warning">
+          You are viewing this section in read-only mode because you are not the assigned evaluator.
+        </div>
+        {% endif %}
+
+        {% if assessment.is_treatment_plan_signed %}
+        <div class="alert alert-success">
+          <strong>Signed-off by:</strong>
+          {{ assessment.treatment_plan_signed_by.official_name }}
+          ({{ assessment.treatment_plan_signed_by.role|title }})<br>
+          <small class="text-muted">
+            Signed at: {{ assessment.treatment_plan_signed_at|date:"d M Y, h:i A" }}
+          </small>
+        </div>
+        {% endif %}
+
+        {% if assessment.is_discharged %}
+        <div class="alert alert-info">
+          <strong>Patient has been discharged.</strong>
+        </div>
+        {% endif %}
+
+        <div class="row">
+          <!-- Student dropdown -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Student</label>
+            <select name="student" class="form-control" required
+              {% if student_readonly or is_readonly %}disabled{% endif %}>
+              <option value="">-- Select Student --</option>
+              {% for s in students %}
+              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}
+                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+                {{ s.member_id }} – {{ s.official_name }}
+              </option>
+              {% endfor %}
+            </select>
+            {% if student_readonly %}
+            <!-- preserve value for API since disabled fields are not submitted -->
+            <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+            {% endif %}
+          </div>
+
+          <!-- Evaluator dropdown -->
+          <div class="col-md-6 mb-3">
+            <label class="form-label required">Evaluator (Clinician)</label>
+            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+              <option value="">-- Select Clinician --</option>
+              {% for c in clinicians %}
+              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+                {{ c.member_id }} – {{ c.official_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <!-- ========================= SOAP ========================== -->
+    <div class="row">
+      <!-- LEFT COLUMN -->
+      <div class="col-lg-7">
+        <!-- Vitals -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header fw-semibold">Vitals</div>
+          <div class="card-body row">
+
+            <div class="col-md-3 mb-3">
+              <label class="form-label required">Pulse</label>
+              <input type="number" name="soap_pulse" class="form-control" required
+                value="{{ soap.soap_pulse|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label class="form-label required">Respiratory</label>
+              <input type="number" name="soap_respiratory" class="form-control" required
+                value="{{ soap.soap_respiratory|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label class="form-label required">Systolic BP</label>
+              <input type="number" name="soap_systolic_bp" class="form-control" required
+                value="{{ soap.soap_systolic_bp|default_if_none:'' }}">
+            </div>
+
+            <div class="col-md-3 mb-3">
+              <label class="form-label required">Diastolic BP</label>
+              <input type="number" name="soap_diastolic_bp" class="form-control" required
+                value="{{ soap.soap_diastolic_bp|default_if_none:'' }}">
+            </div>
+
+          </div>
+        </div>
+
+        <!-- S.O.A.P. -->
+        <div class="card mb-4 shadow-sm">
+          <div class="card-header fw-semibold">S.O.A.P.</div>
+          <div class="card-body">
+            <!-- SUBJECTIVE -->
+            <div class="mb-3">
+              <label class="form-label required">Subjective</label>
+              <textarea name="subjective" class="form-control" rows="3" required
+                {% if is_readonly %}readonly{% endif %}>{{ soap.subjective|default_if_none:'' }}</textarea>
+            </div>
+
+            <!-- OBJECTIVE -->
+            <div class="mb-3">
+              <label class="form-label required">Objective</label>
+              <textarea name="objective" class="form-control" rows="3" required
+                {% if is_readonly %}readonly{% endif %}>{{ soap.objective|default_if_none:'' }}</textarea>
+            </div>
+
+            <!-- ASSESSMENT -->
+            <div class="mb-3">
+              <label class="form-label required">Assessment</label>
+              <textarea name="soap_assessment" class="form-control" rows="3" required
+                {% if is_readonly %}readonly{% endif %}>{{ soap.soap_assessment|default_if_none:'' }}</textarea>
+            </div>
+
+            <!-- PLAN -->
+            <div class="mb-3">
+              <label class="form-label required">Plan</label>
+              <textarea name="plan" class="form-control" rows="3" required
+                {% if is_readonly %}readonly{% endif %}>{{ soap.plan|default_if_none:'' }}</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN (ANATOMY) -->
+      <div class="col-lg-5">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header fw-semibold">Anatomy Marking</div>
+          <div id="anatomySection" class="card-body text-center">
+
+            <div class="mb-3 text-muted small">
+              <strong>Instructions:</strong> Click to mark. Left-click edit note. Right-click delete.
+            </div>
+
+            <div id="anatomyWrapper" class="position-relative d-inline-block">
+              <img src="/media/assessments/anatomy/spine.png" id="anatomyImage" style="display:block; width:100%;">
+
+              <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================= SOAP Modalities ========================== -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
+        SOAP Modalities
+        <button type="button" class="btn btn-sm btn-primary" id="addModalityBtn">
+          + Add Modality
+        </button>
+      </div>
+
+      <div class="card-body" id="soapModalitiesContainer">
+
+        {% for modality in soap.soap_modalities.all %}
+        <div class="soap-modality-item card mb-3 shadow-sm">
+
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="modality-title fw-semibold">
+              Modality {{ forloop.counter }}
+            </span>
+
+            {% if not forloop.first %}
+            <button type="button" class="btn-close remove-modality-btn"></button>
+            {% endif %}
+          </div>
+
+          <div class="card-body">
+
+            <div class="mb-2">
+              <label class="form-label required">Modality</label>
+              <select name="modality_{{ forloop.counter }}" class="form-control" required>
+                <option value="">-- Select Modality --</option>
+                {% for key, value in MODALITIES_CHOICES %}
+                <option value="{{ key }}" {% if key == modality.modality %}selected{% endif %}>
+                  {{ value }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label required">Location</label>
+              <textarea name="location_{{ forloop.counter }}" class="form-control" rows="2"
+                required>{{ modality.location }}</textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label required">Settings</label>
+              <textarea name="settings_{{ forloop.counter }}" class="form-control" rows="2"
+                required>{{ modality.settings }}</textarea>
+            </div>
+
+            <div>
+              <label class="form-label required">Duration & Intensity</label>
+              <textarea name="duration_intensity_{{ forloop.counter }}" class="form-control" rows="2"
+                required>{{ modality.duration_intensity }}</textarea>
+            </div>
+
+          </div>
+        </div>
+        {% empty %}
+        <!-- FIRST MODALITY (NO DELETE BUTTON) -->
+        <div class="soap-modality-item card mb-3 shadow-sm">
+
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="modality-title fw-semibold">
+              Modality 1
+            </span>
+          </div>
+
+          <div class="card-body">
+
+            <div class="mb-2">
+              <label class="form-label required">Modality</label>
+              <select name="modality_1" class="form-control" required>
+                <option value="">-- Select Modality --</option>
+                {% for key, value in MODALITIES_CHOICES %}
+                <option value="{{ key }}">{{ value }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label required">Location</label>
+              <textarea name="location_1" class="form-control" rows="2" required></textarea>
+            </div>
+
+            <div class="mb-2">
+              <label class="form-label required">Settings</label>
+              <textarea name="settings_1" class="form-control" rows="2" required></textarea>
+            </div>
+
+            <div>
+              <label class="form-label required">Duration & Intensity</label>
+              <textarea name="duration_intensity_1" class="form-control" rows="2" required></textarea>
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+
+    <!-- TREATMENT OUTCOMES & NOTES -->
+    <div class="card mb-4 shadow-sm">
+      <div class="card-header fw-semibold">
+        Treatment Outcomes & Notes
+      </div>
+      <div class="card-body">
+        <!-- TREATMENT OUTCOMES  -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="patient_tolerated_treatment_well"
+                {% if soap.patient_tolerated_treatment_well %}checked{% endif %}>
+              <label class="form-check-label">
+                Patient tolerated treatment well
+              </label>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="patient_improved_with_treatment"
+                {% if soap.patient_improved_with_treatment %}checked{% endif %}>
+              <label class="form-check-label">
+                Patient improved with treatment
+              </label>
+            </div>
+          </div>
+
+          <div class="col-md-6 mt-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="pain_after_treatment"
+                {% if soap.pain_after_treatment %}checked{% endif %}>
+              <label class="form-check-label">
+                Pain after treatment
+              </label>
+            </div>
+          </div>
+
+          <div class="col-md-6 mt-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="adverse_reactions_to_treatment"
+                {% if soap.adverse_reactions_to_treatment %}checked{% endif %}>
+              <label class="form-check-label">
+                Adverse reactions to treatment
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- NOTES -->
+        <div class="mb-2">
+          <label class="form-label required">Notes</label>
+          <textarea name="notes" class="form-control" rows="4" required>{{ soap.notes|default_if_none:'' }}</textarea>
+        </div>
+
+        <!-- NEXT APPOINTMENT -->
+        <div>
+          <label class="form-label required">Next Appointment</label>
+          <input type="date" name="next_appointment" class="form-control" required
+            value="{% if soap %}{{ soap.next_appointment|date:'Y-m-d' }}{% endif %}">
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- ========================= ACTION BUTTONS ========================== -->
+<div class="mt-4 d-flex justify-content-end gap-2">
+  <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
+
+  <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary btn-mobile">
+    {% if soap %}Update SOAP{% else %}Create SOAP{% endif %}
+  </button>
+
+  <button type="submit" id="btnSignOff" name="action" value="sign_off" class="btn btn-success">
+    Save & Sign Off
+  </button>
+</div>
+
+</form>
+</div>
+
+<script>
+  (() => {
+    const container = document.getElementById("soapModalitiesContainer");
+    const addBtn = document.getElementById("addModalityBtn");
+
+    let counter = container.querySelectorAll(".soap-modality-item").length;
+
+    function updateModalityNumbers() {
+      const items = container.querySelectorAll(".soap-modality-item");
+
+      items.forEach((item, index) => {
+        const number = index + 1;
+
+        // Update title
+        item.querySelector(".modality-title").innerText = `Modality ${number}`;
+
+        // Remove ALL existing delete buttons
+        const oldBtn = item.querySelector(".remove-modality-btn");
+        if (oldBtn) oldBtn.remove();
+
+        // Add delete button ONLY if not first
+        if (index !== 0) {
+          const header = item.querySelector(".card-header");
+
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn-close remove-modality-btn";
+
+          header.appendChild(btn);
+        }
+
+        // Update input names
+        item.querySelectorAll("select, textarea").forEach(el => {
+          if (el.name.includes("modality_")) el.name = `modality_${number}`;
+          if (el.name.includes("location_")) el.name = `location_${number}`;
+          if (el.name.includes("settings_")) el.name = `settings_${number}`;
+          if (el.name.includes("duration_intensity_")) el.name = `duration_intensity_${number}`;
+        });
+      });
+
+      counter = items.length;
+    }
+
+    // ADD MODALITY
+    addBtn.addEventListener("click", () => {
+      counter += 1;
+
+      const div = document.createElement("div");
+      div.className = "soap-modality-item card mb-3 shadow-sm";
+
+      div.innerHTML = `
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="modality-title fw-semibold">
+          Modality ${counter}
+        </span>
+        <button type="button" class="btn-close remove-modality-btn"></button>
+      </div>
+
+      <div class="card-body">
+
+        <div class="mb-2">
+          <label class="form-label required">Modality</label>
+          <select name="modality_${counter}" class="form-control" required>
+            <option value="">-- Select Modality --</option>
+            {% for key, value in MODALITIES_CHOICES %}
+            <option value="{{ key }}">{{ value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label required">Location</label>
+          <textarea name="location_${counter}" class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div class="mb-2">
+          <label class="form-label required">Settings</label>
+          <textarea name="settings_${counter}" class="form-control" rows="2" required></textarea>
+        </div>
+
+        <div>
+          <label class="form-label required">Duration & Intensity</label>
+          <textarea name="duration_intensity_${counter}" class="form-control" rows="2" required></textarea>
+        </div>
+
+      </div>
+    `;
+
+      container.appendChild(div);
+      updateModalityNumbers();
+    });
+
+    // DELETE MODALITY
+    container.addEventListener("click", e => {
+      if (e.target.classList.contains("remove-modality-btn")) {
+        const item = e.target.closest(".soap-modality-item");
+        item.remove();
+
+        // Ensure at least one remains
+        if (container.querySelectorAll(".soap-modality-item").length === 0) {
+          addBtn.click();
+        }
+
+        updateModalityNumbers();
+      }
+    });
+
+    // INITIAL FIX
+    document.addEventListener("DOMContentLoaded", () => {
+      updateModalityNumbers();
+    });
+
+  })();
+
+  let clickedAction = "save";
+
+// =========================
+// Button handlers
+// =========================
+document.getElementById("btnSave").addEventListener("click", () => {
+  clickedAction = "save";
+});
+
+document.getElementById("btnSignOff").addEventListener("click", () => {
+  clickedAction = "sign_off";
+});
+
+// =========================
+// Form Submit
+// =========================
+document.getElementById("soapForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  let confirmMessage = "Are you sure you want to save SOAP?";
+  if (clickedAction === "sign_off") {
+    confirmMessage = "Are you sure you want to SIGN OFF this SOAP?";
+  }
+
+  if (!confirm(confirmMessage)) return;
+
+  const formData = new FormData(this);
+
+  // =========================
+  // Build payload
+  // =========================
+  const payload = {};
+
+  // Normal fields
+  formData.forEach((value, key) => {
+    if (!key.includes("_")) {
+      payload[key] = value;
+    }
+  });
+
+  // Required fields
+  payload["assessment"] = "{{ assessment.id }}";
+  payload["assessment_id"] = "{{ assessment.id }}";
+  payload["action"] = clickedAction;
+
+  // =========================
+  // Build modalities array
+  // =========================
+  const modalities = [];
+
+  const items = document.querySelectorAll(".soap-modality-item");
+
+  items.forEach((item) => {
+    const modality = item.querySelector("select").value;
+    const location = item.querySelector("[name^='location_']").value;
+    const settings = item.querySelector("[name^='settings_']").value;
+    const duration = item.querySelector("[name^='duration_intensity_']").value;
+
+    if (modality) {
+      modalities.push({
+        modality: modality,
+        location: location,
+        settings: settings,
+        duration_intensity: duration
+      });
+    }
+  });
+
+  payload["soap_modalities"] = modalities;
+
+  // =========================
+  // Determine method
+  // =========================
+  let method = "POST";
+
+  {% if soap %}
+    payload["soap_id"] = "{{ soap.id }}";
+    method = "PUT";
+  {% endif %}
+
+  // =========================
+  // API Call
+  // =========================
+  fetch("{% url 'assessment_soap_api' %}", {
+    method: method,
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": CSRFTOKEN
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(res => {
+    if (!res.ok) {
+      return res.json().then(err => { throw err; });
+    }
+    return res.json();
+  })
+  .then(data => {
+    alert(data.message || "Saved successfully");
+    window.location.href = "{% url 'assessments_list' %}";
+  })
+  .catch(err => {
+    console.error(err);
+    alert(err.detail || "Failed. Please check required fields.");
+  });
+});
+</script>
+
+{% endblock %}

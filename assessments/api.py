@@ -8,13 +8,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from .models import Assessments
+from .models import Assessments, SoapModality, Soaps
 from .serializers import (
     AssessmentsListSerializer,
     AssessmentSection1And2CreateSerializer,
     AssessmentSection3Serializer,
     AssessmentSection4Serializer,
     AssessmentTreatmentPlanSerializer,
+    SoapSerializer,
 )
 
 logger = logging.getLogger("assessments")
@@ -75,7 +76,8 @@ class AssessmentSection1And2APIView(APIView):
 
         serializer = AssessmentSection1And2CreateSerializer(assessment)
         logger.info(
-            f"VIEW - Assessment {assessment.id} accessed by {profile.official_name} ({profile.role})"
+            f"VIEW - Section 1 | assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role})"
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -365,15 +367,17 @@ class AssessmentSection3APIView(APIView):
             )
 
         serializer = AssessmentSection3Serializer(assessment)
+        logger.info(
+            f"VIEW - Section 3 | assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role})"
+        )
 
         return Response(serializer.data)
-
 
     # =========================
     # PUT
     # =========================
     def put(self, request):
-
         profile = request.user.profile
         assessment_id = request.data.get("assessment_id")
         action = request.data.get("action", "save_section_3")
@@ -400,35 +404,53 @@ class AssessmentSection3APIView(APIView):
         )
 
         serializer.is_valid(raise_exception=True)
-
         serializer.save()
 
         # =========================
         # ACTION LOGIC
         # =========================
+        try:
+            if action == "save_section_3":
+                assessment.is_section_3_signed = False
 
-        if action == "save_section_3":
+            elif action == "sign_off_section_3":
+                if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - Section 3 | "
+                        f"assessment_id={assessment.id}, user={profile.official_name} ({profile.role})"
+                    )
+                    return Response(
+                        {"detail": "Not allowed to sign off"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+                assessment.is_section_3_signed = True
+                assessment.section_3_signed_by = profile
+                assessment.section_3_signed_at = timezone.now()
 
-            assessment.is_section_3_signed = False
+            assessment.save()
+            logger.info(
+                f"UPDATE - Section 3 | assessment_id={assessment.id}, "
+                f"student={assessment.student.official_name}, "
+                f"updated_by={profile.official_name} ({profile.role}), "
+                f"action={action}"
+            )
 
-        elif action == "sign_off_section_3":
+            message = "Section 3 updated successfully"
+            if action == "sign_off_section_3":
+                message = "Section 3 signed off successfully"
 
-            if profile.role not in ["clinician", "admin"]:
-                return Response(
-                    {"detail": "Not allowed to sign off"},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
+            return Response({"message": message}, status=status.HTTP_200_OK)
 
-            assessment.is_section_3_signed = True
-            assessment.section_3_signed_by = profile
-            assessment.section_3_signed_at = timezone.now()
-
-        assessment.save()
-
-        return Response(
-            {"message": "Section 3 updated successfully"},
-            status=status.HTTP_200_OK,
-        )
+        except Exception as e:
+            logger.error(
+                f"UPDATE_FAILED - Section 3 | assessment_id={assessment.id}, "
+                f"user={profile.official_name}, error={str(e)}",
+                exc_info=True,
+            )
+            return Response(
+                {"detail": "Failed to update Section 3", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 class AssessmentSection4APIView(APIView):
@@ -457,6 +479,10 @@ class AssessmentSection4APIView(APIView):
             )
 
         serializer = AssessmentSection4Serializer(assessment)
+        logger.info(
+            f"VIEW - Section 4 | assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role})"
+        )
 
         return Response(serializer.data)
 
@@ -489,21 +515,21 @@ class AssessmentSection4APIView(APIView):
             partial=True,
             context={"request": request},
         )
-
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
         # =========================
         # ACTION LOGIC
         # =========================
-
         if action == "save_section_4":
-
             assessment.is_section_4_signed = False
 
         elif action == "sign_off_section_4":
-
             if profile.role not in ["clinician", "admin"]:
+                logger.warning(
+                    f"SIGN_OFF_DENIED - Section 4 | "
+                    f"assessment_id={assessment.id}, user={profile.official_name} ({profile.role})"
+                )
                 return Response(
                     {"detail": "Not allowed to sign off"},
                     status=status.HTTP_403_FORBIDDEN,
@@ -514,11 +540,18 @@ class AssessmentSection4APIView(APIView):
             assessment.section_4_signed_at = timezone.now()
 
         assessment.save()
+        logger.info(
+            f"UPDATE - Section 4 | assessment_id={assessment.id}, "
+            f"student={assessment.student.official_name}, "
+            f"updated_by={profile.official_name} ({profile.role}), "
+            f"action={action}"
+        )
 
         return Response(
             {"message": "Section 4 updated successfully"},
             status=status.HTTP_200_OK,
         )
+
 
 class AssessmentTreatmentPlanAPIView(APIView):
     permission_classes = [IsAuthenticated]
@@ -546,7 +579,6 @@ class AssessmentTreatmentPlanAPIView(APIView):
             )
 
         serializer = AssessmentTreatmentPlanSerializer(assessment)
-
         logger.info(
             f"VIEW - Treatment Plan | "
             f"assessment_id={assessment.id}, "
@@ -666,5 +698,222 @@ class AssessmentTreatmentPlanAPIView(APIView):
 
             return Response(
                 {"detail": "Failed to update treatment plan", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class SoapAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # =========================
+    # GET
+    # =========================
+    def get(self, request):
+        profile = request.user.profile
+        assessment_id = request.query_params.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # permission
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot view SOAPs for this assessment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        soaps = Soaps.objects.filter(assessment=assessment).prefetch_related(
+            "soap_modalities"
+        )
+
+        serializer = SoapSerializer(soaps, many=True)
+
+        return Response(serializer.data)
+
+    # =========================
+    # POST
+    # =========================
+    def post(self, request):
+        profile = request.user.profile
+        action = request.data.get("action", "save")
+
+        # =========================
+        # Get Assessment ID (robust)
+        # =========================
+        assessment_id = request.data.get("assessment") or request.data.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # =========================
+        # Permission check
+        # =========================
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot create SOAP for this assessment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # =========================
+        # Prepare data for serializer
+        # =========================
+        data = request.data.copy()
+        data["assessment"] = assessment.id  # ensure correct field
+
+        serializer = SoapSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        modalities = request.data.get("soap_modalities", [])
+
+        try:
+            # =========================
+            # Create SOAP
+            # =========================
+            soap = serializer.save(
+                created_by=profile,
+                updated_by=profile,
+            )
+
+            # =========================
+            # Create Modalities
+            # =========================
+            for modality in modalities:
+                SoapModality.objects.create(
+                    soap=soap,
+                    modality=modality.get("modality"),
+                    location=modality.get("location", ""),
+                    settings=modality.get("settings", ""),
+                    duration_intensity=modality.get("duration_intensity", ""),
+                )
+
+            # =========================
+            # Action logic
+            # =========================
+            if action == "sign_off":
+                if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - SOAP | assessment_id={assessment.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+                    return Response(
+                        {"detail": "Not allowed to sign SOAP"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                soap.is_soap_signed = True
+                soap.soap_signed_by = profile
+                soap.soap_signed_at = timezone.now()
+                soap.save()
+
+            # =========================
+            # Logging
+            # =========================
+            logger.info(
+                f"CREATE - SOAP | id={soap.id}, assessment_id={assessment.id}, "
+                f"student={assessment.student.official_name}, "
+                f"created_by={profile.official_name} ({profile.role}), "
+                f"action={action}"
+            )
+
+            return Response(
+                {
+                    "id": soap.id,
+                    "message": "SOAP created successfully"
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Exception as e:
+            logger.error(
+                f"CREATE_FAILED - SOAP | assessment_id={assessment.id}, "
+                f"user={profile.official_name}, error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {
+                    "detail": "Failed to create SOAP",
+                    "error": str(e)
+                },
+                status=status.HTTP_s500_INTERNAL_SERVER_ERROR,
+            )
+    # =========================
+    # PUT
+    # =========================
+    def put(self, request):
+        profile = request.user.profile
+        soap_id = request.data.get("soap_id")
+        action = request.data.get("action", "save")
+
+        if not soap_id:
+            return Response(
+                {"soap_id": "SOAP ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        soap = get_object_or_404(Soaps, id=soap_id)
+
+        # permission
+        if profile.role == "student" and soap.assessment.student != profile:
+            return Response(
+                {"detail": "You cannot edit this SOAP"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = SoapSerializer(
+            soap,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            soap = serializer.save(updated_by=profile)
+
+            modalities = request.data.get("soap_modalities", None)
+
+            if modalities is not None:
+                soap.soap_modalities.all().delete()
+
+                for modality in modalities:
+                    SoapModality.objects.create(soap=soap, **modality)
+
+            # =========================
+            # ACTION LOGIC
+            # =========================
+            if action == "save":
+                soap.is_soap_signed = False
+
+            elif action == "sign_off":
+                if profile.role not in ["clinician", "admin"]:
+                    return Response(
+                        {"detail": "Not allowed to sign SOAP"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                soap.is_soap_signed = True
+                soap.soap_signed_by = profile
+                soap.soap_signed_at = timezone.now()
+
+            soap.save()
+
+            return Response(
+                {"message": "SOAP updated successfully"},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+            return Response(
+                {"detail": "Failed to update SOAP", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

@@ -1,14 +1,35 @@
 from django.db import models
 from accounts.models import Profile
 
+GENDER_CHOICES = (
+    ("male", "Male"),
+    ("female", "Female"),
+)
+
+DISCHARGE_CHOICES = (
+    ("discharged_full_recovery", "Discharged - Full Recovery"),
+    ("patient_discharged_against_advice", "Patient Discharged Against Advice"),
+    ("lost_to_follow_up", "Lost to Follow-up"),
+    ("referred_to_physician", "Referred to Physician"),
+    ("transferred_to_another_Intern", "Transferred to Another Intern"),
+    ("transferred_to_community_chiropractor", "Transferred to Community Chiropractor"),
+    ("moved_away", "Moved Away"),
+    ("deceased", "Deceased"),
+)
+
+MODALITIES_CHOICES = (
+    ("ifc", "IFC"),
+    ("pre_mod", "Pre Mod"),
+    ("tens", "TENS"),
+    ("micro_russ_us_combo", "Micro Russ US Combo"),
+    ("laser", "Laser"),
+    ("traction", "Traction"),
+    ("fd", "FD"),
+    ("shockwave", "Shockwave"),
+)
+
 
 class Assessments(models.Model):
-
-    GENDER_CHOICES = (
-        ("male", "Male"),
-        ("female", "Female"),
-    )
-
     # =====================
     # Initial Patient Consent
     # =====================
@@ -63,7 +84,6 @@ class Assessments(models.Model):
     summary = models.TextField(blank=True, default="")
     special_direction = models.TextField(blank=True, default="")
 
-    # Clinician sign-off (Section 1)
     is_section_1_signed = models.BooleanField(default=False)
     section_1_signed_by = models.ForeignKey(
         Profile,
@@ -99,7 +119,6 @@ class Assessments(models.Model):
     yellow_flags = models.TextField(blank=True, default="")
     contraindications = models.TextField(blank=True, default="")
 
-    # Clinician sign-off (Section 2)
     is_section_2_signed = models.BooleanField(default=False)
     section_2_signed_by = models.ForeignKey(
         Profile,
@@ -197,17 +216,9 @@ class Assessments(models.Model):
     # =====================
     # Discharge
     # =====================
-    DISCHARGE_CHOICES = (
-        ("discharged_full_recovery", "Discharged - Full Recovery"),
-        ("patient_discharged_against_advice", "Patient Discharged Against Advice"),
-        ("lost_to_follow_up", "Lost to Follow-up"),
-        ("referred_to_physician","Referred to Physician"),
-        ("transferred_to_another_Intern","Transferred to Another Intern"),
-        ("transferred_to_community_chiropractor","Transferred to Community Chiropractor"),
-        ("moved_away","Moved Away"),
-        ("deceased","Deceased"),
+    reason_for_discharge = models.CharField(
+        max_length=100, choices=DISCHARGE_CHOICES, blank=True, default=""
     )
-    reason_for_discharge = models.CharField(max_length=50, choices=DISCHARGE_CHOICES, blank=True, default="")
     discharge_remarks = models.TextField(blank=True, default="")
     is_discharged = models.BooleanField(default=False)
 
@@ -233,3 +244,111 @@ class Assessments(models.Model):
 
     def __str__(self):
         return f"{self.patient_name} ({self.student})"
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Assessment"
+        verbose_name_plural = "Assessments"
+        indexes = [
+            models.Index(fields=["file_number"]),
+            models.Index(fields=["patient_name"]),
+            models.Index(fields=["created_at"]),
+        ]
+
+
+class Soaps(models.Model):
+    assessment = models.ForeignKey(
+        Assessments, on_delete=models.CASCADE, related_name="soaps"
+    )
+
+    soap_pulse = models.PositiveSmallIntegerField()
+    soap_respiratory = models.PositiveSmallIntegerField()
+    soap_systolic_bp = models.PositiveSmallIntegerField(
+        help_text="S.O.A.P. Systolic BP (mmHg)"
+    )
+    soap_diastolic_bp = models.PositiveSmallIntegerField(
+        help_text="S.O.A.P. Diastolic BP (mmHg)"
+    )
+
+    subjective = models.TextField(blank=True, default="")
+    objective = models.TextField(blank=True, default="")
+    soap_assessment = models.TextField(blank=True, default="")
+    plan = models.TextField(blank=True, default="")
+
+    mp_smt = models.ImageField(
+        upload_to="assessments/soap_mp_smt/", null=True, blank=True
+    )
+
+    patient_tolerated_treatment_well = models.BooleanField(default=False)
+    patient_improved_with_treatment = models.BooleanField(default=False)
+    pain_after_treatment = models.BooleanField(default=False)
+    adverse_reactions_to_treatment = models.BooleanField(default=False)
+    notes = models.TextField(blank=True, default="")
+
+    next_appointment = models.DateField()
+
+    is_soap_signed = models.BooleanField(default=False)
+    soap_signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="soap_signed",
+        limit_choices_to={"role": "clinician"},
+        default=None,
+    )
+    soap_signed_at = models.DateTimeField(null=True, blank=True, default=None)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_soaps",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_soaps",
+    )
+
+    def __str__(self):
+        return f"SOAP #{self.id} - {self.assessment.patient_name}"
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "SOAP Note"
+        verbose_name_plural = "SOAP Notes"
+        indexes = [
+            models.Index(fields=["assessment"]),
+            models.Index(fields=["created_at"]),
+            models.Index(fields=["next_appointment"]),
+        ]
+
+
+class SoapModality(models.Model):
+    soap = models.ForeignKey(
+        Soaps, on_delete=models.CASCADE, related_name="soap_modalities"
+    )
+
+    modality = models.CharField(max_length=50, choices=MODALITIES_CHOICES)
+
+    location = models.TextField(blank=True, default="")
+    settings = models.TextField(blank=True, default="")
+    duration_intensity = models.TextField(blank=True, default="")
+
+    def __str__(self):
+        return f"{self.get_modality_display()} - SOAP #{self.soap.id}"
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "SOAP Modality"
+        verbose_name_plural = "SOAP Modalities"
+        indexes = [
+            models.Index(fields=["soap"]),
+            models.Index(fields=["modality"]),
+        ]

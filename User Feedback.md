@@ -9,8 +9,16 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 - Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment
 
+24/03/2026
+- Add an editable range of motion diagram in section 2
+
 Minor existing Changes To do:
 - Evaluator need to be able multi select
+
+Enhancement Suggestion:
+- Form should be able to save halfway but make sure its not able to be signed off if its not completed
+- Logs splited by day but need to archieve
+
 
 QUESTION to ask in the future to Chiro team:
 - In Section 3 theres 2 part with Chiropractic Notes, is it correct?

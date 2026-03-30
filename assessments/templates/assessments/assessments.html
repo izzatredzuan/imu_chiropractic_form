@@ -195,26 +195,36 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
+                    const urlTemplate = "{% url 'assessment_soap_form' 0 %}";
+                    const url = urlTemplate.replace("0", row.id);
                     let icon = "bi-journal-medical";
                     let iconColor = "text-primary";
-                    let tooltip = "Edit S.O.A.P Note";
+                    let tooltip = "Add S.O.A.P Note";
 
                     // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
-
+                    
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
                     if (!section4Signed) {
                         return lock_column(icon, "S.O.A.P Note locked until Section 4 is signed off");
                     }
 
+                    // If signed → green clipboard
+                    if (row.is_treatment_plan_signed) {
+                        iconColor = "text-success";
+                        tooltip = "Edit S.O.A.P Note (Signed)";
+                    }
+
+                    // Otherwise clickable
                     return `
-                        <i class="bi ${icon} ${iconColor} soap-btn"
-                        role="button"
-                        title="${tooltip}"
-                        data-id="${row.id}"
-                        style="cursor:pointer; font-size:1.25rem;"></i>
+                        <a href="${url}">
+                            <i class="bi ${icon} ${iconColor}"
+                            title="${tooltip}"
+                            style="font-size:1.25rem; cursor:pointer;">
+                            </i>
+                        </a>
                     `;
                 }
             },

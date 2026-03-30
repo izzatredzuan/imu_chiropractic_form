@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from accounts.models import Profile
-from .models import Assessments
+from .models import Assessments, SoapModality, Soaps
 from .utils import is_section_complete
 from .constants import (
     SECTION_1_FIELDS,
@@ -313,3 +313,70 @@ class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
             "is_treatment_plan_signed",
         ]
 
+
+class SoapModalitySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SoapModality
+        fields = [
+            "id",
+            "modality",
+            "location",
+            "settings",
+            "duration_intensity",
+        ]
+
+
+class SoapSerializer(serializers.ModelSerializer):
+    soap_modalities = SoapModalitySerializer(many=True, required=False)
+
+    class Meta:
+        model = Soaps
+        fields = [
+            "id",
+            "assessment",
+
+            "soap_pulse",
+            "soap_respiratory",
+            "soap_systolic_bp",
+            "soap_diastolic_bp",
+
+            "subjective",
+            "objective",
+            "soap_assessment",
+            "plan",
+
+            "mp_smt",
+
+            "patient_tolerated_treatment_well",
+            "patient_improved_with_treatment",
+            "pain_after_treatment",
+            "adverse_reactions_to_treatment",
+
+            "notes",
+            "next_appointment",
+
+            "is_soap_signed",
+            "soap_signed_by",
+            "soap_signed_at",
+
+            "soap_modalities",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "created_at",
+            "updated_at",
+            "is_soap_signed",
+            "soap_signed_at",
+        ]
+
+    # ✅ VALIDATION
+    def validate(self, data):
+        modalities = self.initial_data.get("soap_modalities", [])
+
+        if not modalities:
+            raise serializers.ValidationError({
+                "soap_modalities": "At least one modality is required."
+            })
+
+        return data

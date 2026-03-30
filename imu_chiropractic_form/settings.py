@@ -194,20 +194,29 @@ LOGGING = {
     "handlers": {
         "auth_file": {
             "level": "INFO",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": AUTH_LOG_PATH / "auth.log",
+            "when": "midnight",
+            "interval": 1,
+            "backupCount": 30,
             "formatter": "default",
         },
         "userprofile_file": {
             "level": "INFO",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": ACCOUNTS_LOG_PATH / "userprofile.log",
+            "when": "midnight",
+            "interval": 1,
+            "backupCount": 30,
             "formatter": "default",
         },
         "assessments_file": {
             "level": "INFO",
-            "class": "logging.FileHandler",
+            "class": "logging.handlers.TimedRotatingFileHandler",
             "filename": ASSESSMENTS_LOG_PATH / "assessments.log",
+            "when": "midnight",
+            "interval": 1,
+            "backupCount": 30,
             "formatter": "default",
         },
         "console": {

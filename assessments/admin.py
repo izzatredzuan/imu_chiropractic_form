@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Assessments
+from .models import Assessments, SoapModality, Soaps
 
-
+@admin.register(Assessments)
 class AssessmentsAdmin(admin.ModelAdmin):
     # =====================
     # List view
@@ -223,5 +223,157 @@ class AssessmentsAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
+# =========================================
+# Inline: Soap Modality
+# =========================================
+class SoapModalityInline(admin.TabularInline):
+    model = SoapModality
+    extra = 1
+    fields = ("modality", "location", "settings", "duration_intensity")
+
+
+# =========================================
+# SOAP Admin
+# =========================================
+@admin.register(Soaps)
+class SoapsAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "assessment",
+        "created_at",
+        "next_appointment",
+        "is_soap_signed",
+    )
+
+    list_filter = (
+        "is_soap_signed",
+        "created_at",
+        "next_appointment",
+    )
+
+    search_fields = (
+        "assessment__patient_name",
+        "assessment__file_number",
+    )
+
+    autocomplete_fields = ("assessment", "soap_signed_by")
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+    inlines = [SoapModalityInline]
+
+    fieldsets = (
+        (
+            "Patient Link",
+            {
+                "fields": ("assessment",)
+            },
+        ),
+        (
+            "Vitals",
+            {
+                "fields": (
+                    "soap_pulse",
+                    "soap_respiratory",
+                    "soap_systolic_bp",
+                    "soap_diastolic_bp",
+                )
+            },
+        ),
+        (
+            "SOAP Notes",
+            {
+                "fields": (
+                    "subjective",
+                    "objective",
+                    "soap_assessment",
+                    "plan",
+                )
+            },
+        ),
+        (
+            "Treatment",
+            {
+                "fields": (
+                    "mp_smt",
+                    "patient_tolerated_treatment_well",
+                    "patient_improved_with_treatment",
+                    "pain_after_treatment",
+                    "adverse_reactions_to_treatment",
+                    "notes",
+                )
+            },
+        ),
+        (
+            "Follow Up",
+            {
+                "fields": (
+                    "next_appointment",
+                )
+            },
+        ),
+        (
+            "Sign Off",
+            {
+                "fields": (
+                    "is_soap_signed",
+                    "soap_signed_by",
+                    "soap_signed_at",
+                )
+            },
+        ),
+        (
+            "Meta",
+            {
+                "fields": (
+                    "created_at",
+                    "created_by",
+                    "updated_at",
+                    "updated_by",
+                )
+            },
+        ),
+    )
+
+    # Auto set created_by and updated_by
+    def save_model(self, request, obj, form, change):
+        if request.user.is_authenticated and hasattr(request.user, "profile"):
+            profile = request.user.profile
+
+            if not change and obj.created_by is None:
+                obj.created_by = profile
+
+            obj.updated_by = profile
+
+        super().save_model(request, obj, form, change)
+
+
+# =========================================
+# Soap Modality Admin (standalone view)
+# =========================================
+@admin.register(SoapModality)
+class SoapModalityAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "soap",
+        "modality",
+        "location",
+    )
+
+    list_filter = ("modality",)
+
+    search_fields = (
+        "soap__assessment__patient_name",
+        "location",
+    )
+
+    autocomplete_fields = ("soap",)
+
+    
 # Register the model and the custom admin class
-admin.site.register(Assessments, AssessmentsAdmin)
+# admin.site.register(Assessments, AssessmentsAdmin)
