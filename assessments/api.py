@@ -742,69 +742,58 @@ class SoapAPIView(APIView):
         profile = request.user.profile
         action = request.data.get("action", "save")
 
-        # =========================
-        # Get Assessment ID (robust)
-        # =========================
-        assessment_id = request.data.get("assessment") or request.data.get("assessment_id")
-
-        if not assessment_id:
-            return Response(
-                {"assessment_id": "Assessment ID is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        assessment = get_object_or_404(Assessments, id=assessment_id)
-
-        # =========================
-        # Permission check
-        # =========================
-        if profile.role == "student" and assessment.student != profile:
-            return Response(
-                {"detail": "You cannot create SOAP for this assessment"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        # =========================
-        # Prepare data for serializer
-        # =========================
-        data = request.data.copy()
-        data["assessment"] = assessment.id  # ensure correct field
-
-        serializer = SoapSerializer(data=data)
+        serializer = SoapSerializer(
+            data=request.data,
+            context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
+
+        validated_data = serializer.validated_data
+        assessment = validated_data["assessment"]
+
+        # -----------------------------
+        # Permission check
+        # -----------------------------
+        if profile.role == "student":
+            if assessment.student != profile:
+                return Response(
+                    {"detail": "You cannot create SOAP for this assessment"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            # auto assign student
+            validated_data["student"] = profile
+
+        elif profile.role in ["admin", "clinician"]:
+            if not validated_data.get("student"):
+                return Response(
+                    {"student": "This field is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         modalities = request.data.get("soap_modalities", [])
 
         try:
-            # =========================
+            # -------------------------------
             # Create SOAP
-            # =========================
+            # -------------------------------
             soap = serializer.save(
+                student=validated_data.get("student"),
+                evaluator=validated_data.get("evaluator"),
                 created_by=profile,
                 updated_by=profile,
             )
 
-            # =========================
+            # -------------------------------
             # Create Modalities
-            # =========================
+            # -------------------------------
             for modality in modalities:
-                SoapModality.objects.create(
-                    soap=soap,
-                    modality=modality.get("modality"),
-                    location=modality.get("location", ""),
-                    settings=modality.get("settings", ""),
-                    duration_intensity=modality.get("duration_intensity", ""),
-                )
+                SoapModality.objects.create(soap=soap, **modality)
 
-            # =========================
-            # Action logic
-            # =========================
+            # -------------------------------
+            # SIGN OFF
+            # -------------------------------
             if action == "sign_off":
                 if profile.role not in ["clinician", "admin"]:
-                    logger.warning(
-                        f"SIGN_OFF_DENIED - SOAP | assessment_id={assessment.id}, "
-                        f"user={profile.official_name} ({profile.role})"
-                    )
                     return Response(
                         {"detail": "Not allowed to sign SOAP"},
                         status=status.HTTP_403_FORBIDDEN,
@@ -815,21 +804,8 @@ class SoapAPIView(APIView):
                 soap.soap_signed_at = timezone.now()
                 soap.save()
 
-            # =========================
-            # Logging
-            # =========================
-            logger.info(
-                f"CREATE - SOAP | id={soap.id}, assessment_id={assessment.id}, "
-                f"student={assessment.student.official_name}, "
-                f"created_by={profile.official_name} ({profile.role}), "
-                f"action={action}"
-            )
-
             return Response(
-                {
-                    "id": soap.id,
-                    "message": "SOAP created successfully"
-                },
+                {"id": soap.id, "message": "S.O.A.P. created successfully"},
                 status=status.HTTP_201_CREATED,
             )
 
@@ -839,14 +815,11 @@ class SoapAPIView(APIView):
                 f"user={profile.official_name}, error={str(e)}",
                 exc_info=True,
             )
-
             return Response(
-                {
-                    "detail": "Failed to create SOAP",
-                    "error": str(e)
-                },
-                status=status.HTTP_s500_INTERNAL_SERVER_ERROR,
+                {"detail": "Failed to create SOAP", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
     # =========================
     # PUT
     # =========================
@@ -863,7 +836,9 @@ class SoapAPIView(APIView):
 
         soap = get_object_or_404(Soaps, id=soap_id)
 
-        # permission
+        # -----------------------------
+        # Permission check
+        # -----------------------------
         if profile.role == "student" and soap.assessment.student != profile:
             return Response(
                 {"detail": "You cannot edit this SOAP"},
@@ -874,12 +849,39 @@ class SoapAPIView(APIView):
             soap,
             data=request.data,
             partial=True,
+            context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
 
-        try:
-            soap = serializer.save(updated_by=profile)
+        validated_data = serializer.validated_data
 
+        # -----------------------------
+        # Prevent student tampering
+        # -----------------------------
+        if profile.role == "student":
+            validated_data["student"] = profile
+
+        elif profile.role in ["admin", "clinician"]:
+            # Optional: enforce student presence if updating it
+            if "student" in validated_data and not validated_data.get("student"):
+                return Response(
+                    {"student": "This field cannot be null"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+            # -----------------------------
+            # Save SOAP
+            # -----------------------------
+            soap = serializer.save(
+                student=validated_data.get("student", soap.student),
+                evaluator=validated_data.get("evaluator", soap.evaluator),
+                updated_by=profile,
+            )
+
+            # -----------------------------
+            # Update Modalities
+            # -----------------------------
             modalities = request.data.get("soap_modalities", None)
 
             if modalities is not None:
@@ -891,9 +893,14 @@ class SoapAPIView(APIView):
             # =========================
             # ACTION LOGIC
             # =========================
+
+            # ---------- SAVE ----------
             if action == "save":
                 soap.is_soap_signed = False
+                soap.soap_signed_by = None
+                soap.soap_signed_at = None
 
+            # ---------- SIGN OFF ----------
             elif action == "sign_off":
                 if profile.role not in ["clinician", "admin"]:
                     return Response(
@@ -907,12 +914,28 @@ class SoapAPIView(APIView):
 
             soap.save()
 
+            # =========================
+            # RESPONSE MESSAGE
+            # =========================
+            message = "SOAP updated successfully"
+
+            if action == "sign_off":
+                message = "SOAP signed off successfully"
+
+            elif action == "save":
+                message = "SOAP updated successfully. Sign-off has been reset."
+
             return Response(
-                {"message": "SOAP updated successfully"},
+                {"message": message},
                 status=status.HTTP_200_OK,
             )
 
         except Exception as e:
+            logger.error(
+                f"UPDATE_FAILED - SOAP | soap_id={soap.id}, "
+                f"user={profile.official_name}, error={str(e)}",
+                exc_info=True,
+            )
             return Response(
                 {"detail": "Failed to update SOAP", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

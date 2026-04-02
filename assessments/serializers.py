@@ -25,10 +25,9 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
     )
 
     reason_for_discharge_text = serializers.CharField(
-        source="get_reason_for_discharge_display",
-        read_only=True
+        source="get_reason_for_discharge_display", read_only=True
     )
-    
+
     is_section_1_complete = serializers.SerializerMethodField()
     is_section_2_complete = serializers.SerializerMethodField()
     is_section_3_complete = serializers.SerializerMethodField()
@@ -137,7 +136,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         queryset=Profile.objects.filter(role="clinician"), required=True
     )
     student = serializers.PrimaryKeyRelatedField(
-        queryset=Profile.objects.filter(role="student"), required=False
+        queryset=Profile.objects.filter(role="student"), required=True
     )
     signature_data = serializers.CharField(write_only=True, required=False)
 
@@ -327,19 +326,30 @@ class SoapModalitySerializer(serializers.ModelSerializer):
 
 
 class SoapSerializer(serializers.ModelSerializer):
-    soap_modalities = SoapModalitySerializer(many=True, required=False)
+    soap_modalities = SoapModalitySerializer(many=True, read_only=True)
+
+    evaluator = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.filter(role="clinician"), required=True
+    )
+    student = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.filter(role="student"), required=True
+    )
+
+    student_name = serializers.CharField(source="student.official_name", read_only=True)
+    evaluator_name = serializers.CharField(source="evaluator.official_name", read_only=True)
+    signed_by_name = serializers.CharField(source="soap_signed_by.official_name", read_only=True)
 
     class Meta:
         model = Soaps
         fields = [
             "id",
             "assessment",
-
+            "student",
+            "evaluator",
             "soap_pulse",
             "soap_respiratory",
             "soap_systolic_bp",
             "soap_diastolic_bp",
-
             "subjective",
             "objective",
             "soap_assessment",
@@ -351,18 +361,20 @@ class SoapSerializer(serializers.ModelSerializer):
             "patient_improved_with_treatment",
             "pain_after_treatment",
             "adverse_reactions_to_treatment",
-
             "notes",
             "next_appointment",
-
             "is_soap_signed",
             "soap_signed_by",
             "soap_signed_at",
-
-            "soap_modalities",
             "created_at",
             "updated_at",
+            # display fields
+            "student_name",
+            "evaluator_name",
+            "signed_by_name",
+            "soap_modalities",
         ]
+
         read_only_fields = [
             "created_at",
             "updated_at",
@@ -370,13 +382,12 @@ class SoapSerializer(serializers.ModelSerializer):
             "soap_signed_at",
         ]
 
-    # ✅ VALIDATION
     def validate(self, data):
         modalities = self.initial_data.get("soap_modalities", [])
 
         if not modalities:
-            raise serializers.ValidationError({
-                "soap_modalities": "At least one modality is required."
-            })
+            raise serializers.ValidationError(
+                {"soap_modalities": "At least one modality is required."}
+            )
 
         return data

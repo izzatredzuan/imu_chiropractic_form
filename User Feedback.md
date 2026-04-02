@@ -1,11 +1,7 @@
 This are the minute and change request requested by user Chow Kit Yee and Nashereena Kaur Dhillon
 
-
-
 06/03/2026
-- Discharge only need discharge reason and remark, only clinician and admin can discharge patient
 - SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment
-- Treatment log is just a list of SOAP done, can click to open the designated SOAP
 - Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment
 
@@ -18,6 +14,7 @@ Minor existing Changes To do:
 Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
+- Add filter for assessment, display entry by month
 
 
 QUESTION to ask in the future to Chiro team:
@@ -64,3 +61,7 @@ Minor:
 
 - Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
 - Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
+
+06/03/2026
+- Discharge only need discharge reason and remark, only clinician and admin can discharge patient [DONE]
+- Treatment log is just a list of SOAP done, can click to open the designated SOAP [DONE]

@@ -243,7 +243,7 @@ class Assessments(models.Model):
     )
 
     def __str__(self):
-        return f"{self.patient_name} ({self.student})"
+        return f"[{self.file_number}] {self.patient_name} (ID: {self.id})"
 
     class Meta:
         ordering = ["-created_at"]
@@ -259,6 +259,20 @@ class Assessments(models.Model):
 class Soaps(models.Model):
     assessment = models.ForeignKey(
         Assessments, on_delete=models.CASCADE, related_name="soaps"
+    )
+
+    student = models.ForeignKey(
+        Profile,
+        on_delete=models.PROTECT,  # ✅ prevent deletion if used
+        related_name="student_soap",
+        limit_choices_to={"role": "student"},
+    )
+
+    evaluator = models.ForeignKey(
+        Profile,
+        on_delete=models.PROTECT,
+        related_name="evaluator_soaps",
+        limit_choices_to={"role": "clinician"},
     )
 
     soap_pulse = models.PositiveSmallIntegerField()

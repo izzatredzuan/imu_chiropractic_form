@@ -1,0 +1,31 @@
+<div class="modal fade" id="treatmentLogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Treatment Log</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Patient Info -->
+                <div class="mb-3 border-bottom pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            Patient: <strong id="modalSoapPatientName"></strong>
+                        </h5>
+
+                        <h6 class="mb-0 text-muted">
+                            File No: <strong id="modalSoapFileNumber"></strong>
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- SOAP List -->
+                <div id="soapListContainer">
+                    <div class="text-center text-muted">Loading...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

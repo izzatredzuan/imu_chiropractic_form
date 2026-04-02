@@ -5,7 +5,7 @@ from django.shortcuts import (
 )
 from django.views import View
 from accounts.models import Profile
-from .models import Assessments, SoapModality
+from .models import Assessments, Soaps, SoapModality
 from .utils import (
     clinician_is_readonly,
 )
@@ -107,12 +107,33 @@ class AssessmentTreatmentPlanFormView(BaseAssessmentFormView):
 class SoapFormView(BaseAssessmentFormView):
     template_name = "assessments/soap.html"
 
-    def get(self, request, assessment_id=None):
-        response = super().get(request, assessment_id)
+    def get(self, request, assessment_id=None, soap_id=None):
+        profile = request.user.profile
+        assessment = self.get_assessment(request, assessment_id)
 
-        # extract context from response
-        context = response.context_data if hasattr(response, "context_data") else {}
+        soap = None
+        if soap_id:
+            soap = get_object_or_404(Soaps, id=soap_id, assessment_id=assessment_id)
 
-        context["MODALITIES_CHOICES"] = SoapModality._meta.get_field("modality").choices
+        is_readonly = False
+
+        # Permission checks
+        if assessment:
+            if profile.role == "student" and assessment.student != profile:
+                return HttpResponseForbidden("You cannot access this assessment.")
+            is_readonly = clinician_is_readonly(profile, assessment)
+        else:
+            is_readonly = self.get_create_readonly(profile)
+
+        context = {
+            "assessment": assessment,
+            "assessment_id": assessment.id if assessment else None,
+            "soap": soap,
+            "student_readonly": profile.role == "student",
+            "is_readonly": is_readonly,
+            "students": Profile.objects.filter(role="student").order_by("official_name"),
+            "clinicians": Profile.objects.filter(role="clinician").order_by("official_name"),
+            "MODALITIES_CHOICES": SoapModality._meta.get_field("modality").choices,
+        }
 
         return render(request, self.template_name, context)

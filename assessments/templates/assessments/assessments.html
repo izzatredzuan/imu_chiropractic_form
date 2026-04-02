@@ -98,16 +98,13 @@
                         if (!canAccess) {
                             cls += "locked disabled";
                             titleText = "Locked";
-                        }
-                        else if (isSigned) {
+                        } else if (isSigned) {
                             cls += "signed";
                             titleText = "Signed";
-                        }
-                        else if (isComplete) {
+                        } else if (isComplete) {
                             cls += "ready";
                             titleText = "Completed – Ready for Sign-Off";
-                        }
-                        else {
+                        } else {
                             cls += "in-progress";
                             titleText = "In Progress";
                         }
@@ -129,7 +126,7 @@
 
                     const canAccess4 =
                         row.section_3_signed_at || row.is_section_3_signed;
-                    
+
                     return `
                         <div class="d-flex align-items-center">
                             <div style="width:100%; padding:0px 2px;">
@@ -165,7 +162,7 @@
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
-                    
+
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
                     if (!section4Signed) {
                         return lock_column(icon, "Treatment Plan locked until Section 4 is signed off");
@@ -189,35 +186,28 @@
                 }
             },
             {
-                title: "S.O.A.P",
+                title: "S.O.A.P.",
                 data: null,
                 orderable: false,
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
-                    const urlTemplate = "{% url 'assessment_soap_form' 0 %}";
+                    const urlTemplate = "{% url 'assessment_soap_create' 0 %}";
                     const url = urlTemplate.replace("0", row.id);
                     let icon = "bi-journal-medical";
                     let iconColor = "text-primary";
-                    let tooltip = "Add S.O.A.P Note";
+                    let tooltip = "Add S.O.A.P. Note";
 
                     // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
-                    
+
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
                     if (!section4Signed) {
                         return lock_column(icon, "S.O.A.P Note locked until Section 4 is signed off");
                     }
 
-                    // If signed → green clipboard
-                    if (row.is_treatment_plan_signed) {
-                        iconColor = "text-success";
-                        tooltip = "Edit S.O.A.P Note (Signed)";
-                    }
-
-                    // Otherwise clickable
                     return `
                         <a href="${url}">
                             <i class="bi ${icon} ${iconColor}"
@@ -350,12 +340,12 @@
                             </div>
                         `;
                     }
-                    
+
                     // Only clinicians can discharge
                     if (USER_ROLE !== "clinician") {
                         return lock_column(icon, "Only clinicians are allowed to discharge patients");
                     }
-                    
+
                     // Otherwise show clickable discharge icon
                     return `
                         <i class="bi ${icon} ${iconColor} discharge-btn"
@@ -513,7 +503,7 @@
                 },
                 error: function (xhr) {
                     let msg = "Failed to discharge assessment.";
-                    if (xhr.responseJSON?.detail) {
+                    if (xhr.responseJSON ?.detail) {
                         msg = xhr.responseJSON.detail;
                     }
                     alert(msg);
@@ -523,8 +513,148 @@
                 }
             });
         });
+
+        /* ----------------------------------
+         * Treatment Log Modal Logic
+         * ---------------------------------- */
+        // const apiUrl = "{% url 'assessment_soap_api' %}?assessment_id=" + assessmentId;
+        // =========================
+        // Modal Init
+        // =========================
+        const treatmentLogModal = new bootstrap.Modal(
+            document.getElementById('treatmentLogModal')
+        );
+
+        // =========================
+        // Open Modal + Fetch Data
+        // =========================
+        $('#assessmentsTable').on('click', '.treatment-log-btn', function () {
+
+            const rowData = table.row($(this).closest('tr')).data();
+            const assessmentId = rowData.id;
+            console.log(rowData.file_number);
+            // Set header
+            $('#modalSoapPatientName').text(rowData.patient_name);
+            $('#modalSoapFileNumber').text(rowData.file_number);
+
+            // Show modal
+            treatmentLogModal.show();
+
+            // Loading state
+            $('#soapListContainer').html(`
+                <div class="text-center text-muted">Loading...</div>
+            `);
+
+            // API URL (Django style)
+            const apiUrl = "{% url 'assessment_soap_api' %}?assessment_id=" + assessmentId;
+
+            fetch(apiUrl)
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error("Failed to fetch S.O.A.P.");
+                    }
+                    return res.json();
+                })
+                .then(data => renderSoapList(data, assessmentId))
+                .catch(err => {
+                    console.error(err);
+                    $('#soapListContainer').html(`
+                        <div class="text-danger text-center">
+                            Failed to load S.O.A.P. records.
+                        </div>
+                    `);
+                });
+        });
+
+
+        // =========================
+        // Render S.O.A.P. List
+        // =========================
+        function renderSoapList(data, assessmentId) {
+
+            if (!data.length) {
+                $('#soapListContainer').html(`
+                <div class="text-center text-muted">
+                    No S.O.A.P. records found.
+                </div>
+            `);
+                return;
+            }
+
+            let html = "";
+            data.forEach(soap => {
+                console.log(soap);
+                const createdDate = soap.created_at ?
+                    moment(soap.created_at).format("DD/MM/YYYY HH:mm") :
+                    "-";
+
+                const updatedDate = soap.updated_at ?
+                    moment(soap.updated_at).format("DD/MM/YYYY HH:mm") :
+                    "-";
+
+                const signedBadge = soap.is_soap_signed ?
+                    `<span class="badge signed">Signed</span>` :
+                    `<span class="badge ready">Ready for Sign-Off</span>`;
+
+                const signedSection = soap.is_soap_signed ? 
+                `
+                    <div class="alert alert-success mt-3 mb-0 py-2 px-3">
+                        <strong>Signed-off by:</strong>
+                        ${soap.signed_by_name || "-"}
+                        <br>
+
+                        <small class="text-muted">
+                            Signed at: ${
+                                soap.soap_signed_at
+                                    ? moment(soap.soap_signed_at).format("DD MMM YYYY, hh:mm A")
+                                    : "-"
+                            }
+                        </small>
+                    </div>
+                ` : "";
+
+                // Django URL pattern
+                const urlTemplate = "{% url 'assessment_soap_edit' 0 1 %}";
+
+                const fullUrl = urlTemplate
+                    .replace("0", assessmentId)
+                    .replace("1", soap.id);
+
+                html += `
+                    <a href="${fullUrl}" class="text-decoration-none text-dark">
+                        <div class="card mb-3 shadow-sm hover-shadow">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="mb-0 fw-semibold">
+                                        S.O.A.P. #${soap.id}
+                                    </h6>
+                                    ${signedBadge}
+                                </div>
+
+                                <div class="small text-muted mb-2">
+                                    <strong>Student:</strong> ${soap.student_name || "-"}<br>
+                                    <strong>Clinician:</strong> ${soap.evaluator_name || "-"}
+                                </div>
+
+                                <div class="small text-muted">
+                                    <strong>Created:</strong> ${createdDate}<br>
+                                    <strong>Updated:</strong> ${updatedDate}
+                                </div>
+
+                                ${signedSection}
+                            </div>
+                        </div>
+                    </a>
+                `;
+            });
+
+            $('#soapListContainer').html(html);
+        }
     });
 </script>
 
 {% include 'assessments/modal/_discharge_confirmation.html' %}
+{% include 'assessments/modal/_treatment_log_soap_list.html' %}
 {% endblock %}

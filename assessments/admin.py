@@ -123,7 +123,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "section_2_signed_at",
                     "red_flags",
                     "yellow_flags",
-                    "contraindications"
+                    "contraindications",
                 )
             },
         ),
@@ -185,13 +185,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         ),
         (
             "Discharge",
-            {
-                "fields": (
-                    "is_discharged", 
-                    "reason_for_discharge", 
-                    "discharge_remarks"
-                )
-            },
+            {"fields": ("is_discharged", "reason_for_discharge", "discharge_remarks")},
         ),
         (
             "Meta",
@@ -241,6 +235,8 @@ class SoapsAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "assessment",
+        "student",
+        "evaluator",
         "created_at",
         "next_appointment",
         "is_soap_signed",
@@ -255,9 +251,16 @@ class SoapsAdmin(admin.ModelAdmin):
     search_fields = (
         "assessment__patient_name",
         "assessment__file_number",
+        "student__user__username",
+        "evaluator__user__username",
     )
 
-    autocomplete_fields = ("assessment", "soap_signed_by")
+    autocomplete_fields = (
+        "assessment",
+        "student",
+        "evaluator",
+        "soap_signed_by",
+    )
 
     readonly_fields = (
         "created_at",
@@ -268,9 +271,16 @@ class SoapsAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            "Patient Link",
+            "Assessment Link",
+            {"fields": ("assessment",)},
+        ),
+        (
+            "Assignment",
             {
-                "fields": ("assessment",)
+                "fields": (
+                    "student",
+                    "evaluator",
+                )
             },
         ),
         (
@@ -310,11 +320,7 @@ class SoapsAdmin(admin.ModelAdmin):
         ),
         (
             "Follow Up",
-            {
-                "fields": (
-                    "next_appointment",
-                )
-            },
+            {"fields": ("next_appointment",)},
         ),
         (
             "Sign Off",
@@ -373,7 +379,3 @@ class SoapModalityAdmin(admin.ModelAdmin):
     )
 
     autocomplete_fields = ("soap",)
-
-    
-# Register the model and the custom admin class
-# admin.site.register(Assessments, AssessmentsAdmin)

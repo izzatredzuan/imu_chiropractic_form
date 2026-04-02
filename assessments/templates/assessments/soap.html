@@ -34,13 +34,14 @@
         </div>
         {% endif %}
 
-        {% if assessment.is_treatment_plan_signed %}
+        <!-- SOAP SIGN-OFF -->
+        {% if soap and soap.is_soap_signed %}
         <div class="alert alert-success">
           <strong>Signed-off by:</strong>
-          {{ assessment.treatment_plan_signed_by.official_name }}
-          ({{ assessment.treatment_plan_signed_by.role|title }})<br>
+          {{ soap.soap_signed_by.official_name }}
+          ({{ soap.soap_signed_by.role|title }})<br>
           <small class="text-muted">
-            Signed at: {{ assessment.treatment_plan_signed_at|date:"d M Y, h:i A" }}
+            Signed at: {{ soap.soap_signed_at|date:"d M Y, h:i A" }}
           </small>
         </div>
         {% endif %}
@@ -52,32 +53,46 @@
         {% endif %}
 
         <div class="row">
-          <!-- Student dropdown -->
+          <!-- ================= STUDENT ================= -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Student</label>
+
             <select name="student" class="form-control" required
               {% if student_readonly or is_readonly %}disabled{% endif %}>
+
               <option value="">-- Select Student --</option>
+
               {% for s in students %}
-              <option value="{{ s.id }}" {% if assessment and assessment.student.id == s.id %}selected{% endif %}
-                {% if not assessment and student_readonly and request.user.profile.id == s.id %}selected{% endif %}>
+              <option value="{{ s.id }}"
+                {% if soap and soap.student.id == s.id %}selected{% endif %}
+                {% if not soap and assessment.student.id == s.id %}selected{% endif %}
+                {% if not soap and not assessment.student and student_readonly and request.user.profile.id == s.id %}
+                  selected
+                {% endif %}
+              >
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
               {% endfor %}
             </select>
+
             {% if student_readonly %}
-            <!-- preserve value for API since disabled fields are not submitted -->
-            <input type="hidden" name="student" value="{{ request.user.profile.id }}">
+            <input type="hidden" name="student"
+              value="{% if soap %}{{ soap.student.id }}{% else %}{{ request.user.profile.id }}{% endif %}">
             {% endif %}
           </div>
 
-          <!-- Evaluator dropdown -->
+          <!-- ================= EVALUATOR ================= -->
           <div class="col-md-6 mb-3">
             <label class="form-label required">Evaluator (Clinician)</label>
-            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+
+            <select name="evaluator" class="form-control" required
+              {% if is_readonly %}disabled{% endif %}>
               <option value="">-- Select Clinician --</option>
               {% for c in clinicians %}
-              <option value="{{ c.id }}" {% if assessment and assessment.evaluator.id == c.id %}selected{% endif %}>
+              <option value="{{ c.id }}"
+                {% if soap and soap.evaluator.id == c.id %}selected{% endif %}
+                {% if not soap and assessment.evaluator.id == c.id %}selected{% endif %}
+              >
                 {{ c.member_id }} – {{ c.official_name }}
               </option>
               {% endfor %}
@@ -182,7 +197,7 @@
     <!-- ========================= SOAP Modalities ========================== -->
     <div class="card mb-4 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
-        SOAP Modalities
+        S.O.A.P. Modalities
         <button type="button" class="btn btn-sm btn-primary" id="addModalityBtn">
           + Add Modality
         </button>
@@ -367,45 +382,11 @@
     const container = document.getElementById("soapModalitiesContainer");
     const addBtn = document.getElementById("addModalityBtn");
 
-    let counter = container.querySelectorAll(".soap-modality-item").length;
+    let counter = container.querySelectorAll(".soap-modality-item").length || 1;
 
-    function updateModalityNumbers() {
-      const items = container.querySelectorAll(".soap-modality-item");
-
-      items.forEach((item, index) => {
-        const number = index + 1;
-
-        // Update title
-        item.querySelector(".modality-title").innerText = `Modality ${number}`;
-
-        // Remove ALL existing delete buttons
-        const oldBtn = item.querySelector(".remove-modality-btn");
-        if (oldBtn) oldBtn.remove();
-
-        // Add delete button ONLY if not first
-        if (index !== 0) {
-          const header = item.querySelector(".card-header");
-
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "btn-close remove-modality-btn";
-
-          header.appendChild(btn);
-        }
-
-        // Update input names
-        item.querySelectorAll("select, textarea").forEach(el => {
-          if (el.name.includes("modality_")) el.name = `modality_${number}`;
-          if (el.name.includes("location_")) el.name = `location_${number}`;
-          if (el.name.includes("settings_")) el.name = `settings_${number}`;
-          if (el.name.includes("duration_intensity_")) el.name = `duration_intensity_${number}`;
-        });
-      });
-
-      counter = items.length;
-    }
-
+    // =========================
     // ADD MODALITY
+    // =========================
     addBtn.addEventListener("click", () => {
       counter += 1;
 
@@ -414,9 +395,7 @@
 
       div.innerHTML = `
       <div class="card-header d-flex justify-content-between align-items-center">
-        <span class="modality-title fw-semibold">
-          Modality ${counter}
-        </span>
+        <span class="fw-semibold">Modality ${counter}</span>
         <button type="button" class="btn-close remove-modality-btn"></button>
       </div>
 
@@ -427,7 +406,7 @@
           <select name="modality_${counter}" class="form-control" required>
             <option value="">-- Select Modality --</option>
             {% for key, value in MODALITIES_CHOICES %}
-            <option value="{{ key }}">{{ value }}</option>
+              <option value="{{ key }}">{{ value }}</option>
             {% endfor %}
           </select>
         </div>
@@ -451,137 +430,165 @@
     `;
 
       container.appendChild(div);
-      updateModalityNumbers();
     });
 
-    // DELETE MODALITY
+    // =========================
+    // REMOVE MODALITY
+    // =========================
     container.addEventListener("click", e => {
       if (e.target.classList.contains("remove-modality-btn")) {
         const item = e.target.closest(".soap-modality-item");
         item.remove();
 
-        // Ensure at least one remains
         if (container.querySelectorAll(".soap-modality-item").length === 0) {
           addBtn.click();
         }
-
-        updateModalityNumbers();
       }
-    });
-
-    // INITIAL FIX
-    document.addEventListener("DOMContentLoaded", () => {
-      updateModalityNumbers();
     });
 
   })();
 
+  // =========================
+  // ACTION BUTTONS
+  // =========================
   let clickedAction = "save";
 
-// =========================
-// Button handlers
-// =========================
-document.getElementById("btnSave").addEventListener("click", () => {
-  clickedAction = "save";
-});
+  const btnSave = document.getElementById("btnSave");
+  const btnSignOff = document.getElementById("btnSignOff");
 
-document.getElementById("btnSignOff").addEventListener("click", () => {
-  clickedAction = "sign_off";
-});
-
-// =========================
-// Form Submit
-// =========================
-document.getElementById("soapForm").addEventListener("submit", function (e) {
-  e.preventDefault();
-
-  let confirmMessage = "Are you sure you want to save SOAP?";
-  if (clickedAction === "sign_off") {
-    confirmMessage = "Are you sure you want to SIGN OFF this SOAP?";
+  if (btnSave) {
+    btnSave.addEventListener("click", () => clickedAction = "save");
   }
 
-  if (!confirm(confirmMessage)) return;
-
-  const formData = new FormData(this);
+  if (btnSignOff) {
+    btnSignOff.addEventListener("click", () => clickedAction = "sign_off");
+  }
 
   // =========================
-  // Build payload
+  // FORM SUBMIT
   // =========================
-  const payload = {};
+  document.getElementById("soapForm").addEventListener("submit", function (e) {
+    e.preventDefault();
 
-  // Normal fields
-  formData.forEach((value, key) => {
-    if (!key.includes("_")) {
+    let confirmMessage = "Are you sure you want to save S.O.A.P.?";
+    if (clickedAction === "sign_off") {
+      confirmMessage = "Are you sure you want to SIGN OFF this S.O.A.P.?";
+    }
+
+    if (!confirm(confirmMessage)) return;
+
+    const formData = new FormData(this);
+    const payload = {};
+
+    // =========================
+    // NORMAL FIELDS
+    // =========================
+    formData.forEach((value, key) => {
+
+      // Skip modality fields (handled separately)
+      if (
+        key.startsWith("modality_") ||
+        key.startsWith("location_") ||
+        key.startsWith("settings_") ||
+        key.startsWith("duration_intensity_")
+      ) return;
+
       payload[key] = value;
-    }
-  });
+    });
 
-  // Required fields
-  payload["assessment"] = "{{ assessment.id }}";
-  payload["assessment_id"] = "{{ assessment.id }}";
-  payload["action"] = clickedAction;
+    // =========================
+    // FORCE REQUIRED FIELDS
+    // =========================
+    payload["assessment"] = Number("{{ assessment.id }}");
+    payload["action"] = clickedAction;
 
-  // =========================
-  // Build modalities array
-  // =========================
-  const modalities = [];
+    // Convert number fields
+    [
+      "soap_pulse",
+      "soap_respiratory",
+      "soap_systolic_bp",
+      "soap_diastolic_bp"
+    ].forEach(field => {
+      payload[field] = Number(payload[field]);
+    });
 
-  const items = document.querySelectorAll(".soap-modality-item");
+    // =========================
+    // BUILD MODALITIES ARRAY
+    // =========================
+    const modalities = [];
+    const items = document.querySelectorAll(".soap-modality-item");
 
-  items.forEach((item) => {
-    const modality = item.querySelector("select").value;
-    const location = item.querySelector("[name^='location_']").value;
-    const settings = item.querySelector("[name^='settings_']").value;
-    const duration = item.querySelector("[name^='duration_intensity_']").value;
+    items.forEach((item, index) => {
+      const i = index + 1;
 
-    if (modality) {
       modalities.push({
-        modality: modality,
-        location: location,
-        settings: settings,
-        duration_intensity: duration
+        modality: item.querySelector(`[name="modality_${i}"]`) ?.value || "",
+        location: item.querySelector(`[name="location_${i}"]`) ?.value || "",
+        settings: item.querySelector(`[name="settings_${i}"]`) ?.value || "",
+        duration_intensity: item.querySelector(`[name="duration_intensity_${i}"]`) ?.value || ""
       });
+    });
+
+    payload["soap_modalities"] = modalities;
+
+    // =========================
+    // VALIDATION
+    // =========================
+    if (!payload.soap_pulse ||
+      !payload.soap_respiratory ||
+      !payload.soap_systolic_bp ||
+      !payload.soap_diastolic_bp) {
+      alert("Please fill in all vitals");
+      return;
     }
-  });
 
-  payload["soap_modalities"] = modalities;
+    if (!payload.next_appointment) {
+      alert("Next appointment is required");
+      return;
+    }
 
-  // =========================
-  // Determine method
-  // =========================
-  let method = "POST";
+    if (!payload.soap_modalities.length) {
+      alert("At least one modality is required");
+      return;
+    }
 
-  {% if soap %}
+    console.log("FINAL PAYLOAD:", payload);
+
+    // =========================
+    // API CALL
+    // =========================
+    {% if soap %}
     payload["soap_id"] = "{{ soap.id }}";
-    method = "PUT";
-  {% endif %}
+    const method = "PUT"; 
+    {% else %}
+    const method = "POST"; 
+    {% endif %}
 
-  // =========================
-  // API Call
-  // =========================
-  fetch("{% url 'assessment_soap_api' %}", {
-    method: method,
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRFToken": CSRFTOKEN
-    },
-    body: JSON.stringify(payload)
-  })
-  .then(res => {
-    if (!res.ok) {
-      return res.json().then(err => { throw err; });
-    }
-    return res.json();
-  })
-  .then(data => {
-    alert(data.message || "Saved successfully");
-    window.location.href = "{% url 'assessments_list' %}";
-  })
-  .catch(err => {
-    console.error(err);
-    alert(err.detail || "Failed. Please check required fields.");
+    fetch("{% url 'assessment_soap_api' %}", {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRFTOKEN
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => {
+            throw err;
+          });
+        }
+        return res.json();
+      })
+      .then(data => {
+        alert(data.message || "Saved successfully");
+        window.location.href = "{% url 'assessments_list' %}";
+      })
+      .catch(err => {
+        console.error(err);
+        alert(err.detail || "Failed to save S.O.A.P.");
+      });
+
   });
-});
 </script>
-
 {% endblock %}
