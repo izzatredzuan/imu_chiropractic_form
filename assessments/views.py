@@ -105,7 +105,7 @@ class AssessmentTreatmentPlanFormView(BaseAssessmentFormView):
 
 
 class SoapFormView(BaseAssessmentFormView):
-    template_name = "assessments/soap.html"
+    template_name = "assessments/soap_form.html"
 
     def get(self, request, assessment_id=None, soap_id=None):
         profile = request.user.profile

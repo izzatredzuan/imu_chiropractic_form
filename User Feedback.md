@@ -8,9 +8,6 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 24/03/2026
 - Add an editable range of motion diagram in section 2
 
-Minor existing Changes To do:
-- Evaluator need to be able multi select
-
 Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
@@ -18,9 +15,7 @@ Enhancement Suggestion:
 
 
 QUESTION to ask in the future to Chiro team:
-- In Section 3 theres 2 part with Chiropractic Notes, is it correct?
 - If clinician assign their assessment to another clinician, they can't edit that assessment anymore, is it sort of a handover to another clinician process?
-- Are we still doing the multi assign clinician to an assessment.
 - Where does patient need to sign again during final phase of the assessment
 
 Bugs:
@@ -35,10 +30,12 @@ Major
  . Red flags
  . Yellow flags 
  . Contraindications
+06/03/2026
+- Discharge only need discharge reason and remark, only clinician and admin can discharge patient [DONE]
+- Treatment log is just a list of SOAP done, can click to open the designated SOAP [DONE]
 
 
 Minor:
-
 - Clinician can view all assessments [DONE]
 - Clinician can assign any clinician [DONE]
 - Add confirmation alert box if user really want to save the assessment [DONE]
@@ -62,6 +59,6 @@ Minor:
 - Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
 - Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
 
-06/03/2026
-- Discharge only need discharge reason and remark, only clinician and admin can discharge patient [DONE]
-- Treatment log is just a list of SOAP done, can click to open the designated SOAP [DONE]
+
+Minor existing Changes To do:
+- Evaluator need to be able multi select  [CANCELLED]

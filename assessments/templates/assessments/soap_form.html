@@ -359,22 +359,21 @@
         </div>
       </div>
     </div>
-</div>
 
-<!-- ========================= ACTION BUTTONS ========================== -->
-<div class="mt-4 d-flex justify-content-end gap-2">
-  <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
+    <!-- ========================= ACTION BUTTONS ========================== -->
+    <div class="mt-4 d-flex justify-content-end gap-2">
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
 
-  <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary btn-mobile">
-    {% if soap %}Update SOAP{% else %}Create SOAP{% endif %}
-  </button>
-
-  <button type="submit" id="btnSignOff" name="action" value="sign_off" class="btn btn-success">
-    Save & Sign Off
-  </button>
-</div>
-
-</form>
+      <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary btn-mobile">
+        {% if soap %}Update SOAP{% else %}Create SOAP{% endif %}
+      </button>
+      {% if assessment and request.user.profile.role in "clinician admin" %}
+      <button type="submit" id="btnSignOff" name="action" value="sign_off" class="btn btn-success btn-mobile">
+        {% if soap %}Update SOAP & Sign Off{% else %}Create SOAP & Sign Off{% endif %}
+      </button>
+      {% endif %}
+    </div>
+  </form>
 </div>
 
 <script>
@@ -551,8 +550,6 @@
       alert("At least one modality is required");
       return;
     }
-
-    console.log("FINAL PAYLOAD:", payload);
 
     // =========================
     // API CALL

@@ -194,7 +194,7 @@
                 render: function (row) {
                     const urlTemplate = "{% url 'assessment_soap_create' 0 %}";
                     const url = urlTemplate.replace("0", row.id);
-                    let icon = "bi-journal-medical";
+                    let icon = "bi-heart-pulse";
                     let iconColor = "text-primary";
                     let tooltip = "Add S.O.A.P. Note";
 
@@ -219,15 +219,15 @@
                 }
             },
             {
-                title: "Treatment Log",
+                title: "S.O.A.P. Log",
                 data: null,
                 orderable: false,
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
-                    let icon = "bi-clock-history";
+                    let icon = "bi-journal-medical";
                     let iconColor = "text-primary";
-                    let tooltip = "View Treatment Log";
+                    let tooltip = "View S.O.A.P. Log";
 
                     // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
@@ -236,15 +236,17 @@
 
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
                     if (!section4Signed) {
-                        return lock_column(icon, "Treatment Log locked until Section 4 is signed off");
+                        return lock_column(icon, "S.O.A.P. Log locked until Section 4 is signed off");
                     }
 
                     return `
-                        <i class="bi ${icon} ${iconColor} treatment-log-btn"
-                        role="button"
-                        title="${tooltip}"
-                        data-id="${row.id}"
-                        style="cursor:pointer; font-size:1.25rem;"></i>
+                        <a class="iconColor" onclick="event.preventDefault(); href="">
+                            <i class="bi ${icon} ${iconColor} treatment-log-btn"
+                            role="button"
+                            title="${tooltip}"
+                            data-id="${row.id}"
+                            style="cursor:pointer; font-size:1.25rem;"></i>
+                        </a>
                     `;
                 }
             },
@@ -459,7 +461,7 @@
         });
 
         /* ----------------------------------
-         * Confirm discharge (PUT)
+         * Confirm discharge
          * ---------------------------------- */
         $('#confirmDischargeBtn').on('click', function () {
             const assessmentId = $('#dischargeAssessmentId').val();
@@ -515,14 +517,10 @@
         });
 
         /* ----------------------------------
-         * Treatment Log Modal Logic
+         * S.O.A.P. Log Modal Logic
          * ---------------------------------- */
-        // const apiUrl = "{% url 'assessment_soap_api' %}?assessment_id=" + assessmentId;
-        // =========================
-        // Modal Init
-        // =========================
-        const treatmentLogModal = new bootstrap.Modal(
-            document.getElementById('treatmentLogModal')
+        const soapLogModal = new bootstrap.Modal(
+            document.getElementById('soapLogModal')
         );
 
         // =========================
@@ -532,22 +530,20 @@
 
             const rowData = table.row($(this).closest('tr')).data();
             const assessmentId = rowData.id;
-            console.log(rowData.file_number);
+
             // Set header
             $('#modalSoapPatientName').text(rowData.patient_name);
             $('#modalSoapFileNumber').text(rowData.file_number);
 
             // Show modal
-            treatmentLogModal.show();
+            soapLogModal.show();
 
             // Loading state
             $('#soapListContainer').html(`
                 <div class="text-center text-muted">Loading...</div>
             `);
 
-            // API URL (Django style)
             const apiUrl = "{% url 'assessment_soap_api' %}?assessment_id=" + assessmentId;
-
             fetch(apiUrl)
                 .then(res => {
                     if (!res.ok) {
@@ -571,7 +567,6 @@
         // Render S.O.A.P. List
         // =========================
         function renderSoapList(data, assessmentId) {
-
             if (!data.length) {
                 $('#soapListContainer').html(`
                 <div class="text-center text-muted">
@@ -583,7 +578,6 @@
 
             let html = "";
             data.forEach(soap => {
-                console.log(soap);
                 const createdDate = soap.created_at ?
                     moment(soap.created_at).format("DD/MM/YYYY HH:mm") :
                     "-";
@@ -598,7 +592,7 @@
 
                 const signedSection = soap.is_soap_signed ? 
                 `
-                    <div class="alert alert-success mt-3 mb-0 py-2 px-3">
+                    <div class="alert alert-success mt-0 mb-3 py-2 px-3">
                         <strong>Signed-off by:</strong>
                         ${soap.signed_by_name || "-"}
                         <br>
@@ -613,48 +607,101 @@
                     </div>
                 ` : "";
 
-                // Django URL pattern
                 const urlTemplate = "{% url 'assessment_soap_edit' 0 1 %}";
-
                 const fullUrl = urlTemplate
                     .replace("0", assessmentId)
                     .replace("1", soap.id);
 
                 html += `
-                    <a href="${fullUrl}" class="text-decoration-none text-dark">
-                        <div class="card mb-3 shadow-sm hover-shadow">
+                    <div class="card mb-4 shadow-sm soap-card hover-shadow" 
+                        data-url="${fullUrl}" 
+                        style="cursor: pointer;">
 
-                            <div class="card-body">
-
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="mb-0 fw-semibold">
-                                        S.O.A.P. #${soap.id}
-                                    </h6>
-                                    ${signedBadge}
-                                </div>
-
-                                <div class="small text-muted mb-2">
-                                    <strong>Student:</strong> ${soap.student_name || "-"}<br>
-                                    <strong>Clinician:</strong> ${soap.evaluator_name || "-"}
-                                </div>
-
-                                <div class="small text-muted">
-                                    <strong>Created:</strong> ${createdDate}<br>
-                                    <strong>Updated:</strong> ${updatedDate}
-                                </div>
-
-                                ${signedSection}
+                        <!-- Header -->
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-semibold">S.O.A.P.</span><br>
+                                <small class="text-muted"><strong>ID:</strong> ${soap.id}</small>
                             </div>
+                            ${signedBadge}
                         </div>
-                    </a>
+
+                        <div class="card-body">
+                            ${signedSection}
+                            
+                            <!-- STUDENT + CLINICIAN (SAME ROW) -->
+                            <div class="mb-3">
+                                <div class="row small text-muted">
+                                    <div class="col-6">
+                                        <strong>Student:</strong><br>
+                                        ${soap.student_name || "-"}
+                                    </div>
+                                    <div class="col-6">
+                                        <strong>Clinician:</strong><br>
+                                        ${soap.evaluator_name || "-"}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- VITALS -->
+                            <div class="mb-3">
+                                <div class="fw-semibold small text-muted mb-1"><strong>Vitals:</strong></div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge bg-light text-dark">Pulse: ${soap.soap_pulse}</span>
+                                    <span class="badge bg-light text-dark">Resp: ${soap.soap_respiratory}</span>
+                                    <span class="badge bg-light text-dark">
+                                        BP: ${soap.soap_systolic_bp}/${soap.soap_diastolic_bp}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- OUTCOME -->
+                            <div class="mb-3">
+                                <div class="fw-semibold small text-muted mb-1"><strong>Outcome:</strong></div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    ${soap.patient_improved_with_treatment ? `<span class="badge signed me-1 mb-1">Improved</span>` : ""}
+                                    ${soap.patient_tolerated_treatment_well ? `<span class="badge in-progress me-1 mb-1">Tolerated</span>` : ""}
+                                    ${soap.pain_after_treatment ? `<span class="badge ready me-1 mb-1">Pain After</span>` : ""}
+                                    ${soap.adverse_reactions_to_treatment ? `<span class="badge cancelled me-1 mb-1">Adverse Reaction</span>` : ""}
+                                </div>
+                            </div>
+
+                            <!-- NEXT APPOINTMENT -->
+                            <div class="small text-muted mb-3">
+                                <strong>Next Visit:</strong> 
+                                ${soap.next_appointment ? moment(soap.next_appointment).format("DD/MM/YYYY") : "-"}
+                            </div>
+
+                            <!-- CREATED + UPDATED -->
+                            <div class="row small text-muted mb-2">
+                                <div class="col-6">
+                                    <strong>Created:</strong><br>
+                                    ${createdDate}<br>
+                                    <span class="text-muted">by ${soap.created_by || "-"}</span>
+                                </div>
+                                <div class="col-6">
+                                    <strong>Updated:</strong><br>
+                                    ${updatedDate}<br>
+                                    <span class="text-muted">by ${soap.updated_by || "-"}</span>
+                                </div>
+                            </div>
+
+                            <!-- EDIT BUTTON (OWN ROW, RIGHT) -->
+                            <div class="d-flex justify-content-end">
+                                <a href="${fullUrl}" class="btn btn-primary edit-btn px-3">
+                                    Edit
+                                </a>
+                            </div>
+
+                        </div>
+                    </div>
                 `;
             });
-
             $('#soapListContainer').html(html);
         }
     });
 </script>
 
 {% include 'assessments/modal/_discharge_confirmation.html' %}
-{% include 'assessments/modal/_treatment_log_soap_list.html' %}
+{% include 'assessments/modal/_soap_log_soap_list.html' %}
 {% endblock %}

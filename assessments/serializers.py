@@ -337,6 +337,12 @@ class SoapSerializer(serializers.ModelSerializer):
 
     student_name = serializers.CharField(source="student.official_name", read_only=True)
     evaluator_name = serializers.CharField(source="evaluator.official_name", read_only=True)
+    updated_by = serializers.CharField(
+        source="updated_by.official_name", read_only=True
+    )
+    created_by = serializers.CharField(
+        source="created_by.official_name", read_only=True
+    )
     signed_by_name = serializers.CharField(source="soap_signed_by.official_name", read_only=True)
 
     class Meta:
@@ -366,7 +372,9 @@ class SoapSerializer(serializers.ModelSerializer):
             "is_soap_signed",
             "soap_signed_by",
             "soap_signed_at",
+            "created_by",
             "created_at",
+            "updated_by",
             "updated_at",
             # display fields
             "student_name",
