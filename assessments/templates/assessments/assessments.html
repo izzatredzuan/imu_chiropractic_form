@@ -85,7 +85,6 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
-                    // If discharged → lock icon (highest priority)
                     if (row.is_discharged) {
                         return lock_if_discharged();
                     }
@@ -158,7 +157,6 @@
                     let iconColor = "text-primary";
                     let tooltip = "Edit Treatment Plan";
 
-                    // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
@@ -198,7 +196,6 @@
                     let iconColor = "text-primary";
                     let tooltip = "Add S.O.A.P. Note";
 
-                    // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
@@ -206,6 +203,11 @@
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
                     if (!section4Signed) {
                         return lock_column(icon, "S.O.A.P Note locked until Section 4 is signed off");
+                    }
+
+                    const canAccess = ("{{ profile }}" === row.clinician) || ("{{ profile }}" === row.student);
+                    if (!canAccess) {
+                        return lock_column(icon, "You can only add S.O.A.P. notes to assessments where you are the assigned clinician or student.");
                     }
 
                     return `
@@ -229,7 +231,6 @@
                     let iconColor = "text-primary";
                     let tooltip = "View S.O.A.P. Log";
 
-                    // If discharged → lock icon (highest priority), no link
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
@@ -326,13 +327,12 @@
 
                     // If already discharged, show disabled icon
                     if (row.is_discharged) {
-
                         const reason = row.reason_for_discharge_text || "";
-
+                        tooltip = `${row.discharge_remarks}`;
                         return `
                             <div class="d-flex flex-column align-items-center small">
                                 <i class="bi bi-check-circle-fill text-success mb-1"
-                                title="Discharged"
+                                title="${tooltip}"
                                 style="font-size:1.1rem;"></i>
 
                                 <div class="text-muted text-center"
@@ -628,7 +628,7 @@
 
                         <div class="card-body">
                             ${signedSection}
-                            
+
                             <!-- STUDENT + CLINICIAN (SAME ROW) -->
                             <div class="mb-3">
                                 <div class="row small text-muted">

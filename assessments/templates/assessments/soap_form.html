@@ -30,7 +30,7 @@
 
         {% if is_readonly %}
         <div class="alert alert-warning">
-          You are viewing this section in read-only mode because you are not the assigned evaluator.
+          You are viewing this section in read-only mode because you are not the assigned clinician or student.
         </div>
         {% endif %}
 
@@ -63,13 +63,10 @@
               <option value="">-- Select Student --</option>
 
               {% for s in students %}
-              <option value="{{ s.id }}"
-                {% if soap and soap.student.id == s.id %}selected{% endif %}
+              <option value="{{ s.id }}" {% if soap and soap.student.id == s.id %}selected{% endif %}
                 {% if not soap and assessment.student.id == s.id %}selected{% endif %}
                 {% if not soap and not assessment.student and student_readonly and request.user.profile.id == s.id %}
-                  selected
-                {% endif %}
-              >
+                selected {% endif %}>
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
               {% endfor %}
@@ -85,14 +82,11 @@
           <div class="col-md-6 mb-3">
             <label class="form-label required">Evaluator (Clinician)</label>
 
-            <select name="evaluator" class="form-control" required
-              {% if is_readonly %}disabled{% endif %}>
+            <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
               <option value="">-- Select Clinician --</option>
               {% for c in clinicians %}
-              <option value="{{ c.id }}"
-                {% if soap and soap.evaluator.id == c.id %}selected{% endif %}
-                {% if not soap and assessment.evaluator.id == c.id %}selected{% endif %}
-              >
+              <option value="{{ c.id }}" {% if soap and soap.evaluator.id == c.id %}selected{% endif %}
+                {% if not soap and assessment.evaluator.id == c.id %}selected{% endif %}>
                 {{ c.member_id }} – {{ c.official_name }}
               </option>
               {% endfor %}
@@ -114,25 +108,25 @@
             <div class="col-md-3 mb-3">
               <label class="form-label required">Pulse</label>
               <input type="number" name="soap_pulse" class="form-control" required
-                value="{{ soap.soap_pulse|default_if_none:'' }}">
+                value="{{ soap.soap_pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Respiratory</label>
               <input type="number" name="soap_respiratory" class="form-control" required
-                value="{{ soap.soap_respiratory|default_if_none:'' }}">
+                value="{{ soap.soap_respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Systolic BP</label>
               <input type="number" name="soap_systolic_bp" class="form-control" required
-                value="{{ soap.soap_systolic_bp|default_if_none:'' }}">
+                value="{{ soap.soap_systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Diastolic BP</label>
               <input type="number" name="soap_diastolic_bp" class="form-control" required
-                value="{{ soap.soap_diastolic_bp|default_if_none:'' }}">
+                value="{{ soap.soap_diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
             </div>
 
           </div>

@@ -35,7 +35,8 @@
             <div class="card-body">
                 {% if is_readonly %}
                 <div class="alert alert-warning">
-                    You are viewing this section in read-only mode because you are not the assigned evaluator.
+                    You are viewing this section in read-only mode because you are not the assigned clinician or
+                    student.
                 </div>
                 {% endif %}
 
@@ -141,7 +142,8 @@
             </button>
 
             {% if assessment and request.user.profile.role in "clinician admin" %}
-            <button type="submit" id="btnSignOff" name="action" value="sign_off_section_4" class="btn btn-success btn-mobile">
+            <button type="submit" id="btnSignOff" name="action" value="sign_off_section_4"
+                class="btn btn-success btn-mobile">
                 Update & Sign Off Section 4
             </button>
             {% endif %}

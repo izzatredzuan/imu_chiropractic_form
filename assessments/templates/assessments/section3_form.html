@@ -33,7 +33,7 @@
       <div class="card-body">
         {% if is_readonly %}
         <div class="alert alert-warning">
-          You are viewing this section in read-only mode because you are not the assigned evaluator.
+          You are viewing this section in read-only mode because you are not the assigned clinician or student.
         </div>
         {% endif %}
 
@@ -239,7 +239,7 @@
           <textarea name="orthopedic_assessment" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.orthopedic_assessment }}</textarea>
         </div>
-        
+
         <div class="mb-3">
           <label class="form-label required">Chiropractic</label>
           <textarea name="second_chiropractic" class="form-control" rows="3" required
@@ -304,7 +304,7 @@
     btnSignOff.addEventListener("click", function () {
       clickedAction = "sign_off_section_3";
     });
-  } 
+  }
   {% endif %}
 
   document.getElementById("section3Form").addEventListener("submit", function (e) {

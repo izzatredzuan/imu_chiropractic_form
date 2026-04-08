@@ -15,7 +15,11 @@ class AssessmentListView(View):
     template_name = "assessments/assessments.html"
 
     def get(self, request):
-        return render(request, self.template_name)
+        profile = request.user.profile # Debugging line
+        context = {
+            "profile": profile
+        }
+        return render(request, self.template_name, context)
 
 
 class BaseAssessmentFormView(View):
@@ -117,13 +121,20 @@ class SoapFormView(BaseAssessmentFormView):
 
         is_readonly = False
 
+        # =========================
         # Permission checks
+        # =========================
         if assessment:
+            # Student can only access their own
             if profile.role == "student" and assessment.student != profile:
                 return HttpResponseForbidden("You cannot access this assessment.")
+
+            # Clinician not assigned → readonly
             is_readonly = clinician_is_readonly(profile, assessment)
         else:
+            # Optional hook for create logic
             is_readonly = self.get_create_readonly(profile)
+
 
         context = {
             "assessment": assessment,

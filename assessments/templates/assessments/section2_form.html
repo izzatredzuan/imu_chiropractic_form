@@ -33,7 +33,7 @@
       <div class="card-body">
         {% if is_readonly %}
         <div class="alert alert-warning">
-          You are viewing this assessment in read-only mode because you are not the assigned evaluator.
+          You are viewing this section in read-only mode because you are not the assigned clinician or student.
         </div>
         {% endif %}
 
@@ -278,9 +278,9 @@
   const btnSave = document.getElementById("btnSave");
   const btnSignOff = document.getElementById("btnSignOff");
 
-  if (btnSave) btnSave.addEventListener("click", () => clickedAction = "save_section_2");
+  if (btnSave) btnSave.addEventListener("click", () => clickedAction = "save_section_2"); 
   {% if assessment and request.user.profile.role in "clinician admin" %}
-  if (btnSignOff) btnSignOff.addEventListener("click", () => clickedAction = "sign_off_section_2");
+  if (btnSignOff) btnSignOff.addEventListener("click", () => clickedAction = "sign_off_section_2"); 
   {% endif %}
 
   document.getElementById("section2Form").addEventListener("submit", function (e) {
@@ -300,22 +300,22 @@
     payload["assessment_id"] = "{{ assessment.id }}";
 
     fetch("{% url 'assessment_section1_and_2_api' %}", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": CSRFTOKEN
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(res => res.ok ? res.json() : res.json().then(err => {throw err;}))
-    .then(data => {
-      alert(data.message || "Section 2 updated successfully");
-      window.location.href = "{% url 'assessments_list' %}";
-    })
-    .catch(err => {
-      console.error(err);
-      alert(err.detail || "Failed. Please check required fields.");
-    });
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRFTOKEN
+        },
+        body: JSON.stringify(payload)
+      })
+ .then(res => res.ok ? res.json() : res.json().then(err => {throw err;}))
+      .then(data => {
+        alert(data.message || "Section 2 updated successfully");
+        window.location.href = "{% url 'assessments_list' %}";
+      })
+      .catch(err => {
+        console.error(err);
+        alert(err.detail || "Failed. Please check required fields.");
+      });
   });
 </script>
 

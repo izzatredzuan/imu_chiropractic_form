@@ -69,8 +69,9 @@
       <div class="card-header fw-semibold">Assignment</div>
       <div class="card-body">
         {% if is_readonly %}
-        <div class="alert alert-warning">You are viewing this assessment in read-only mode because you are not the
-          assigned evaluator.</div>
+        <div class="alert alert-warning">
+          You are viewing this section in read-only mode because you are not the assigned clinician or student.
+        </div>
         {% endif %}
 
         {% if assessment.is_section_1_signed %}
@@ -427,15 +428,15 @@
         {% else %}
         "Are you sure you want to save the changes?";
         {% endif %}
-            
+
 
       if (clickedAction === "sign_off_section_1") {
-          confirmMessage =
-              "Are you sure you want to UPDATE and SIGN OFF Section 1?";
+        confirmMessage =
+          "Are you sure you want to UPDATE and SIGN OFF Section 1?";
       }
 
       if (!confirm(confirmMessage)) {
-          return;
+        return;
       }
 
       /* -------------------------
@@ -448,7 +449,7 @@
       ) {
         alert("Education and Research consent are required.");
         return;
-      } 
+      }
       {% endif %}
 
       /* -------------------------

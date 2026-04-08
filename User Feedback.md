@@ -12,6 +12,7 @@ Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
+- SOAP create button should be disabled if its not assign to you
 
 
 QUESTION to ask in the future to Chiro team:

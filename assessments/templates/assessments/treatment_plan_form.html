@@ -33,7 +33,8 @@
 
                 {% if is_readonly %}
                 <div class="alert alert-warning">
-                    You are viewing this section in read-only mode because you are not the assigned evaluator.
+                    You are viewing this section in read-only mode because you are not the assigned clinician or
+                    student.
                 </div>
                 {% endif %}
 
@@ -105,19 +106,19 @@
                 <div class="mb-3">
                     <label class="form-label required">Phase 1</label>
                     <textarea name="phase_1" class="form-control" rows="4" required
-                    {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_1|default_if_none:'' }}</textarea>
+                        {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_1|default_if_none:'' }}</textarea>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label required">Phase 2</label>
                     <textarea name="phase_2" class="form-control" rows="4" required
-                    {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_2|default_if_none:'' }}</textarea>
+                        {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_2|default_if_none:'' }}</textarea>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label required">Phase 3</label>
                     <textarea name="phase_3" class="form-control" rows="4" required
-                    {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_3|default_if_none:'' }}</textarea>
+                        {% if is_readonly or assessment.is_treatment_plan_signed %}readonly{% endif %}>{{ assessment.phase_3|default_if_none:'' }}</textarea>
                 </div>
 
             </div>
@@ -135,7 +136,8 @@
             </div>
 
             <div class="card-body">
-                <textarea id="treatmentRemarks" name="treatment_remarks" class="form-control" rows="8" readonly>{{assessment.treatment_remarks|default_if_none:""}}</textarea>
+                <textarea id="treatmentRemarks" name="treatment_remarks" class="form-control" rows="8"
+                    readonly>{{assessment.treatment_remarks|default_if_none:""}}</textarea>
 
             </div>
         </div>
@@ -154,7 +156,8 @@
             </button>
 
             {% if assessment and request.user.profile.role in "clinician admin" %}
-            <button type="submit" id="btnSignOff" name="action" value="sign_off_treatment_plan" class="btn btn-success btn-mobile">
+            <button type="submit" id="btnSignOff" name="action" value="sign_off_treatment_plan"
+                class="btn btn-success btn-mobile">
                 Update & Sign Off Section 5
             </button>
             {% endif %}
