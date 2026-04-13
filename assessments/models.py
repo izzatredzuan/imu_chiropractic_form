@@ -299,7 +299,7 @@ class Soaps(models.Model):
     adverse_reactions_to_treatment = models.BooleanField(default=False)
     notes = models.TextField(blank=True, default="")
 
-    next_appointment = models.DateField()
+    next_appointment = models.DateField(null=True, blank=True, default=None)
 
     is_soap_signed = models.BooleanField(default=False)
     soap_signed_by = models.ForeignKey(

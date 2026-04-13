@@ -1,18 +1,29 @@
 This are the minute and change request requested by user Chow Kit Yee and Nashereena Kaur Dhillon
 
 06/03/2026
-- SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment
 - Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment
 
-24/03/2026
-- Add an editable range of motion diagram in section 2
+
+09/04/2026
+- SOAP:
+    - Add delete function for modalities if it is not sign off yet
+
+- Section 3:
+    - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM
+
+Anatomy Marking
+    - For SOAP need to able to add notes in the marking but Section 1 dont requires note
+
+Several fields need to be added alter but need to wait for Chiro team to provides the fields information
+
+
 
 Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
-- SOAP create button should be disabled if its not assign to you
+
 
 
 QUESTION to ask in the future to Chiro team:
@@ -34,7 +45,11 @@ Major
 06/03/2026
 - Discharge only need discharge reason and remark, only clinician and admin can discharge patient [DONE]
 - Treatment log is just a list of SOAP done, can click to open the designated SOAP [DONE]
+- SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment [DONE]
 
+09/04/2026
+- SOAP:
+    - Next appoinment and modalities is not mandatory [DONE]
 
 Minor:
 - Clinician can view all assessments [DONE]
@@ -55,7 +70,7 @@ Minor:
 - Section 5 will be move to Part 2 [DONE]
 - Everything can only access after section 4 complete [DONE]
 - Change the flow, clinician only need to sign off one section that has been edited by student [DONE]
-
+- SOAP create button should be disabled if its not assign to you [DONE]
 
 - Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
 - Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]

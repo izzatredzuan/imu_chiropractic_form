@@ -215,8 +215,8 @@
           <div class="card-body">
 
             <div class="mb-2">
-              <label class="form-label required">Modality</label>
-              <select name="modality_{{ forloop.counter }}" class="form-control" required>
+              <label class="form-label">Modality</label>
+              <select name="modality_{{ forloop.counter }}" class="form-control" >
                 <option value="">-- Select Modality --</option>
                 {% for key, value in MODALITIES_CHOICES %}
                 <option value="{{ key }}" {% if key == modality.modality %}selected{% endif %}>
@@ -227,21 +227,21 @@
             </div>
 
             <div class="mb-2">
-              <label class="form-label required">Location</label>
+              <label class="form-label">Location</label>
               <textarea name="location_{{ forloop.counter }}" class="form-control" rows="2"
-                required>{{ modality.location }}</textarea>
+                >{{ modality.location }}</textarea>
             </div>
 
             <div class="mb-2">
-              <label class="form-label required">Settings</label>
+              <label class="form-label">Settings</label>
               <textarea name="settings_{{ forloop.counter }}" class="form-control" rows="2"
-                required>{{ modality.settings }}</textarea>
+                >{{ modality.settings }}</textarea>
             </div>
 
             <div>
-              <label class="form-label required">Duration & Intensity</label>
+              <label class="form-label">Duration & Intensity</label>
               <textarea name="duration_intensity_{{ forloop.counter }}" class="form-control" rows="2"
-                required>{{ modality.duration_intensity }}</textarea>
+                >{{ modality.duration_intensity }}</textarea>
             </div>
 
           </div>
@@ -259,8 +259,8 @@
           <div class="card-body">
 
             <div class="mb-2">
-              <label class="form-label required">Modality</label>
-              <select name="modality_1" class="form-control" required>
+              <label class="form-label">Modality</label>
+              <select name="modality_1" class="form-control">
                 <option value="">-- Select Modality --</option>
                 {% for key, value in MODALITIES_CHOICES %}
                 <option value="{{ key }}">{{ value }}</option>
@@ -269,18 +269,18 @@
             </div>
 
             <div class="mb-2">
-              <label class="form-label required">Location</label>
-              <textarea name="location_1" class="form-control" rows="2" required></textarea>
+              <label class="form-label">Location</label>
+              <textarea name="location_1" class="form-control" rows="2"></textarea>
             </div>
 
             <div class="mb-2">
-              <label class="form-label required">Settings</label>
-              <textarea name="settings_1" class="form-control" rows="2" required></textarea>
+              <label class="form-label">Settings</label>
+              <textarea name="settings_1" class="form-control" rows="2"></textarea>
             </div>
 
             <div>
-              <label class="form-label required">Duration & Intensity</label>
-              <textarea name="duration_intensity_1" class="form-control" rows="2" required></textarea>
+              <label class="form-label">Duration & Intensity</label>
+              <textarea name="duration_intensity_1" class="form-control" rows="2"></textarea>
             </div>
 
           </div>
@@ -347,8 +347,8 @@
 
         <!-- NEXT APPOINTMENT -->
         <div>
-          <label class="form-label required">Next Appointment</label>
-          <input type="date" name="next_appointment" class="form-control" required
+          <label class="form-label">Next Appointment</label>
+          <input type="date" name="next_appointment" class="form-control"
             value="{% if soap %}{{ soap.next_appointment|date:'Y-m-d' }}{% endif %}">
         </div>
       </div>
@@ -535,15 +535,15 @@
       return;
     }
 
-    if (!payload.next_appointment) {
-      alert("Next appointment is required");
-      return;
+    if (!payload["next_appointment"]) {
+      // alert("Next appointment is required");
+      payload["next_appointment"] = null;
     }
 
-    if (!payload.soap_modalities.length) {
-      alert("At least one modality is required");
-      return;
-    }
+    // if (!payload.soap_modalities.length) {
+    //   alert("At least one modality is required");
+    //   return;
+    // }
 
     // =========================
     // API CALL

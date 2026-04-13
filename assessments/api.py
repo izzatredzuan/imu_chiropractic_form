@@ -733,6 +733,13 @@ class SoapAPIView(APIView):
 
         serializer = SoapSerializer(soaps, many=True)
 
+        logger.info(
+            f"VIEW - SOAP | "
+            f"assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role}), "
+            f"count={soaps.count()}"
+        )
+        
         return Response(serializer.data)
 
     # =========================
@@ -789,6 +796,17 @@ class SoapAPIView(APIView):
             for modality in modalities:
                 SoapModality.objects.create(soap=soap, **modality)
 
+            # ---------- CREATE LOG ----------
+            logger.info(
+                f"CREATE - SOAP | "
+                f"soap_id={soap.id}, "
+                f"student={soap.student.official_name if soap.student else None}, "
+                f"evaluator={soap.evaluator.official_name if soap.evaluator else None}, "
+                f"assessment_id={soap.assessment.id}, "
+                f"created_by={soap.created_by.official_name}, "
+                f"created_at={soap.created_at}"
+            )
+
             # -------------------------------
             # SIGN OFF
             # -------------------------------
@@ -804,6 +822,15 @@ class SoapAPIView(APIView):
                 soap.soap_signed_at = timezone.now()
                 soap.save()
 
+                logger.info(
+                    f"SIGN_OFF - SOAP | "
+                    f"soap_id={soap.id}, "
+                    f"student={soap.student.official_name if soap.student else None}, "
+                    f"assessment_id={soap.assessment.id}, "
+                    f"signed_by={profile.official_name}, "
+                    f"signed_at={soap.soap_signed_at}"
+                )
+
             return Response(
                 {"id": soap.id, "message": "S.O.A.P. created successfully"},
                 status=status.HTTP_201_CREATED,
@@ -814,7 +841,7 @@ class SoapAPIView(APIView):
                 f"CREATE_FAILED - SOAP | assessment_id={assessment.id}, "
                 f"user={profile.official_name}, error={str(e)}",
                 exc_info=True,
-            )
+            )  
             return Response(
                 {"detail": "Failed to create SOAP", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -879,6 +906,16 @@ class SoapAPIView(APIView):
                 updated_by=profile,
             )
 
+            logger.info(
+                f"UPDATE - SOAP | "
+                f"soap_id={soap.id}, "
+                f"student={soap.student.official_name if soap.student else None}, "
+                f"evaluator={soap.evaluator.official_name if soap.evaluator else None}, "
+                f"assessment_id={soap.assessment.id}, "
+                f"updated_by={profile.official_name}, "
+                f"updated_at={soap.updated_at}"
+            )
+            
             # -----------------------------
             # Update Modalities
             # -----------------------------
@@ -900,9 +937,25 @@ class SoapAPIView(APIView):
                 soap.soap_signed_by = None
                 soap.soap_signed_at = None
 
+                logger.info(
+                    f"SAVE - SOAP | "
+                    f"soap_id={soap.id}, "
+                    f"student={soap.student.official_name if soap.student else None}, "
+                    f"evaluator={soap.evaluator.official_name if soap.evaluator else None}, "
+                    f"assessment_id={soap.assessment.id}, "
+                    f"updated_by={profile.official_name}, "
+                    f"updated_at={soap.updated_at} | "
+                    f"Sign-off reset"
+                )
+
             # ---------- SIGN OFF ----------
             elif action == "sign_off":
                 if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - SOAP | "
+                        f"soap_id={soap.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
                     return Response(
                         {"detail": "Not allowed to sign SOAP"},
                         status=status.HTTP_403_FORBIDDEN,
@@ -912,6 +965,15 @@ class SoapAPIView(APIView):
                 soap.soap_signed_by = profile
                 soap.soap_signed_at = timezone.now()
 
+                logger.info(
+                    f"SIGN_OFF - SOAP | "
+                    f"soap_id={soap.id}, "
+                    f"student={soap.student.official_name if soap.student else None}, "
+                    f"evaluator={soap.evaluator.official_name if soap.evaluator else None}, "
+                    f"assessment_id={soap.assessment.id}, "
+                    f"signed_by={profile.official_name}, "
+                    f"signed_at={soap.soap_signed_at}"
+                )
             soap.save()
 
             # =========================
@@ -925,6 +987,12 @@ class SoapAPIView(APIView):
             elif action == "save":
                 message = "SOAP updated successfully. Sign-off has been reset."
 
+            logger.info(
+                f"RESPONSE - SOAP | "
+                f"soap_id={soap.id}, "
+                f"action={action}, "
+                f"message='{message}'"
+            )
             return Response(
                 {"message": message},
                 status=status.HTTP_200_OK,
@@ -940,3 +1008,5 @@ class SoapAPIView(APIView):
                 {"detail": "Failed to update SOAP", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+        
