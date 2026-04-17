@@ -169,6 +169,42 @@
           <textarea name="rom_resisted" class="form-control" rows="3" required
             {% if is_readonly or assessment.is_section_3_signed %}readonly{% endif %}>{{ assessment.rom_resisted }}</textarea>
         </div>
+
+        <!-- ================= ROM DRAWING ================= -->
+        <hr>
+
+        <div class="mb-2">
+          <label class="form-label">ROM Drawing</label>
+          <div class="text-muted small mb-2">
+            Draw movement limitations, pain areas, or direction of restriction.
+          </div>
+        </div>
+
+        <!-- ===== Existing Image Preview ===== -->
+        {% if assessment.rom_drawing %}
+        <div id="romPreviewContainer" class="mb-3 text-center">
+          <img src="{{ assessment.rom_drawing.url }}" class="img-fluid border rounded" style="max-height:400px;">
+          <div class="mt-2">
+            <button type="button" class="btn btn-sm btn-warning" id="btnRedraw">
+              Redraw
+            </button>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- ===== Canvas Container ===== -->
+        <div id="romCanvasContainer" class="w-100 {% if assessment.rom_drawing %}d-none{% endif %}">
+          <canvas id="romDrawingPad" class="border rounded w-100"></canvas>
+
+          <div class="mt-2 d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-sm ready" id="undoRom">Undo</button>
+            <button type="button" class="btn btn-sm cancelled" id="clearRom">Clear</button>
+          </div>
+        </div>
+
+        <input type="hidden" name="rom_drawing_data" id="romDrawingData">
+        <!-- ================= END ROM DRAWING ================= -->
+
       </div>
     </div>
 
@@ -289,70 +325,204 @@
 </div>
 
 <script>
-  let clickedAction = "save_section_3";
-  const btnSave = document.getElementById("btnSave");
-  const btnSignOff = document.getElementById("btnSignOff");
+  let clickedAction = "save_section_1";
 
-  if (btnSave) {
-    btnSave.addEventListener("click", function () {
-      clickedAction = "save_section_3";
-    });
-  }
-
+  document.getElementById("btnSave")?.addEventListener("click", () => clickedAction = "save_section_3");
   {% if assessment and request.user.profile.role in "clinician admin" %}
-  if (btnSignOff) {
-    btnSignOff.addEventListener("click", function () {
-      clickedAction = "sign_off_section_3";
-    });
-  }
+  document.getElementById("btnSignOff")?.addEventListener("click", () => clickedAction = "sign_off_section_3");
   {% endif %}
 
+  let romCanvas = document.getElementById("romDrawingPad");
+  let romCtx = null;
+
+  let romStrokes = [];
+  let romCurrentStroke = [];
+  let romIsDrawing = false;
+
+  let romHasChanged = false;
+
+  let romBaseImage = null;
+  let romHasBaseImage = false;
+
+  const previewContainer = document.getElementById("romPreviewContainer");
+  const canvasContainer = document.getElementById("romCanvasContainer");
+  const redrawBtn = document.getElementById("btnRedraw");
+
+  if (romCanvas) {
+    romCtx = romCanvas.getContext("2d");
+
+    const getPos = (e) => {
+      const rect = romCanvas.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
+
+      return {
+        x: point.clientX - rect.left,
+        y: point.clientY - rect.top
+      };
+    };
+
+    const redraw = () => {
+      romCtx.clearRect(0, 0, romCanvas.width, romCanvas.height);
+
+      if (romStrokes.length === 0 && !romHasBaseImage) {
+        romCtx.save();
+        romCtx.font = "16px Arial";
+        romCtx.fillStyle = "#aaa";
+        romCtx.textAlign = "center";
+        romCtx.fillText("Draw ROM here", romCanvas.width / 2, romCanvas.height / 2);
+        romCtx.restore();
+        return;
+      }
+
+      if (romBaseImage) {
+        romCtx.drawImage(romBaseImage, 0, 0, romCanvas.width, romCanvas.height);
+      }
+
+      romStrokes.forEach(stroke => {
+        if (stroke.length < 2) return;
+
+        romCtx.beginPath();
+        romCtx.moveTo(stroke[0].x, stroke[0].y);
+
+        for (let i = 1; i < stroke.length; i++) {
+          romCtx.lineTo(stroke[i].x, stroke[i].y);
+        }
+
+        romCtx.stroke();
+      });
+    };
+
+    const resizeCanvas = () => {
+      const parent = romCanvas.parentElement;
+      romCanvas.width = parent.clientWidth;
+      romCanvas.height = 600;
+
+      romCtx.lineWidth = 2;
+      romCtx.lineCap = "round";
+      romCtx.strokeStyle = "#000";
+
+      redraw();
+    };
+
+    window.addEventListener("resize", resizeCanvas);
+
+    /* =========================
+    LOAD EXISTING IMAGE
+    ========================= */
+    {% if assessment.rom_drawing %}
+    romBaseImage = new Image();
+    romBaseImage.onload = function () {
+      romHasBaseImage = true;
+      redraw();
+    };
+    romBaseImage.src = "{{ assessment.rom_drawing.url }}";
+    {% endif %}
+
+    resizeCanvas();
+
+    /* =========================
+    DRAW EVENTS
+    ========================= */
+    const startDraw = (e) => {
+      e.preventDefault();
+      romIsDrawing = true;
+      romHasChanged = true;
+
+      romCurrentStroke = [];
+      romStrokes.push(romCurrentStroke);
+
+      romCurrentStroke.push(getPos(e));
+    };
+
+    const draw = (e) => {
+      if (!romIsDrawing) return;
+      e.preventDefault();
+
+      romCurrentStroke.push(getPos(e));
+      redraw();
+    };
+
+    const stopDraw = () => {
+      romIsDrawing = false;
+    };
+
+    romCanvas.addEventListener("mousedown", startDraw);
+    romCanvas.addEventListener("mousemove", draw);
+    romCanvas.addEventListener("mouseup", stopDraw);
+    romCanvas.addEventListener("mouseleave", stopDraw);
+
+    romCanvas.addEventListener("touchstart", startDraw);
+    romCanvas.addEventListener("touchmove", draw);
+    romCanvas.addEventListener("touchend", stopDraw);
+
+    /* =========================
+    BUTTONS
+    ========================= */
+    document.getElementById("undoRom")?.addEventListener("click", () => {
+      romStrokes.pop();
+      redraw();
+    });
+
+    document.getElementById("clearRom")?.addEventListener("click", () => {
+      romStrokes = [];
+      romBaseImage = null;
+      romHasBaseImage = false;
+      romHasChanged = true;
+      redraw();
+    });
+
+    /* =========================
+    REDRAW BUTTON
+    ========================= */
+    redrawBtn?.addEventListener("click", () => {
+      previewContainer.classList.add("d-none");
+      canvasContainer.classList.remove("d-none");
+
+      romHasChanged = true;
+
+      resizeCanvas();
+    });
+  }
+
+  /* ======================================================
+  FORM SUBMIT FIX
+  ====================================================== */
   document.getElementById("section3Form").addEventListener("submit", function (e) {
     e.preventDefault();
-    let confirmMessage = "Are you sure you want to save the changes? Sign-off will be reset.";
-
-    if (clickedAction === "sign_off_section_3") {
-      confirmMessage =
-        "Are you sure you want to UPDATE and SIGN OFF Section 3?";
-    }
-
-    if (!confirm(confirmMessage)) {
-      return;
-    }
 
     const formData = new FormData(this);
     formData.set("action", clickedAction);
+
     const payload = {};
 
     formData.forEach((value, key) => {
       payload[key] = value;
     });
+
     payload["assessment_id"] = "{{ assessment.id }}";
+    
+    // ONLY SEND IF CHANGED
+    if (romCanvas && romHasChanged) {
+      payload["rom_drawing_data"] = romCanvas.toDataURL("image/png");
+    }
 
     fetch("{% url 'assessment_section3_api' %}", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "X-CSRFToken": CSRFTOKEN
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(res => {
-        if (!res.ok) {
-          return res.json().then(err => {
-            throw err;
-          });
-        }
-        return res.json();
-      })
-      .then(data => {
-        alert(data.message || "Section 3 updated successfully");
-        window.location.href = "{% url 'assessments_list' %}";
-      })
-      .catch(err => {
-        console.error(err);
-        alert(err.detail || "Failed. Please check required fields.");
-      });
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": CSRFTOKEN
+      },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+      alert(data.message || "Updated successfully");
+      window.location.href = "{% url 'assessments_list' %}";
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Something went wrong");
+    });
   });
 </script>
 

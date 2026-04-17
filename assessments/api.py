@@ -1,5 +1,6 @@
 import logging
 import base64
+import uuid
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from accounts.models import Profile
@@ -348,7 +349,6 @@ class AssessmentSection3APIView(APIView):
     # GET
     # =========================
     def get(self, request):
-
         profile = request.user.profile
         assessment_id = request.query_params.get("assessment_id")
 
@@ -404,16 +404,72 @@ class AssessmentSection3APIView(APIView):
         )
 
         serializer.is_valid(raise_exception=True)
-        serializer.save()
 
         # =========================
-        # ACTION LOGIC
+        # ROM DRAWING HANDLING
         # =========================
+        rom_drawing_data = request.data.get("rom_drawing_data")
+
+        try:
+            if rom_drawing_data:
+                format, imgstr = rom_drawing_data.split(";base64,")
+                ext = format.split("/")[-1]
+
+                # delete old file
+                if assessment.rom_drawing:
+                    assessment.rom_drawing.delete(save=False)
+
+                    logger.info(
+                        f"ROM_DRAWING_DELETED - assessment_id={assessment.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+
+                rom_file = ContentFile(
+                    base64.b64decode(imgstr),
+                    name=f"rom_drawing_{assessment.id}_{uuid.uuid4().hex}.{ext}",
+                )
+
+                serializer.save(rom_drawing=rom_file)
+
+                logger.info(
+                    f"ROM_DRAWING_UPDATED - assessment_id={assessment.id}, "
+                    f"user={profile.official_name} ({profile.role})"
+                )
+            else:
+                serializer.save()
+
+        except Exception as e:
+            logger.error(
+                f"ROM_DRAWING_ERROR - assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role}), "
+                f"error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {"rom_drawing_data": f"Invalid image data: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # refresh instance after save
+        assessment.refresh_from_db()
+
+        # =========================
+        # ACTION LOGIC (SIGN-OFF)
+        # =========================
+        print(action)
         try:
             if action == "save_section_3":
+                print("trying to save_section_3")
                 assessment.is_section_3_signed = False
 
+                logger.info(
+                    f"SAVE_SECTION_3 - assessment_id={assessment.id}, "
+                    f"user={profile.official_name} ({profile.role})"
+                )
+
             elif action == "sign_off_section_3":
+                print("trying to sign_off_section_3")
                 if profile.role not in ["clinician", "admin"]:
                     logger.warning(
                         f"SIGN_OFF_DENIED - Section 3 | "
@@ -423,23 +479,36 @@ class AssessmentSection3APIView(APIView):
                         {"detail": "Not allowed to sign off"},
                         status=status.HTTP_403_FORBIDDEN,
                     )
+
                 assessment.is_section_3_signed = True
                 assessment.section_3_signed_by = profile
                 assessment.section_3_signed_at = timezone.now()
 
-            assessment.save()
-            logger.info(
-                f"UPDATE - Section 3 | assessment_id={assessment.id}, "
-                f"student={assessment.student.official_name}, "
-                f"updated_by={profile.official_name} ({profile.role}), "
-                f"action={action}"
-            )
+                logger.info(
+                    f"SIGN_OFF_SECTION_3 - assessment_id={assessment.id}, "
+                    f"student={assessment.student.official_name}, "
+                    f"signed_by={profile.official_name} ({profile.role})"
+                )
 
+            assessment.save()
+
+            # =========================
+            # RESPONSE
+            # =========================
             message = "Section 3 updated successfully"
+
             if action == "sign_off_section_3":
                 message = "Section 3 signed off successfully"
 
-            return Response({"message": message}, status=status.HTTP_200_OK)
+            logger.info(
+                f"UPDATE_SUCCESS - Section 3 | assessment_id={assessment.id}, "
+                f"action={action}, user={profile.official_name} ({profile.role})"
+            )
+
+            return Response(
+                {"message": message},
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
             logger.error(
@@ -447,6 +516,7 @@ class AssessmentSection3APIView(APIView):
                 f"user={profile.official_name}, error={str(e)}",
                 exc_info=True,
             )
+
             return Response(
                 {"detail": "Failed to update Section 3", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -739,7 +809,6 @@ class SoapAPIView(APIView):
             f"user={profile.official_name} ({profile.role}), "
             f"count={soaps.count()}"
         )
-        
         return Response(serializer.data)
 
     # =========================
@@ -749,10 +818,7 @@ class SoapAPIView(APIView):
         profile = request.user.profile
         action = request.data.get("action", "save")
 
-        serializer = SoapSerializer(
-            data=request.data,
-            context={"request": request}
-        )
+        serializer = SoapSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
@@ -841,12 +907,12 @@ class SoapAPIView(APIView):
                 f"CREATE_FAILED - SOAP | assessment_id={assessment.id}, "
                 f"user={profile.official_name}, error={str(e)}",
                 exc_info=True,
-            )  
+            )
             return Response(
                 {"detail": "Failed to create SOAP", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        
+
     # =========================
     # PUT
     # =========================
@@ -915,7 +981,7 @@ class SoapAPIView(APIView):
                 f"updated_by={profile.official_name}, "
                 f"updated_at={soap.updated_at}"
             )
-            
+
             # -----------------------------
             # Update Modalities
             # -----------------------------
@@ -1008,5 +1074,3 @@ class SoapAPIView(APIView):
                 {"detail": "Failed to update SOAP", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        
-        

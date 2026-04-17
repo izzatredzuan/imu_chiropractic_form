@@ -147,6 +147,9 @@ class Assessments(models.Model):
     rom_active = models.TextField(blank=True, default="")
     rom_passive = models.TextField(blank=True, default="")
     rom_resisted = models.TextField(blank=True, default="")
+    rom_drawing = models.ImageField(
+        upload_to="assessments/rom_drawings/", null=True, blank=True
+    )
 
     first_chiropractic = models.TextField(blank=True, default="")
 

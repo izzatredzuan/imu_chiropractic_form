@@ -191,34 +191,37 @@ LOGGING = {
             "format": "[%(levelname)s] %(asctime)s %(pathname)s:%(lineno)d (%(funcName)s) - %(message)s",
         },
     },
-    "handlers": {
+   "handlers": {
         "auth_file": {
             "level": "INFO",
-            "class": "logging.handlers.TimedRotatingFileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": AUTH_LOG_PATH / "auth.log",
-            "when": "midnight",
-            "interval": 1,
+            "maxBytes": 10 * 1024 * 1024,  # 10MB
             "backupCount": 30,
             "formatter": "default",
+            "encoding": "utf-8",
         },
+
         "userprofile_file": {
             "level": "INFO",
-            "class": "logging.handlers.TimedRotatingFileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": ACCOUNTS_LOG_PATH / "userprofile.log",
-            "when": "midnight",
-            "interval": 1,
+            "maxBytes": 10 * 1024 * 1024,
             "backupCount": 30,
             "formatter": "default",
+            "encoding": "utf-8",
         },
+
         "assessments_file": {
             "level": "INFO",
-            "class": "logging.handlers.TimedRotatingFileHandler",
+            "class": "logging.handlers.RotatingFileHandler",
             "filename": ASSESSMENTS_LOG_PATH / "assessments.log",
-            "when": "midnight",
-            "interval": 1,
+            "maxBytes": 10 * 1024 * 1024,
             "backupCount": 30,
             "formatter": "default",
+            "encoding": "utf-8",
         },
+
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "default",

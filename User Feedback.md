@@ -23,6 +23,7 @@ Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
+- Fix UI on the undo and clear button in section 1 signature
 
 
 

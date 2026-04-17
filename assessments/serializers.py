@@ -260,6 +260,7 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "rom_active",
             "rom_passive",
             "rom_resisted",
+            "rom_drawing",
             "first_chiropractic",
             "cranial_nerves",
             "cerebellar",
@@ -278,6 +279,13 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "is_section_3_signed",
         ]
 
+    def update(self, instance, validated_data):
+        request = self.context.get("request")
+        if request:
+            instance.updated_by = request.user.profile
+
+        return super().update(instance, validated_data)
+    
 
 class AssessmentSection4Serializer(serializers.ModelSerializer):
     class Meta:

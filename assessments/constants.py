@@ -28,7 +28,7 @@ SECTION_2_FIELDS = [
     "differential_diagnosis",
     "red_flags",
     "yellow_flags",
-    "contraindications"
+    "contraindications",
 ]
 
 SECTION_3_FIELDS = [
@@ -41,6 +41,7 @@ SECTION_3_FIELDS = [
     "rom_active",
     "rom_passive",
     "rom_resisted",
+    "rom_drawing",
     "first_chiropractic",
     "cranial_nerves",
     "cerebellar",
