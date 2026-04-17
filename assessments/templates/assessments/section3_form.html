@@ -344,6 +344,8 @@
   let romBaseImage = null;
   let romHasBaseImage = false;
 
+  let showGuides = true;
+
   const previewContainer = document.getElementById("romPreviewContainer");
   const canvasContainer = document.getElementById("romCanvasContainer");
   const redrawBtn = document.getElementById("btnRedraw");
@@ -361,9 +363,43 @@
       };
     };
 
+    function drawGuides() {
+      const w = romCanvas.width;
+      const h = romCanvas.height;
+      const third = w / 3;
+
+      romCtx.save();
+
+      romCtx.strokeStyle = "#e0e0e0";
+      romCtx.lineWidth = 1;
+
+      // Vertical lines
+      romCtx.beginPath();
+      romCtx.moveTo(third, 0);
+      romCtx.lineTo(third, h);
+
+      romCtx.moveTo(third * 2, 0);
+      romCtx.lineTo(third * 2, h);
+      romCtx.stroke();
+
+      // Labels
+      romCtx.fillStyle = "#999";
+      romCtx.font = "14px Arial";
+      romCtx.textAlign = "center";
+
+      romCtx.fillText("ROM ACTIVE", third / 2, 20);
+      romCtx.fillText("ROM PASSIVE", third + third / 2, 20);
+      romCtx.fillText("ROM RESISTED", third * 2 + third / 2, 20);
+
+      romCtx.restore();
+    }
+    
     const redraw = () => {
       romCtx.clearRect(0, 0, romCanvas.width, romCanvas.height);
 
+      if (showGuides) {
+        drawGuides();
+      }
       if (romStrokes.length === 0 && !romHasBaseImage) {
         romCtx.save();
         romCtx.font = "16px Arial";
@@ -468,6 +504,7 @@
       romBaseImage = null;
       romHasBaseImage = false;
       romHasChanged = true;
+      showGuides = true;
       redraw();
     });
 
@@ -479,6 +516,8 @@
       canvasContainer.classList.remove("d-none");
 
       romHasChanged = true;
+      // disable draw guides if redraw
+      showGuides = false;
 
       resizeCanvas();
     });
