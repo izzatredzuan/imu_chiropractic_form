@@ -489,7 +489,6 @@ class AssessmentSection3APIView(APIView):
                     f"student={assessment.student.official_name}, "
                     f"signed_by={profile.official_name} ({profile.role})"
                 )
-
             assessment.save()
 
             # =========================

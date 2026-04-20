@@ -185,7 +185,7 @@
         <div id="romPreviewContainer" class="mb-3 text-center">
           <img src="{{ assessment.rom_drawing.url }}" class="img-fluid border rounded" style="max-height:400px;">
           <div class="mt-2">
-            <button type="button" class="btn btn-sm btn-warning" id="btnRedraw">
+            <button type="button" class="btn btn-sm {% if is_readonly or assessment.is_section_3_signed %}btn-secondary disabled{% else %}btn-primary{% endif %} btn-mobile" id="btnRedraw">
               Redraw
             </button>
           </div>
@@ -197,8 +197,8 @@
           <canvas id="romDrawingPad" class="border rounded w-100"></canvas>
 
           <div class="mt-2 d-flex gap-2 justify-content-center">
-            <button type="button" class="btn btn-sm ready" id="undoRom">Undo</button>
-            <button type="button" class="btn btn-sm cancelled" id="clearRom">Clear</button>
+            <button type="button" class="btn btn-sm ready btn-mobile"" id="undoRom">Undo</button>
+            <button type="button" class="btn btn-sm cancelled btn-mobile"" id="clearRom">Clear</button>
           </div>
         </div>
 
@@ -332,6 +332,15 @@
   document.getElementById("btnSignOff")?.addEventListener("click", () => clickedAction = "sign_off_section_3");
   {% endif %}
 
+  /* ======================================================
+    ROM DRAWING PAD
+  ====================================================== */
+
+  /* ========================= GLOBAL STATE ========================= */
+  const IS_READONLY = {{ is_readonly|yesno:"true,false" }};
+  const IS_SECTION_SIGNED = {{ assessment.is_section_3_signed|yesno:"true,false" }};
+  const IS_LOCKED = IS_READONLY || IS_SECTION_SIGNED;
+
   let romCanvas = document.getElementById("romDrawingPad");
   let romCtx = null;
 
@@ -353,6 +362,7 @@
   if (romCanvas) {
     romCtx = romCanvas.getContext("2d");
 
+    /* ========================= GET POINTER POSITION ========================= */
     const getPos = (e) => {
       const rect = romCanvas.getBoundingClientRect();
       const point = e.touches ? e.touches[0] : e;
@@ -363,6 +373,7 @@
       };
     };
 
+    /* ========================= DRAW CANVAS GUIDES ========================= */
     function drawGuides() {
       const w = romCanvas.width;
       const h = romCanvas.height;
@@ -394,6 +405,7 @@
       romCtx.restore();
     }
     
+    /* ========================= REDRAW CANVAS ========================= */
     const redraw = () => {
       romCtx.clearRect(0, 0, romCanvas.width, romCanvas.height);
 
@@ -428,6 +440,7 @@
       });
     };
 
+    /* ========================= RESIZE CANVAS ========================= */
     const resizeCanvas = () => {
       const parent = romCanvas.parentElement;
       romCanvas.width = parent.clientWidth;
@@ -460,6 +473,7 @@
     DRAW EVENTS
     ========================= */
     const startDraw = (e) => {
+      if (IS_LOCKED) return;
       e.preventDefault();
       romIsDrawing = true;
       romHasChanged = true;
@@ -471,6 +485,7 @@
     };
 
     const draw = (e) => {
+      if (IS_LOCKED) return;
       if (!romIsDrawing) return;
       e.preventDefault();
 

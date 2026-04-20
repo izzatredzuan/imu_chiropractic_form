@@ -9,9 +9,6 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 - SOAP:
     - Add delete function for modalities if it is not sign off yet
 
-- Section 3:
-    - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM
-
 Anatomy Marking
     - For SOAP need to able to add notes in the marking but Section 1 dont requires note
 
@@ -76,6 +73,9 @@ Minor:
 - Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
 - Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
 
+09/04/2026
+- Section 3:
+    - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM [DONE]
 
 Minor existing Changes To do:
 - Evaluator need to be able multi select  [CANCELLED]
