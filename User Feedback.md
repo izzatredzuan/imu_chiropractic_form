@@ -2,18 +2,15 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 
 06/03/2026
 - Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P
-- Patient will need to provide consent signature before assessment creation and during final phase of the assessment
-
 
 09/04/2026
 - SOAP:
     - Add delete function for modalities if it is not sign off yet
 
-Anatomy Marking
+- Anatomy Marking
     - For SOAP need to able to add notes in the marking but Section 1 dont requires note
 
-Several fields need to be added alter but need to wait for Chiro team to provides the fields information
-
+- Several fields need to be added alter but need to wait for Chiro team to provides the fields information
 
 
 Enhancement Suggestion:
@@ -77,5 +74,7 @@ Minor:
 - Section 3:
     - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM [DONE]
 
+- Patient will need to provide consent signature before assessment creation and during final phase of the assessment [CANCELLED]
+
 Minor existing Changes To do:
-- Evaluator need to be able multi select  [CANCELLED]
+- Evaluator need to be able multi select [CANCELLED]

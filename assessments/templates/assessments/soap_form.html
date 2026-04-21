@@ -3,6 +3,52 @@
 
 {% block content %}
 
+<style>
+  @media (max-width: 576px) {
+    .modal-dialog {
+      margin: 0;
+      height: 100%;
+    }
+
+    .modal-content {
+      height: 100%;
+      border-radius: 0;
+    }
+  }
+
+  .marker div:hover {
+    transform: scale(1.2);
+  }
+
+  #markerLayer {
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  #markerLayer>div {
+    pointer-events: auto;
+  }
+
+  .marker-circle {
+    width: clamp(18px, 4vw, 26px);
+    height: clamp(18px, 4vw, 26px);
+    font-size: clamp(10px, 2.5vw, 12px);
+  }
+
+  #anatomyWrapper {
+    overflow: visible;
+    touch-action: manipulation;
+    position: relative;
+  }
+
+  #anatomyImage {
+    width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+  }
+
+</style>
+
 <div class="container-fluid mt-4 mb-4 px-4">
   <!-- ========================= Page Title ========================== -->
   <div class="mb-4">
@@ -174,10 +220,18 @@
           <div id="anatomySection" class="card-body text-center">
 
             <div class="mb-3 text-muted small">
-              <strong>Instructions:</strong> Click to mark. Left-click edit note. Right-click delete.
+              <strong>Instructions:</strong>
+              <br>
+              <span class="d-none d-md-inline">
+                Click image to add marker. Click on existing marker to edit. Hover or tap-and-hold to view note.
+              </span>
+
+              <span class="d-md-none">
+                Tap image to add marker. Tap marker to edit. Long press marker to view note.
+              </span>
             </div>
 
-            <div id="anatomyWrapper" class="position-relative d-inline-block">
+            <div id="anatomyWrapper" class="position-relative w-100">
               <img src="/media/assessments/anatomy/spine.png" id="anatomyImage" style="display:block; width:100%;">
 
               <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
@@ -216,7 +270,7 @@
 
             <div class="mb-2">
               <label class="form-label">Modality</label>
-              <select name="modality_{{ forloop.counter }}" class="form-control" >
+              <select name="modality_{{ forloop.counter }}" class="form-control">
                 <option value="">-- Select Modality --</option>
                 {% for key, value in MODALITIES_CHOICES %}
                 <option value="{{ key }}" {% if key == modality.modality %}selected{% endif %}>
@@ -228,20 +282,20 @@
 
             <div class="mb-2">
               <label class="form-label">Location</label>
-              <textarea name="location_{{ forloop.counter }}" class="form-control" rows="2"
-                >{{ modality.location }}</textarea>
+              <textarea name="location_{{ forloop.counter }}" class="form-control"
+                rows="2">{{ modality.location }}</textarea>
             </div>
 
             <div class="mb-2">
               <label class="form-label">Settings</label>
-              <textarea name="settings_{{ forloop.counter }}" class="form-control" rows="2"
-                >{{ modality.settings }}</textarea>
+              <textarea name="settings_{{ forloop.counter }}" class="form-control"
+                rows="2">{{ modality.settings }}</textarea>
             </div>
 
             <div>
               <label class="form-label">Duration & Intensity</label>
-              <textarea name="duration_intensity_{{ forloop.counter }}" class="form-control" rows="2"
-                >{{ modality.duration_intensity }}</textarea>
+              <textarea name="duration_intensity_{{ forloop.counter }}" class="form-control"
+                rows="2">{{ modality.duration_intensity }}</textarea>
             </div>
 
           </div>
@@ -367,19 +421,285 @@
       </button>
       {% endif %}
     </div>
+
+    <!-- ========================= -->
+    <!-- ANATOMY NOTE MODAL -->
+    <!-- ========================= -->
+    <div class="modal fade" id="noteModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+
+          <div class="modal-header">
+            <h5 class="modal-title">Anatomy Note</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div class="modal-body">
+            <textarea id="noteTextarea" class="form-control" rows="4" placeholder="Enter note..."></textarea>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="deleteMarkerBtn">
+              Delete
+            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+              Cancel
+            </button>
+            <button type="button" class="btn btn-primary" id="saveNoteBtn">
+              Save
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
   </form>
 </div>
 
 <script>
   (() => {
+    // =========================
+    // ANATOMY MARKING SYSTEM
+    // =========================
+    let activeMarker = null;
+    let pendingPosition = null;
+
+    const noteModal = new bootstrap.Modal(document.getElementById("noteModal"));
+    const noteTextarea = document.getElementById("noteTextarea");
+    const saveNoteBtn = document.getElementById("saveNoteBtn");
+    const deleteMarkerBtn = document.getElementById("deleteMarkerBtn");
+
+    // Data
+    let markers = [];
+    let markerCounter = 1;
+
+    const anatomyImage = document.getElementById("anatomyImage");
+    const markerLayer = document.getElementById("markerLayer");
+
+    // =========================
+    // ADD MARKER (CLICK IMAGE)
+    // =========================
+    anatomyImage.addEventListener("click", function (e) {
+      const rect = anatomyImage.getBoundingClientRect();
+
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+
+      activeMarker = null;
+      pendingPosition = {
+        x,
+        y
+      };
+
+      noteTextarea.value = "";
+      deleteMarkerBtn.style.display = "none";
+
+      noteModal.show();
+
+      // Prevent empty markers
+      if (!note || !note.trim()) return;
+
+      const marker = {
+        id: markerCounter++,
+        x,
+        y,
+        note
+      };
+
+      markers.push(marker);
+      renderMarkers();
+    });
+
+    // =========================
+    // RENDER MARKERS
+    // =========================
+    function renderMarkers() {
+      markerLayer.innerHTML = "";
+
+      markers.forEach(marker => {
+        const wrapper = document.createElement("div");
+
+        wrapper.style.position = "absolute";
+        wrapper.style.left = `${marker.x * 100}%`;
+        wrapper.style.top = `${marker.y * 100}%`;
+        wrapper.style.transform = "translate(-50%, -50%)";
+        wrapper.style.cursor = "pointer";
+
+        // 🚫 Prevent click going to image
+        wrapper.addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
+
+        // =========================
+        // MARKER CIRCLE
+        // =========================
+        const circle = document.createElement("div");
+        circle.innerText = marker.id;
+
+        circle.style.background = "red";
+        circle.style.color = "white";
+        circle.style.borderRadius = "50%";
+        circle.style.width = "26px";
+        circle.style.height = "26px";
+        circle.style.display = "flex";
+        circle.style.alignItems = "center";
+        circle.style.justifyContent = "center";
+        circle.style.fontSize = "12px";
+        circle.style.position = "relative";
+
+        // =========================
+        // TOOLTIP (NOTE)
+        // =========================
+        const tooltip = document.createElement("div");
+        tooltip.innerText = marker.note;
+
+        tooltip.style.position = "absolute";
+        tooltip.style.bottom = "130%";
+        tooltip.style.left = "50%";
+        tooltip.style.transform = "translateX(-50%)";
+        tooltip.style.background = "#333";
+        tooltip.style.color = "#fff";
+        tooltip.style.padding = "6px 8px";
+        tooltip.style.borderRadius = "6px";
+        tooltip.style.fontSize = "12px";
+        tooltip.style.whiteSpace = "normal";
+        tooltip.style.maxWidth = "70vw";
+        tooltip.style.minWidth = "unset";
+        tooltip.style.wordWrap = "break-word";
+        tooltip.style.textAlign = "left";
+        tooltip.style.display = "none";
+        tooltip.style.zIndex = "9999";
+
+        // =========================
+        // DELETE BUTTON
+        // =========================
+        const deleteBtn = document.createElement("div");
+        deleteBtn.innerText = "×";
+
+        deleteBtn.style.position = "absolute";
+        deleteBtn.style.top = "-6px";
+        deleteBtn.style.right = "-6px";
+        deleteBtn.style.background = "black";
+        deleteBtn.style.color = "white";
+        deleteBtn.style.borderRadius = "50%";
+        deleteBtn.style.width = "16px";
+        deleteBtn.style.height = "16px";
+        deleteBtn.style.fontSize = "12px";
+        deleteBtn.style.display = "flex";
+        deleteBtn.style.alignItems = "center";
+        deleteBtn.style.justifyContent = "center";
+        deleteBtn.style.cursor = "pointer";
+
+        // =========================
+        // EVENTS
+        // =========================
+        let pressTimer;
+
+        // Desktop hover
+        wrapper.addEventListener("mouseenter", () => {
+          tooltip.style.display = "block";
+        });
+
+        wrapper.addEventListener("mouseleave", () => {
+          tooltip.style.display = "none";
+        });
+
+        // Mobile long press
+        wrapper.addEventListener("touchstart", (e) => {
+          pressTimer = setTimeout(() => {
+            tooltip.style.display = "block";
+          }, 500);
+        });
+
+        wrapper.addEventListener("touchend", () => {
+          clearTimeout(pressTimer);
+        });
+
+        wrapper.addEventListener("touchmove", () => {
+          clearTimeout(pressTimer);
+        });
+
+        // EDIT NOTE
+        circle.addEventListener("click", (e) => {
+          e.stopPropagation();
+
+          activeMarker = marker;
+          pendingPosition = null;
+
+          noteTextarea.value = marker.note;
+          deleteMarkerBtn.style.display = "inline-block";
+
+          noteModal.show();
+        });
+
+        // DELETE MARKER
+        deleteBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+
+          if (confirm("Delete this marker?")) {
+            markers = markers.filter(m => m.id !== marker.id);
+            renderMarkers();
+          }
+        });
+
+        // Extra safety (prevents weird browser behavior)
+        deleteBtn.addEventListener("mousedown", (e) => {
+          e.stopPropagation();
+        });
+
+        // =========================
+        // BUILD ELEMENT
+        // =========================
+        circle.appendChild(deleteBtn);
+        wrapper.appendChild(circle);
+        wrapper.appendChild(tooltip);
+
+        markerLayer.appendChild(wrapper);
+      });
+    }
+
+    saveNoteBtn.addEventListener("click", () => {
+      const note = noteTextarea.value;
+
+      if (!note || !note.trim()) return;
+
+      // EDIT
+      if (activeMarker) {
+        activeMarker.note = note;
+      }
+
+      // ADD NEW
+      else if (pendingPosition) {
+        markers.push({
+          id: markerCounter++,
+          x: pendingPosition.x,
+          y: pendingPosition.y,
+          note
+        });
+      }
+
+      renderMarkers();
+      noteModal.hide();
+    });
+
+    deleteMarkerBtn.addEventListener("click", () => {
+      if (!activeMarker) return;
+
+      markers = markers.filter(m => m.id !== activeMarker.id);
+
+      renderMarkers();
+      noteModal.hide();
+    });
+
+    // =========================
+    // MODALITY
+    // =========================
     const container = document.getElementById("soapModalitiesContainer");
     const addBtn = document.getElementById("addModalityBtn");
 
     let counter = container.querySelectorAll(".soap-modality-item").length || 1;
 
-    // =========================
-    // ADD MODALITY
-    // =========================
+    // ========================= ADD MODALITY =========================
     addBtn.addEventListener("click", () => {
       counter += 1;
 
@@ -425,9 +745,7 @@
       container.appendChild(div);
     });
 
-    // =========================
-    // REMOVE MODALITY
-    // =========================
+    // ========================= REMOVE MODALITY =========================
     container.addEventListener("click", e => {
       if (e.target.classList.contains("remove-modality-btn")) {
         const item = e.target.closest(".soap-modality-item");
