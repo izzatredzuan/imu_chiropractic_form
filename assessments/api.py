@@ -780,6 +780,7 @@ class SoapAPIView(APIView):
     def get(self, request):
         profile = request.user.profile
         assessment_id = request.query_params.get("assessment_id")
+        soap_id = request.query_params.get("soap_id")
 
         if not assessment_id:
             return Response(
@@ -789,13 +790,39 @@ class SoapAPIView(APIView):
 
         assessment = get_object_or_404(Assessments, id=assessment_id)
 
-        # permission
+        # -----------------------------
+        # Permission
+        # -----------------------------
         if profile.role == "student" and assessment.student != profile:
             return Response(
                 {"detail": "You cannot view SOAPs for this assessment"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # =========================
+        # GET SINGLE SOAP
+        # =========================
+        if soap_id:
+            soap = get_object_or_404(
+                Soaps.objects.prefetch_related("soap_modalities"),
+                id=soap_id,
+                assessment=assessment,
+            )
+
+            serializer = SoapSerializer(soap)
+
+            logger.info(
+                f"VIEW_SINGLE - SOAP | "
+                f"soap_id={soap.id}, "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role})"
+            )
+
+            return Response(serializer.data)
+
+        # =========================
+        # GET ALL SOAPs (fallback)
+        # =========================
         soaps = Soaps.objects.filter(assessment=assessment).prefetch_related(
             "soap_modalities"
         )
@@ -803,11 +830,12 @@ class SoapAPIView(APIView):
         serializer = SoapSerializer(soaps, many=True)
 
         logger.info(
-            f"VIEW - SOAP | "
+            f"VIEW LIST - SOAP | "
             f"assessment_id={assessment.id}, "
             f"user={profile.official_name} ({profile.role}), "
             f"count={soaps.count()}"
         )
+
         return Response(serializer.data)
 
     # =========================

@@ -1,4 +1,7 @@
+import json
+
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Assessments, SoapModality, Soaps
 
 @admin.register(Assessments)
@@ -265,6 +268,7 @@ class SoapsAdmin(admin.ModelAdmin):
     readonly_fields = (
         "created_at",
         "updated_at",
+        "pretty_markers",  # 👈 pretty display
     )
 
     inlines = [SoapModalityInline]
@@ -319,6 +323,12 @@ class SoapsAdmin(admin.ModelAdmin):
             },
         ),
         (
+            "Markers",
+            {
+                "fields": ("pretty_markers",),  # 👈 here
+            },
+        ),
+        (
             "Follow Up",
             {"fields": ("next_appointment",)},
         ),
@@ -345,7 +355,27 @@ class SoapsAdmin(admin.ModelAdmin):
         ),
     )
 
+    # =========================================
+    # Pretty Markers Display
+    # =========================================
+    def pretty_markers(self, obj):
+        if not obj.markers:
+            return "No markers"
+
+        formatted = json.dumps(obj.markers, indent=2)
+
+        return format_html(
+            "<div style='max-height:200px; overflow:auto; background:#111; color:#0f0; padding:10px; border-radius:6px;'>"
+            "<pre style='margin:0; white-space: pre-wrap;'>{}</pre>"
+            "</div>",
+            formatted,
+        )
+
+    pretty_markers.short_description = "Markers"
+
+    # =========================================
     # Auto set created_by and updated_by
+    # =========================================
     def save_model(self, request, obj, form, change):
         if request.user.is_authenticated and hasattr(request.user, "profile"):
             profile = request.user.profile

@@ -285,7 +285,7 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             instance.updated_by = request.user.profile
 
         return super().update(instance, validated_data)
-    
+
 
 class AssessmentSection4Serializer(serializers.ModelSerializer):
     class Meta:
@@ -344,14 +344,21 @@ class SoapSerializer(serializers.ModelSerializer):
     )
 
     student_name = serializers.CharField(source="student.official_name", read_only=True)
-    evaluator_name = serializers.CharField(source="evaluator.official_name", read_only=True)
+    evaluator_name = serializers.CharField(
+        source="evaluator.official_name", read_only=True
+    )
+
+    markers = serializers.ListField(child=serializers.DictField(), required=False)
+
     updated_by = serializers.CharField(
         source="updated_by.official_name", read_only=True
     )
     created_by = serializers.CharField(
         source="created_by.official_name", read_only=True
     )
-    signed_by_name = serializers.CharField(source="soap_signed_by.official_name", read_only=True)
+    signed_by_name = serializers.CharField(
+        source="soap_signed_by.official_name", read_only=True
+    )
 
     class Meta:
         model = Soaps
@@ -368,8 +375,8 @@ class SoapSerializer(serializers.ModelSerializer):
             "objective",
             "soap_assessment",
             "plan",
-
             "mp_smt",
+            "markers",
 
             "patient_tolerated_treatment_well",
             "patient_improved_with_treatment",
@@ -397,6 +404,41 @@ class SoapSerializer(serializers.ModelSerializer):
             "is_soap_signed",
             "soap_signed_at",
         ]
+
+    def validate_markers(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Markers must be a list.")
+
+        cleaned = []
+
+        for m in value:
+            if not isinstance(m, dict):
+                continue
+
+            if "x" not in m or "y" not in m or "note" not in m:
+                continue
+
+            try:
+                note = str(m["note"]).strip()
+                if not note:
+                    continue
+
+                cleaned.append(
+                    {
+                        "id": int(m.get("id")) if m.get("id") is not None else None,
+                        "x": float(m["x"]),
+                        "y": float(m["y"]),
+                        "note": str(m["note"]).strip(),
+                    }
+                )
+            except (ValueError, TypeError):
+                continue
+
+        # optional safety limit
+        if len(cleaned) > 50:
+            cleaned = cleaned[:50]
+
+        return cleaned
 
     def validate(self, data):
         modalities = self.initial_data.get("soap_modalities", [])

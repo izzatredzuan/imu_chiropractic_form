@@ -295,6 +295,7 @@ class Soaps(models.Model):
     mp_smt = models.ImageField(
         upload_to="assessments/soap_mp_smt/", null=True, blank=True
     )
+    markers = models.JSONField(default=list, blank=True)
 
     patient_tolerated_treatment_well = models.BooleanField(default=False)
     patient_improved_with_treatment = models.BooleanField(default=False)
@@ -332,6 +333,27 @@ class Soaps(models.Model):
         blank=True,
         related_name="updated_soaps",
     )
+
+    def save(self, *args, **kwargs):
+        if not isinstance(self.markers, list):
+            self.markers = []
+        else:
+            cleaned = []
+            for m in self.markers:
+                if (
+                    isinstance(m, dict)
+                    and "x" in m
+                    and "y" in m
+                    and "note" in m
+                ):
+                    cleaned.append({
+                        "id": m.get("id"),
+                        "x": float(m["x"]),
+                        "y": float(m["y"]),
+                        "note": str(m["note"]),
+                    })
+            self.markers = cleaned
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"SOAP #{self.id} - {self.assessment.patient_name}"

@@ -75,11 +75,6 @@ urlpatterns = [
         name="assessment_treatment_plan_api",
     ),
     path(
-        "api/assessments/treatment-plan/",
-        api.AssessmentTreatmentPlanAPIView.as_view(),
-        name="assessment_treatment_plan_api",
-    ),
-    path(
         "api/assessments/soap/",
         api.SoapAPIView.as_view(),
         name="assessment_soap_api",

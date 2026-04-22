@@ -457,6 +457,9 @@
 </div>
 
 <script>
+  let markers = [];
+  let markerCounter = 1;
+
   (() => {
     // =========================
     // ANATOMY MARKING SYSTEM
@@ -469,9 +472,7 @@
     const saveNoteBtn = document.getElementById("saveNoteBtn");
     const deleteMarkerBtn = document.getElementById("deleteMarkerBtn");
 
-    // Data
-    let markers = [];
-    let markerCounter = 1;
+    
 
     const anatomyImage = document.getElementById("anatomyImage");
     const markerLayer = document.getElementById("markerLayer");
@@ -486,30 +487,15 @@
       const y = (e.clientY - rect.top) / rect.height;
 
       activeMarker = null;
-      pendingPosition = {
-        x,
-        y
-      };
+
+      pendingPosition = { x, y };
 
       noteTextarea.value = "";
       deleteMarkerBtn.style.display = "none";
 
       noteModal.show();
-
-      // Prevent empty markers
-      if (!note || !note.trim()) return;
-
-      const marker = {
-        id: markerCounter++,
-        x,
-        y,
-        note
-      };
-
-      markers.push(marker);
-      renderMarkers();
     });
-
+    
     // =========================
     // RENDER MARKERS
     // =========================
@@ -525,7 +511,7 @@
         wrapper.style.transform = "translate(-50%, -50%)";
         wrapper.style.cursor = "pointer";
 
-        // 🚫 Prevent click going to image
+        // Prevent click going to image
         wrapper.addEventListener("click", (e) => {
           e.stopPropagation();
         });
@@ -564,7 +550,7 @@
         tooltip.style.fontSize = "12px";
         tooltip.style.whiteSpace = "normal";
         tooltip.style.maxWidth = "70vw";
-        tooltip.style.minWidth = "unset";
+        tooltip.style.minWidth = "clamp(120px, 40vw, 320px)";
         tooltip.style.wordWrap = "break-word";
         tooltip.style.textAlign = "left";
         tooltip.style.display = "none";
@@ -690,6 +676,42 @@
       renderMarkers();
       noteModal.hide();
     });
+    // =========================
+    // LOAD MARKERS
+    // =========================
+    function loadMarkersFromAPI() {
+      const assessmentId = "{{ assessment.id }}";
+      const soapId = "{{ soap.id|default:'' }}";
+
+      const apiUrl = "{% url 'assessment_soap_api' %}?assessment_id=" + assessmentId + "&soap_id=" + soapId;
+
+      fetch(apiUrl, { credentials: "include" })
+        .then(res => res.json())
+        .then(data => {
+
+          // HANDLE BOTH CASES (list OR single object)
+          let soap = null;
+
+          if (Array.isArray(data)) {
+            if (!data.length) return;
+            soap = data[0];
+          } else {
+            soap = data;
+          }
+
+          if (soap.markers && Array.isArray(soap.markers)) {
+            markers = soap.markers;
+
+            markerCounter = markers.length
+              ? Math.max(...markers.map(m => m.id || 0)) + 1
+              : 1;
+
+            renderMarkers();
+          }
+        })
+        .catch(err => console.error("Failed to load markers:", err));
+    }
+    loadMarkersFromAPI();
 
     // =========================
     // MODALITY
@@ -822,6 +844,8 @@
     ].forEach(field => {
       payload[field] = Number(payload[field]);
     });
+
+    payload["markers"] = markers;
 
     // =========================
     // BUILD MODALITIES ARRAY
