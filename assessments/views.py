@@ -124,16 +124,17 @@ class SoapFormView(BaseAssessmentFormView):
         # =========================
         # Permission checks
         # =========================
-        if assessment:
-            # Student can only access their own
-            if profile.role == "student" and assessment.student != profile:
-                return HttpResponseForbidden("You cannot access this assessment.")
+        if soap:
+            if assessment:
+                # Student can only access their own
+                if profile.role == "student" and soap.student != profile:
+                    return HttpResponseForbidden("You cannot access this soap.")
 
-            # Clinician not assigned → readonly
-            is_readonly = clinician_is_readonly(profile, assessment)
-        else:
-            # Optional hook for create logic
-            is_readonly = self.get_create_readonly(profile)
+                # Clinician not assigned → readonly
+                is_readonly = clinician_is_readonly(profile, soap)
+            else:
+                # Optional hook for create logic
+                is_readonly = self.get_create_readonly(profile)
 
 
         context = {

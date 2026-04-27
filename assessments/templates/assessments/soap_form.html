@@ -154,25 +154,25 @@
             <div class="col-md-3 mb-3">
               <label class="form-label required">Pulse</label>
               <input type="number" name="soap_pulse" class="form-control" required
-                value="{{ soap.soap_pulse|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                value="{{ soap.soap_pulse|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Respiratory</label>
               <input type="number" name="soap_respiratory" class="form-control" required
-                value="{{ soap.soap_respiratory|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                value="{{ soap.soap_respiratory|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Systolic BP</label>
               <input type="number" name="soap_systolic_bp" class="form-control" required
-                value="{{ soap.soap_systolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                value="{{ soap.soap_systolic_bp|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Diastolic BP</label>
               <input type="number" name="soap_diastolic_bp" class="form-control" required
-                value="{{ soap.soap_diastolic_bp|default_if_none:'' }}" {% if is_readonly %}disabled{% endif %}>
+                value="{{ soap.soap_diastolic_bp|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
             </div>
 
           </div>
@@ -186,28 +186,28 @@
             <div class="mb-3">
               <label class="form-label required">Subjective</label>
               <textarea name="subjective" class="form-control" rows="3" required
-                {% if is_readonly %}readonly{% endif %}>{{ soap.subjective|default_if_none:'' }}</textarea>
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>{{ soap.subjective|default_if_none:'' }}</textarea>
             </div>
 
             <!-- OBJECTIVE -->
             <div class="mb-3">
               <label class="form-label required">Objective</label>
               <textarea name="objective" class="form-control" rows="3" required
-                {% if is_readonly %}readonly{% endif %}>{{ soap.objective|default_if_none:'' }}</textarea>
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>{{ soap.objective|default_if_none:'' }}</textarea>
             </div>
 
             <!-- ASSESSMENT -->
             <div class="mb-3">
               <label class="form-label required">Assessment</label>
               <textarea name="soap_assessment" class="form-control" rows="3" required
-                {% if is_readonly %}readonly{% endif %}>{{ soap.soap_assessment|default_if_none:'' }}</textarea>
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>{{ soap.soap_assessment|default_if_none:'' }}</textarea>
             </div>
 
             <!-- PLAN -->
             <div class="mb-3">
               <label class="form-label required">Plan</label>
               <textarea name="plan" class="form-control" rows="3" required
-                {% if is_readonly %}readonly{% endif %}>{{ soap.plan|default_if_none:'' }}</textarea>
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>{{ soap.plan|default_if_none:'' }}</textarea>
             </div>
           </div>
         </div>
@@ -246,7 +246,7 @@
     <div class="card mb-4 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
         S.O.A.P. Modalities
-        <button type="button" class="btn btn-sm btn-primary" id="addModalityBtn">
+        <button type="button" class="btn btn-sm {% if is_readonly or soap.is_soap_signed %}btn-secondary disabled{% else %}btn-primary{% endif %}" id="addModalityBtn">
           + Add Modality
         </button>
       </div>
@@ -270,7 +270,7 @@
 
             <div class="mb-2">
               <label class="form-label">Modality</label>
-              <select name="modality_{{ forloop.counter }}" class="form-control">
+              <select name="modality_{{ forloop.counter }}" class="form-control" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
                 <option value="">-- Select Modality --</option>
                 {% for key, value in MODALITIES_CHOICES %}
                 <option value="{{ key }}" {% if key == modality.modality %}selected{% endif %}>
@@ -282,19 +282,19 @@
 
             <div class="mb-2">
               <label class="form-label">Location</label>
-              <textarea name="location_{{ forloop.counter }}" class="form-control"
+              <textarea name="location_{{ forloop.counter }}" class="form-control" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
                 rows="2">{{ modality.location }}</textarea>
             </div>
 
             <div class="mb-2">
               <label class="form-label">Settings</label>
-              <textarea name="settings_{{ forloop.counter }}" class="form-control"
+              <textarea name="settings_{{ forloop.counter }}" class="form-control" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
                 rows="2">{{ modality.settings }}</textarea>
             </div>
 
             <div>
               <label class="form-label">Duration & Intensity</label>
-              <textarea name="duration_intensity_{{ forloop.counter }}" class="form-control"
+              <textarea name="duration_intensity_{{ forloop.counter }}" class="form-control" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
                 rows="2">{{ modality.duration_intensity }}</textarea>
             </div>
 
@@ -354,7 +354,7 @@
         <div class="row mb-3">
           <div class="col-md-6">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="patient_tolerated_treatment_well"
+              <input class="form-check-input" type="checkbox" name="patient_tolerated_treatment_well" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
                 {% if soap.patient_tolerated_treatment_well %}checked{% endif %}>
               <label class="form-check-label">
                 Patient tolerated treatment well
@@ -364,7 +364,7 @@
 
           <div class="col-md-6">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="patient_improved_with_treatment"
+              <input class="form-check-input" type="checkbox" name="patient_improved_with_treatment" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
                 {% if soap.patient_improved_with_treatment %}checked{% endif %}>
               <label class="form-check-label">
                 Patient improved with treatment
@@ -374,7 +374,7 @@
 
           <div class="col-md-6 mt-2">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="pain_after_treatment"
+              <input class="form-check-input" type="checkbox" name="pain_after_treatment" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
                 {% if soap.pain_after_treatment %}checked{% endif %}>
               <label class="form-check-label">
                 Pain after treatment
@@ -384,7 +384,7 @@
 
           <div class="col-md-6 mt-2">
             <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="adverse_reactions_to_treatment"
+              <input class="form-check-input" type="checkbox" name="adverse_reactions_to_treatment" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
                 {% if soap.adverse_reactions_to_treatment %}checked{% endif %}>
               <label class="form-check-label">
                 Adverse reactions to treatment
@@ -396,13 +396,13 @@
         <!-- NOTES -->
         <div class="mb-2">
           <label class="form-label required">Notes</label>
-          <textarea name="notes" class="form-control" rows="4" required>{{ soap.notes|default_if_none:'' }}</textarea>
+          <textarea name="notes" class="form-control" rows="4" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %} required>{{ soap.notes|default_if_none:'' }}</textarea>
         </div>
 
         <!-- NEXT APPOINTMENT -->
         <div>
           <label class="form-label">Next Appointment</label>
-          <input type="date" name="next_appointment" class="form-control"
+          <input type="date" name="next_appointment" class="form-control" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
             value="{% if soap %}{{ soap.next_appointment|date:'Y-m-d' }}{% endif %}">
         </div>
       </div>
@@ -412,6 +412,7 @@
     <div class="mt-4 d-flex justify-content-end gap-2">
       <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
 
+      {% if not is_readonly %}
       <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary btn-mobile">
         {% if soap %}Update SOAP{% else %}Create SOAP{% endif %}
       </button>
@@ -419,6 +420,7 @@
       <button type="submit" id="btnSignOff" name="action" value="sign_off" class="btn btn-success btn-mobile">
         {% if soap %}Update SOAP & Sign Off{% else %}Create SOAP & Sign Off{% endif %}
       </button>
+      {% endif %}
       {% endif %}
     </div>
 
@@ -457,6 +459,8 @@
 </div>
 
 <script>
+  const IS_READONLY = {{ is_readonly|yesno:"true,false" }};
+  
   let markers = [];
   let markerCounter = 1;
 
@@ -481,6 +485,7 @@
     // ADD MARKER (CLICK IMAGE)
     // =========================
     anatomyImage.addEventListener("click", function (e) {
+      if (IS_READONLY) return; // block adding
       const rect = anatomyImage.getBoundingClientRect();
 
       const x = (e.clientX - rect.left) / rect.width;
@@ -509,7 +514,7 @@
         wrapper.style.left = `${marker.x * 100}%`;
         wrapper.style.top = `${marker.y * 100}%`;
         wrapper.style.transform = "translate(-50%, -50%)";
-        wrapper.style.cursor = "pointer";
+        wrapper.style.cursor = IS_READONLY ? "default" : "pointer";
 
         // Prevent click going to image
         wrapper.addEventListener("click", (e) => {
@@ -523,6 +528,9 @@
         circle.innerText = marker.id;
 
         circle.style.background = "red";
+        if (IS_READONLY) {
+          circle.style.background = "#6c757d"; // grey instead of red
+        }
         circle.style.color = "white";
         circle.style.borderRadius = "50%";
         circle.style.width = "26px";
@@ -609,6 +617,8 @@
         circle.addEventListener("click", (e) => {
           e.stopPropagation();
 
+          if (IS_READONLY) return; // block editing
+
           activeMarker = marker;
           pendingPosition = null;
 
@@ -636,7 +646,9 @@
         // =========================
         // BUILD ELEMENT
         // =========================
-        circle.appendChild(deleteBtn);
+        if (!IS_READONLY) {
+          circle.appendChild(deleteBtn);
+        }
         wrapper.appendChild(circle);
         wrapper.appendChild(tooltip);
 

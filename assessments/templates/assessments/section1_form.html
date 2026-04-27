@@ -197,12 +197,12 @@
             <div class="mb-3">
               <label class="form-label">Summary</label>
               <textarea name="summary" class="form-control" rows="4"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
+                {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
             </div>
             <div class="mb-3">
               <label class="form-label">Special Direction</label>
               <textarea name="special_direction" class="form-control" rows="4"
-                {% if is_readonly %}readonly{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
+                {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
             </div>
           </div>
         </div>

@@ -113,7 +113,7 @@
                         Diagnosis
                     </label>
                     <textarea name="diagnosis" class="form-control" rows="4" required
-                        {% if is_readonly or assessment.is_section_4_signed %}readonly{% endif %}>{{ assessment.diagnosis }}</textarea>
+                        {% if is_readonly or assessment.is_section_4_signed %}disabled{% endif %}>{{ assessment.diagnosis }}</textarea>
                 </div>
 
                 <div class="mb-3">
@@ -123,7 +123,7 @@
 
                     <input type="date" name="diagnosis_date" class="form-control" required
                         value="{{ assessment.diagnosis_date|date:'Y-m-d' }}"
-                        {% if is_readonly or assessment.is_section_4_signed %}readonly{% endif %}>
+                        {% if is_readonly or assessment.is_section_4_signed %}disabled{% endif %}>
                 </div>
             </div>
         </div>

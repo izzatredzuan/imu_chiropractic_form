@@ -98,13 +98,13 @@
         <div class="mb-3">
           <label class="form-label required">Chief Complaint</label>
           <textarea name="chief_complaint" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.chief_complaint|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.chief_complaint|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">History of Condition</label>
           <textarea name="history_of_condition" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.history_of_condition|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.history_of_condition|default_if_none:'' }}</textarea>
         </div>
 
       </div>
@@ -120,25 +120,25 @@
         <div class="mb-3">
           <label class="form-label required">Pain</label>
           <textarea name="pain" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.pain|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.pain|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Aggravating Factors</label>
           <textarea name="aggravating_factors" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.aggravating_factors|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.aggravating_factors|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Relieving Factors</label>
           <textarea name="relieving_factors" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.relieving_factors|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.relieving_factors|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Associated Symptoms</label>
           <textarea name="associated_symptoms" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.associated_symptoms|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.associated_symptoms|default_if_none:'' }}</textarea>
         </div>
 
       </div>
@@ -154,19 +154,19 @@
         <div class="mb-3">
           <label class="form-label required">Health History Review</label>
           <textarea name="health_hx_review" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.health_hx_review|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.health_hx_review|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Past Illnesses</label>
           <textarea name="past_illnesses" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.past_illnesses|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.past_illnesses|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Family History</label>
           <textarea name="family_hx" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.family_hx|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.family_hx|default_if_none:'' }}</textarea>
         </div>
 
       </div>
@@ -182,19 +182,19 @@
         <div class="mb-3">
           <label class="form-label required">Psycho Social History</label>
           <textarea name="psycho_social_hx" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.psycho_social_hx|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.psycho_social_hx|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Occupational</label>
           <textarea name="occupational" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.occupational|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.occupational|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Diet</label>
           <textarea name="diet" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.diet|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.diet|default_if_none:'' }}</textarea>
         </div>
 
       </div>
@@ -210,13 +210,13 @@
         <div class="mb-3">
           <label class="form-label required">System Review</label>
           <textarea name="system_review" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.system_review|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.system_review|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Differential Diagnosis</label>
           <textarea name="differential_diagnosis" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.differential_diagnosis|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.differential_diagnosis|default_if_none:'' }}</textarea>
         </div>
 
       </div>
@@ -232,19 +232,19 @@
         <div class="mb-3">
           <label class="form-label required">Red Flags</label>
           <textarea name="red_flags" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.red_flags|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.red_flags|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Yellow Flags</label>
           <textarea name="yellow_flags" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.yellow_flags|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.yellow_flags|default_if_none:'' }}</textarea>
         </div>
 
         <div class="mb-3">
           <label class="form-label required">Contraindications</label>
           <textarea name="contraindications" class="form-control" rows="3" required
-            {% if is_readonly %}readonly{% endif %}>{{ assessment.contraindications|default_if_none:'' }}</textarea>
+            {% if is_readonly or assessment.is_section_2_signed %}disabled{% endif %}>{{ assessment.contraindications|default_if_none:'' }}</textarea>
         </div>
 
       </div>
