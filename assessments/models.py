@@ -81,6 +81,8 @@ class Assessments(models.Model):
     systolic_bp = models.PositiveSmallIntegerField(help_text="Systolic BP (mmHg)")
     diastolic_bp = models.PositiveSmallIntegerField(help_text="Diastolic BP (mmHg)")
 
+    section_1_anatomy_markers = models.JSONField(default=list, blank=True)
+
     summary = models.TextField(blank=True, default="")
     special_direction = models.TextField(blank=True, default="")
 
@@ -292,9 +294,6 @@ class Soaps(models.Model):
     soap_assessment = models.TextField(blank=True, default="")
     plan = models.TextField(blank=True, default="")
 
-    mp_smt = models.ImageField(
-        upload_to="assessments/soap_mp_smt/", null=True, blank=True
-    )
     markers = models.JSONField(default=list, blank=True)
 
     patient_tolerated_treatment_well = models.BooleanField(default=False)

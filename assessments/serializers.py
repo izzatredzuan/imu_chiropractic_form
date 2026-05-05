@@ -84,59 +84,15 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
         return is_section_complete(obj, TREATMENT_PLAN_FIELDS)
 
 
-class AssessmentSection1And2DetailSerializer(serializers.ModelSerializer):
-    student = serializers.StringRelatedField()
-    evaluator = serializers.StringRelatedField()
-
-    class Meta:
-        model = Assessments
-        fields = [
-            "id",
-            # Assignment
-            "student",
-            "evaluator",
-            # Section 1 – Initial Assessment
-            "patient_name",
-            "file_number",
-            "gender",
-            "date_of_birth",
-            "pulse",
-            "respiratory",
-            "systolic_bp",
-            "diastolic_bp",
-            "summary",
-            "special_direction",
-            # Presenting Complaint
-            "chief_complaint",
-            "history_of_condition",
-            "pain",
-            "aggravating_factors",
-            "relieving_factors",
-            "associated_symptoms",
-            "health_hx_review",
-            "past_illnesses",
-            "family_hx",
-            "psycho_social_hx",
-            "occupational",
-            "diet",
-            "system_review",
-            "differential_diagnosis",
-            "is_section_1_signed",
-            "is_section_2_signed",
-            "is_discharged",
-            "reason_for_discharge",
-            "discharge_remarks",
-            "created_at",
-            "updated_at",
-        ]
-
-
 class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
     evaluator = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.filter(role="clinician"), required=True
     )
     student = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.filter(role="student"), required=True
+    )
+    section_1_anatomy_markers = serializers.ListField(
+        child=serializers.DictField(), required=False
     )
     signature_data = serializers.CharField(write_only=True, required=False)
 
@@ -156,6 +112,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "diastolic_bp",
             "summary",
             "special_direction",
+            "section_1_anatomy_markers",
             "education_consent",
             "research_consent",
             "marketing_consent",
@@ -224,6 +181,34 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             self._save_signature(instance, signature_data)
 
         return instance
+
+    def validate_section_1_anatomy_markers(self, value):
+        if not isinstance(value, list):
+            raise serializers.ValidationError("Markers must be a list.")
+
+        cleaned = []
+
+        for m in value:
+            if not isinstance(m, dict):
+                continue
+
+            if "x" not in m or "y" not in m:
+                continue
+
+            try:
+                cleaned.append({
+                    "id": int(m.get("id")) if m.get("id") is not None else None,
+                    "x": float(m["x"]),
+                    "y": float(m["y"]),
+                })
+            except (ValueError, TypeError):
+                continue
+
+        # optional safety limit
+        if len(cleaned) > 50:
+            cleaned = cleaned[:50]
+
+        return cleaned
 
     def _save_signature(self, instance, signature_data):
         if not signature_data:
@@ -375,9 +360,7 @@ class SoapSerializer(serializers.ModelSerializer):
             "objective",
             "soap_assessment",
             "plan",
-            "mp_smt",
             "markers",
-
             "patient_tolerated_treatment_well",
             "patient_improved_with_treatment",
             "pain_after_treatment",

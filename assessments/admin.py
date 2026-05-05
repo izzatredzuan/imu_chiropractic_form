@@ -55,6 +55,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "section_3_signed_at",
         "section_4_signed_at",
         "treatment_plan_signed_at",
+        "pretty_section_1_markers",
     )
 
     # =====================
@@ -96,6 +97,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "diastolic_bp",
                     "summary",
                     "special_direction",
+                    "pretty_section_1_markers",
                     "is_section_1_signed",
                     "section_1_signed_by",
                     "section_1_signed_at",
@@ -203,6 +205,24 @@ class AssessmentsAdmin(admin.ModelAdmin):
         ),
     )
 
+    # =========================================
+    # Section 1 Anatomy Markers Display
+    # =========================================
+    def pretty_section_1_markers(self, obj):
+        if not obj.section_1_anatomy_markers:
+            return "No markers"
+
+        formatted = json.dumps(obj.section_1_anatomy_markers, indent=2)
+
+        return format_html(
+            "<div style='max-height:200px; overflow:auto; background:#111; color:#0f0; padding:10px; border-radius:6px;'>"
+            "<pre style='margin:0; white-space: pre-wrap;'>{}</pre>"
+            "</div>",
+            formatted,
+        )
+
+    pretty_section_1_markers.short_description = "Section 1 Anatomy Markers"
+
     # =====================
     # Auto set created_by and updated_by
     # =====================
@@ -268,7 +288,7 @@ class SoapsAdmin(admin.ModelAdmin):
     readonly_fields = (
         "created_at",
         "updated_at",
-        "pretty_markers",  # 👈 pretty display
+        "pretty_markers",
     )
 
     inlines = [SoapModalityInline]
@@ -313,7 +333,6 @@ class SoapsAdmin(admin.ModelAdmin):
             "Treatment",
             {
                 "fields": (
-                    "mp_smt",
                     "patient_tolerated_treatment_well",
                     "patient_improved_with_treatment",
                     "pain_after_treatment",

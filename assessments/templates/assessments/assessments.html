@@ -184,50 +184,13 @@
                 }
             },
             {
-                title: "S.O.A.P.",
-                data: null,
-                orderable: false,
-                searchable: false,
-                className: "text-center align-middle",
-                render: function (row) {
-                    const urlTemplate = "{% url 'assessment_soap_create' 0 %}";
-                    const url = urlTemplate.replace("0", row.id);
-                    let icon = "bi-heart-pulse";
-                    let iconColor = "text-primary";
-                    let tooltip = "Add S.O.A.P. Note";
-
-                    if (row.is_discharged) {
-                        return lock_if_discharged()
-                    }
-
-                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
-                    if (!section4Signed) {
-                        return lock_column(icon, "S.O.A.P Note locked until Section 4 is signed off");
-                    }
-
-                    const canAccess = ("{{ profile }}" === row.clinician) || ("{{ profile }}" === row.student);
-                    if (!canAccess) {
-                        return lock_column(icon, "You can only add S.O.A.P. notes to assessments where you are the assigned clinician or student.");
-                    }
-
-                    return `
-                        <a href="${url}">
-                            <i class="bi ${icon} ${iconColor}"
-                            title="${tooltip}"
-                            style="font-size:1.25rem; cursor:pointer;">
-                            </i>
-                        </a>
-                    `;
-                }
-            },
-            {
                 title: "S.O.A.P. Log",
                 data: null,
                 orderable: false,
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
-                    let icon = "bi-journal-medical";
+                    let icon = "bi-heart-pulse";
                     let iconColor = "text-primary";
                     let tooltip = "View S.O.A.P. Log";
 
@@ -531,9 +494,28 @@
             const rowData = table.row($(this).closest('tr')).data();
             const assessmentId = rowData.id;
 
+            const urlTemplate = "{% url 'assessment_soap_create' 0 %}";
+            const createUrl = urlTemplate.replace("0", assessmentId);
+
             // Set header
             $('#modalSoapPatientName').text(rowData.patient_name);
             $('#modalSoapFileNumber').text(rowData.file_number);
+
+            // Update Create S.O.A.P. button state
+            const section4Signed = rowData.section_4_signed_at || rowData.is_section_4_signed;
+            const canAccess = ("{{ profile }}" === rowData.clinician) || ("{{ profile }}" === rowData.student);
+
+            if (rowData.is_discharged || !section4Signed || !canAccess) {
+                $('#createSoapBtn')
+                    .addClass('disabled')
+                    .removeAttr('href')
+                    .attr('title', 'You cannot create a S.O.A.P note for this assessment');
+            } else {
+                $('#createSoapBtn')
+                    .removeClass('disabled')
+                    .attr('href', createUrl)
+                    .attr('title', 'Create S.O.A.P');
+            }
 
             // Show modal
             soapLogModal.show();

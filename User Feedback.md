@@ -12,18 +12,17 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 
 - Several fields need to be added alter but need to wait for Chiro team to provides the fields information
 
+28/04/2026
+- Add Image uploading field in Treatment
+- User creation, student need a field for cohorts
 
 Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
-- Fix UI on the undo and clear button in section 1 signature
-
 
 
 QUESTION to ask in the future to Chiro team:
-- If clinician assign their assessment to another clinician, they can't edit that assessment anymore, is it sort of a handover to another clinician process?
-- Where does patient need to sign again during final phase of the assessment
 
 Bugs:
 - Datatable sorting is incorrect
@@ -69,6 +68,7 @@ Minor:
 
 - Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
 - Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
+- Fix UI on the undo and clear button in section 1 signature [DONE]
 
 09/04/2026
 - Section 3:

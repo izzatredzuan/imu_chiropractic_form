@@ -1,5 +1,6 @@
 import logging
 import base64
+from urllib import request
 import uuid
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
@@ -56,8 +57,10 @@ class AssessmentsListAPIView(APIView):
 class AssessmentSection1And2APIView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, assessment_id=None):
+    def get(self, request):
         profile = request.user.profile
+        assessment_id = request.GET.get("assessment_id")
+        
         if not assessment_id:
             return Response(
                 {"assessment_id": "Assessment ID is required"},
@@ -457,10 +460,8 @@ class AssessmentSection3APIView(APIView):
         # =========================
         # ACTION LOGIC (SIGN-OFF)
         # =========================
-        print(action)
         try:
             if action == "save_section_3":
-                print("trying to save_section_3")
                 assessment.is_section_3_signed = False
 
                 logger.info(
@@ -469,7 +470,6 @@ class AssessmentSection3APIView(APIView):
                 )
 
             elif action == "sign_off_section_3":
-                print("trying to sign_off_section_3")
                 if profile.role not in ["clinician", "admin"]:
                     logger.warning(
                         f"SIGN_OFF_DENIED - Section 3 | "
