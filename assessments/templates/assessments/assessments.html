@@ -184,7 +184,7 @@
                 }
             },
             {
-                title: "S.O.A.P. Log",
+                title: "S.O.A.P.",
                 data: null,
                 orderable: false,
                 searchable: false,
@@ -192,7 +192,7 @@
                 render: function (row) {
                     let icon = "bi-heart-pulse";
                     let iconColor = "text-primary";
-                    let tooltip = "View S.O.A.P. Log";
+                    let tooltip = "View S.O.A.P.";
 
                     if (row.is_discharged) {
                         return lock_if_discharged()
@@ -200,12 +200,12 @@
 
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
                     if (!section4Signed) {
-                        return lock_column(icon, "S.O.A.P. Log locked until Section 4 is signed off");
+                        return lock_column(icon, "S.O.A.P. locked until Section 4 is signed off");
                     }
 
                     return `
                         <a class="iconColor" onclick="event.preventDefault(); href="">
-                            <i class="bi ${icon} ${iconColor} treatment-log-btn"
+                            <i class="bi ${icon} ${iconColor} soap-log-btn"
                             role="button"
                             title="${tooltip}"
                             data-id="${row.id}"
@@ -489,7 +489,7 @@
         // =========================
         // Open Modal + Fetch Data
         // =========================
-        $('#assessmentsTable').on('click', '.treatment-log-btn', function () {
+        $('#assessmentsTable').on('click', '.soap-log-btn', function () {
 
             const rowData = table.row($(this).closest('tr')).data();
             const assessmentId = rowData.id;
@@ -685,5 +685,5 @@
 </script>
 
 {% include 'assessments/modal/_discharge_confirmation.html' %}
-{% include 'assessments/modal/_soap_log_soap_list.html' %}
+{% include 'assessments/modal/_soap_log_modal.html' %}
 {% endblock %}

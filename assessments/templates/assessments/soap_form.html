@@ -110,8 +110,8 @@
 
               {% for s in students %}
               <option value="{{ s.id }}" {% if soap and soap.student.id == s.id %}selected{% endif %}
-                {% if not soap and assessment.student.id == s.id %}selected{% endif %}
-                {% if not soap and not assessment.student and student_readonly and request.user.profile.id == s.id %}
+                {% if not soap and soap.student.id == s.id %}selected{% endif %}
+                {% if not soap and not soap.student and student_readonly and request.user.profile.id == s.id %}
                 selected {% endif %}>
                 {{ s.member_id }} – {{ s.official_name }}
               </option>
@@ -132,7 +132,7 @@
               <option value="">-- Select Clinician --</option>
               {% for c in clinicians %}
               <option value="{{ c.id }}" {% if soap and soap.evaluator.id == c.id %}selected{% endif %}
-                {% if not soap and assessment.evaluator.id == c.id %}selected{% endif %}>
+                {% if not soap and soap.evaluator.id == c.id %}selected{% endif %}>
                 {{ c.member_id }} – {{ c.official_name }}
               </option>
               {% endfor %}
@@ -459,7 +459,9 @@
 </div>
 
 <script>
-  const IS_READONLY = {{ is_readonly|yesno:"true,false" }};
+  const IS_READONLY = {{ is_readonly|yesno:"true,false" }} === true || {{ soap.is_soap_signed|yesno:"true,false" }} === true;
+  const ASSESSMENT_ID = "{{ assessment.id }}";
+  const SOAP_ID = "{{ soap.id|default:'' }}";
   
   let markers = [];
   let markerCounter = 1;
@@ -475,8 +477,6 @@
     const noteTextarea = document.getElementById("noteTextarea");
     const saveNoteBtn = document.getElementById("saveNoteBtn");
     const deleteMarkerBtn = document.getElementById("deleteMarkerBtn");
-
-    
 
     const anatomyImage = document.getElementById("anatomyImage");
     const markerLayer = document.getElementById("markerLayer");
@@ -692,10 +692,8 @@
     // LOAD MARKERS
     // =========================
     function loadMarkersFromAPI() {
-      const assessmentId = "{{ assessment.id }}";
-      const soapId = "{{ soap.id|default:'' }}";
-
-      const apiUrl = "{% url 'assessment_soap_api' %}?assessment_id=" + assessmentId + "&soap_id=" + soapId;
+      if (!SOAP_ID) return;
+      const apiUrl = "{% url 'assessment_soap_api' %}?assessment_id=" + ASSESSMENT_ID + "&soap_id=" + SOAP_ID;
 
       fetch(apiUrl, { credentials: "include" })
         .then(res => res.json())
@@ -723,7 +721,9 @@
         })
         .catch(err => console.error("Failed to load markers:", err));
     }
-    loadMarkersFromAPI();
+    if (SOAP_ID) {
+        loadMarkersFromAPI();
+    }
 
     // =========================
     // MODALITY
@@ -823,39 +823,17 @@
     if (!confirm(confirmMessage)) return;
 
     const formData = new FormData(this);
-    const payload = {};
 
     // =========================
     // NORMAL FIELDS
     // =========================
-    formData.forEach((value, key) => {
-
-      // Skip modality fields (handled separately)
-      if (
-        key.startsWith("modality_") ||
-        key.startsWith("location_") ||
-        key.startsWith("settings_") ||
-        key.startsWith("duration_intensity_")
-      ) return;
-
-      payload[key] = value;
-    });
+    const payload = Object.fromEntries(formData.entries());
 
     // =========================
     // FORCE REQUIRED FIELDS
     // =========================
     payload["assessment"] = Number("{{ assessment.id }}");
     payload["action"] = clickedAction;
-
-    // Convert number fields
-    [
-      "soap_pulse",
-      "soap_respiratory",
-      "soap_systolic_bp",
-      "soap_diastolic_bp"
-    ].forEach(field => {
-      payload[field] = Number(payload[field]);
-    });
 
     payload["markers"] = markers;
 
@@ -878,26 +856,9 @@
 
     payload["soap_modalities"] = modalities;
 
-    // =========================
-    // VALIDATION
-    // =========================
-    if (!payload.soap_pulse ||
-      !payload.soap_respiratory ||
-      !payload.soap_systolic_bp ||
-      !payload.soap_diastolic_bp) {
-      alert("Please fill in all vitals");
-      return;
-    }
-
     if (!payload["next_appointment"]) {
-      // alert("Next appointment is required");
-      payload["next_appointment"] = null;
+      delete payload["next_appointment"];
     }
-
-    // if (!payload.soap_modalities.length) {
-    //   alert("At least one modality is required");
-    //   return;
-    // }
 
     // =========================
     // API CALL

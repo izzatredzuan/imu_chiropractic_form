@@ -27,6 +27,7 @@ QUESTION to ask in the future to Chiro team:
 Bugs:
 - Datatable sorting is incorrect
 
+
 DONE:
 Major:
 - Original Section 1 will be split into 2 section and original section 2 and 3 will be combine into 1 section [DONE]
@@ -75,6 +76,9 @@ Minor:
     - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM [DONE]
 
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment [CANCELLED]
+
+Bugs:
+- SOAP unable to unsign off on update soap button [DONE]
 
 Minor existing Changes To do:
 - Evaluator need to be able multi select [CANCELLED]
