@@ -215,6 +215,44 @@
                 }
             },
             {
+                title: "Re-Evaluation",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+
+                render: function (row) {
+                    let icon = "bi-clipboard2-check";
+                    let iconColor = "text-primary";
+                    let tooltip = "View Patient Reevaluations";
+
+                    if (row.is_discharged) {
+                        return lock_if_discharged();
+                    }
+
+                    const section4Signed =
+                        row.section_4_signed_at || row.is_section_4_signed;
+                    if (!section4Signed) {
+                        return lock_column(
+                            icon,
+                            "Patient Reevaluation locked until Section 4 is signed off"
+                        );
+                    }
+
+                    return `
+                        <a class="iconColor"
+                        onclick="event.preventDefault(); href=''">
+                            <i class="bi ${icon} ${iconColor} reevaluation-log-btn"
+                            role="button"
+                            title="${tooltip}"
+                            data-id="${row.id}"
+                            style="cursor:pointer; font-size:1.25rem;">
+                            </i>
+                        </a>
+                    `;
+                }
+            },
+            {
                 title: "Created",
                 data: "created_at",
                 className: "text-center align-middle",
@@ -572,8 +610,8 @@
                     `<span class="badge signed">Signed</span>` :
                     `<span class="badge ready">Ready for Sign-Off</span>`;
 
-                const signedSection = soap.is_soap_signed ? 
-                `
+                const signedSection = soap.is_soap_signed ?
+                    `
                     <div class="alert alert-success mt-0 mb-3 py-2 px-3">
                         <strong>Signed-off by:</strong>
                         ${soap.signed_by_name || "-"}
@@ -681,9 +719,293 @@
             });
             $('#soapListContainer').html(html);
         }
+
+        // ==================================
+        // REEVALUATION LOG MODAL
+        // ==================================
+        const reevaluationLogModal = new bootstrap.Modal(
+            document.getElementById('reevaluationLogModal')
+        );
+
+        // =========================
+        // OPEN MODAL + FETCH DATA
+        // =========================
+        $('#assessmentsTable').on(
+            'click',
+            '.reevaluation-log-btn',
+            function () {
+                const rowData = table.row($(this).closest('tr')).data();
+                const assessmentId = rowData.id;
+                const urlTemplate =
+                    "{% url 'assessment_patient_reevaluation_create' 0 %}";
+                const createUrl =
+                    urlTemplate.replace("0", assessmentId);
+
+                // HEADER
+                $('#modalReevaluationPatientName')
+                    .text(rowData.patient_name);
+                $('#modalReevaluationFileNumber')
+                    .text(rowData.file_number);
+
+                // BUTTON ACCESS
+                const section4Signed =
+                    rowData.section_4_signed_at ||
+                    rowData.is_section_4_signed;
+                const canAccess =
+                    ("{{ profile }}" === rowData.clinician) ||
+                    ("{{ profile }}" === rowData.student);
+
+                if (
+                    rowData.is_discharged ||
+                    !section4Signed ||
+                    !canAccess
+                ) {
+                    $('#createReevaluationBtn')
+                        .addClass('disabled')
+                        .removeAttr('href')
+                        .attr(
+                            'title',
+                            'You cannot create a reevaluation for this assessment'
+                        );
+                } else {
+                    $('#createReevaluationBtn')
+                        .removeClass('disabled')
+                        .attr('href', createUrl)
+                        .attr(
+                            'title',
+                            'Create Reevaluation'
+                        );
+                }
+                // SHOW MODAL
+                reevaluationLogModal.show();
+
+                // LOADING
+                $('#reevaluationListContainer').html(`
+                    <div class="text-center text-muted">
+                        Loading...
+                    </div>
+                `);
+
+                const apiUrl =
+                    "{% url 'assessment_patient_reevaluation_api' %}" +
+                    "?assessment_id=" +
+                    assessmentId;
+                fetch(apiUrl)
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(
+                                "Failed to fetch reevaluations."
+                            );
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        renderReevaluationList(
+                            data,
+                            assessmentId
+                        );
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        $('#reevaluationListContainer').html(`
+                            <div class="text-danger text-center">
+                                Failed to load reevaluations.
+                            </div>
+                        `);
+                    });
+            }
+        );
+
+        // =========================
+        // RENDER LIST
+        // =========================
+        function renderReevaluationList(
+            data,
+            assessmentId
+        ) {
+            if (!data.length) {
+                $('#reevaluationListContainer').html(`
+                    <div class="text-center text-muted">
+                        No reevaluations found.
+                    </div>
+                `);
+
+                return;
+            }
+
+            let html = "";
+            data.forEach(reevaluation => {
+                const createdDate =
+                    reevaluation.created_at ?
+                    moment(reevaluation.created_at)
+                    .format("DD/MM/YYYY HH:mm") :
+                    "-";
+                const updatedDate =
+                    reevaluation.updated_at ?
+                    moment(reevaluation.updated_at)
+                    .format("DD/MM/YYYY HH:mm") :
+                    "-";
+                const signedBadge =
+                    reevaluation.is_reevaluation_signed ?
+                    `<span class="badge signed">
+                        Signed
+                    </span>` :
+                    `<span class="badge ready">
+                        Ready for Sign-Off
+                    </span>`;
+
+                const signedSection =
+                    reevaluation.is_reevaluation_signed ?
+                    `
+                    <div class="alert alert-success mt-0 mb-3 py-2 px-3">
+                        <strong>Signed-off by:</strong>
+                        ${reevaluation.signed_by_name || "-"}
+                        <br>
+                        <small class="text-muted">
+                            Signed at:
+                            ${
+                                reevaluation.reevaluation_signed_at
+                                ?
+                                moment(
+                                    reevaluation.reevaluation_signed_at
+                                ).format("DD MMM YYYY, hh:mm A")
+                                :
+                                "-"
+                            }
+                        </small>
+                    </div>
+                    ` :
+                    "";
+
+                const urlTemplate =
+                    "{% url 'assessment_patient_reevaluation_edit' 0 1 %}";
+                const fullUrl =
+                    urlTemplate
+                    .replace("0", assessmentId)
+                    .replace("1", reevaluation.id);
+
+                html += `
+                    <div class="card mb-4 shadow-sm hover-shadow"
+                        style="cursor:pointer;">
+                        <!-- HEADER -->
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-semibold">
+                                    Reevaluation
+                                </span>
+                                <br>
+
+                                <small class="text-muted">
+                                    <strong>ID:</strong>
+                                    ${reevaluation.id}
+                                </small>
+                            </div>
+                            ${signedBadge}
+                        </div>
+
+                        <div class="card-body">
+                            ${signedSection}
+                            <!-- STUDENT + CLINICIAN -->
+                            <div class="mb-3">
+                                <div class="row small text-muted">
+
+                                    <div class="col-6">
+                                        <strong>Student:</strong><br>
+                                        ${reevaluation.student_name || "-"}
+                                    </div>
+
+                                    <div class="col-6">
+                                        <strong>Clinician:</strong><br>
+                                        ${reevaluation.evaluator_name || "-"}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DATES -->
+                            <div class="mb-3 small text-muted">
+                                <div>
+                                    <strong>Reevaluation Date:</strong>
+                                    ${
+                                        reevaluation.date_of_reevaluation
+                                        ?
+                                        moment(
+                                            reevaluation.date_of_reevaluation
+                                        ).format("DD/MM/YYYY")
+                                        :
+                                        "-"
+                                    }
+                                </div>
+
+                                <div>
+                                    <strong>Next Reevaluation:</strong>
+                                    ${
+                                        reevaluation.next_reevaluation
+                                        ?
+                                        moment(
+                                            reevaluation.next_reevaluation
+                                        ).format("DD/MM/YYYY")
+                                        :
+                                        "-"
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- DIAGNOSIS -->
+                            <div class="mb-3">
+                                <div class="fw-semibold small text-muted mb-1">
+                                    <strong>Diagnosis:</strong>
+                                </div>
+
+                                <div class="small">
+                                    ${
+                                        reevaluation.diagnosis
+                                        ?
+                                        reevaluation.diagnosis.substring(0, 150)
+                                        :
+                                        "-"
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- CREATED + UPDATED -->
+                            <div class="row small text-muted mb-2">
+
+                                <div class="col-6">
+                                    <strong>Created:</strong><br>
+                                    ${createdDate}<br>
+
+                                    <span class="text-muted">
+                                        by ${reevaluation.created_by || "-"}
+                                    </span>
+                                </div>
+
+                                <div class="col-6">
+                                    <strong>Updated:</strong><br>
+                                    ${updatedDate}<br>
+
+                                    <span class="text-muted">
+                                        by ${reevaluation.updated_by || "-"}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- EDIT BUTTON -->
+                            <div class="d-flex justify-content-end">
+                                <a href="${fullUrl}"
+                                class="btn btn-primary edit-btn px-3">
+                                    Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            $('#reevaluationListContainer').html(html);
+        }
     });
 </script>
 
-{% include 'assessments/modal/_discharge_confirmation.html' %}
+{% include 'assessments/modal/_discharge_confirmation_modal.html' %}
 {% include 'assessments/modal/_soap_log_modal.html' %}
+{% include 'assessments/modal/_patient_reevaluation_modal.html' %}
 {% endblock %}

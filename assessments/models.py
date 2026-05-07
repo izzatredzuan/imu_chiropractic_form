@@ -268,7 +268,7 @@ class Soaps(models.Model):
 
     student = models.ForeignKey(
         Profile,
-        on_delete=models.PROTECT,  # ✅ prevent deletion if used
+        on_delete=models.PROTECT,
         related_name="student_soap",
         limit_choices_to={"role": "student"},
     )
@@ -389,4 +389,74 @@ class SoapModality(models.Model):
         indexes = [
             models.Index(fields=["soap"]),
             models.Index(fields=["modality"]),
+        ]
+
+class PatientReevaluation(models.Model):
+    assessment = models.ForeignKey(
+        Assessments, on_delete=models.CASCADE, related_name="patient_reevaluations"
+    )
+
+    student = models.ForeignKey(
+        Profile,
+        on_delete=models.PROTECT,
+        related_name="student_patient_reevaluations",
+        limit_choices_to={"role": "student"},
+    )
+
+    evaluator = models.ForeignKey(
+        Profile,
+        on_delete=models.PROTECT,
+        related_name="evaluator_patient_reevaluations",
+        limit_choices_to={"role": "clinician"},
+    )
+    
+    date_of_reevaluation = models.DateField(null=True, blank=True, default=None)
+    current_status = models.TextField(blank=True, default="")
+    physical_examination = models.TextField(blank=True, default="")
+    diagnosis = models.TextField(blank=True, default="")
+    treatment_plan = models.TextField(blank=True, default="")
+    outcome_measures = models.TextField(blank=True, default="")
+
+    next_reevaluation = models.DateField(null=True, blank=True, default=None)
+
+    is_reevaluation_signed = models.BooleanField(default=False)
+    reevaluation_signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reevaluation_signed",
+        limit_choices_to={"role": "clinician"},
+        default=None,
+    )
+    reevaluation_signed_at = models.DateTimeField(null=True, blank=True, default=None)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_patient_reevaluations",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_patient_reevaluations",
+    )
+
+    def __str__(self):
+        return f"Patient Reevaluation #{self.id} - {self.assessment.patient_name}"
+    
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Patient Reevaluation"
+        verbose_name_plural = "Patient Reevaluations"
+        indexes = [
+            models.Index(fields=["assessment"]),
+            models.Index(fields=["created_at"]),
+            models.Index(fields=["next_reevaluation"]),
         ]

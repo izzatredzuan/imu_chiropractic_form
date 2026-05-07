@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from accounts.models import Profile
-from .models import Assessments, SoapModality, Soaps
+from .models import Assessments, SoapModality, Soaps, PatientReevaluation
 from .utils import is_section_complete
 from .constants import (
     SECTION_1_FIELDS,
@@ -429,6 +429,101 @@ class SoapSerializer(serializers.ModelSerializer):
         if not modalities:
             raise serializers.ValidationError(
                 {"soap_modalities": "At least one modality is required."}
+            )
+
+        return data
+    
+
+class PatientReevaluationSerializer(serializers.ModelSerializer):
+    evaluator = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.filter(role="clinician"),
+        required=True,
+    )
+
+    student = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.filter(role="student"),
+        required=True,
+    )
+
+    student_name = serializers.CharField(
+        source="student.official_name",
+        read_only=True,
+    )
+
+    evaluator_name = serializers.CharField(
+        source="evaluator.official_name",
+        read_only=True,
+    )
+
+    signed_by_name = serializers.CharField(
+        source="reevaluation_signed_by.official_name",
+        read_only=True,
+    )
+
+    created_by = serializers.CharField(
+        source="created_by.official_name",
+        read_only=True,
+    )
+
+    updated_by = serializers.CharField(
+        source="updated_by.official_name",
+        read_only=True,
+    )
+
+    class Meta:
+        model = PatientReevaluation
+
+        fields = [
+            "id",
+            "assessment",
+            "student",
+            "evaluator",
+
+            "date_of_reevaluation",
+            "current_status",
+            "physical_examination",
+            "diagnosis",
+            "treatment_plan",
+            "outcome_measures",
+            "next_reevaluation",
+
+            "is_reevaluation_signed",
+            "reevaluation_signed_by",
+            "reevaluation_signed_at",
+
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
+
+            "student_name",
+            "evaluator_name",
+            "signed_by_name",
+        ]
+
+        read_only_fields = [
+            "created_at",
+            "updated_at",
+            "is_reevaluation_signed",
+            "reevaluation_signed_at",
+        ]
+
+    def validate(self, data):
+        date_of_reevaluation = data.get("date_of_reevaluation")
+        next_reevaluation = data.get("next_reevaluation")
+
+        if (
+            date_of_reevaluation
+            and next_reevaluation
+            and next_reevaluation < date_of_reevaluation
+        ):
+            raise serializers.ValidationError(
+                {
+                    "next_reevaluation": (
+                        "Next reevaluation date cannot be earlier "
+                        "than reevaluation date."
+                    )
+                }
             )
 
         return data

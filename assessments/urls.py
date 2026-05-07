@@ -48,6 +48,17 @@ urlpatterns = [
         views.SoapFormView.as_view(),
         name="assessment_soap_edit",
     ),
+    path(
+        "<int:assessment_id>/patient-reevaluation/create/",
+        views.PatientReevaluationFormView.as_view(),
+        name="assessment_patient_reevaluation_create",
+    ),
+    path(
+        "<int:assessment_id>/patient-reevaluation/<int:reevaluation_id>/",
+        views.PatientReevaluationFormView.as_view(),
+        name="assessment_patient_reevaluation_edit",
+    ),
+
     # API endpoints
     path(
         "api/assessments/",
@@ -78,5 +89,10 @@ urlpatterns = [
         "api/assessments/soap/",
         api.SoapAPIView.as_view(),
         name="assessment_soap_api",
+    ),
+    path(
+        "api/assessments/patient-reevaluation/",
+        api.PatientReevaluationAPIView.as_view(),
+        name="assessment_patient_reevaluation_api",
     ),
 ]

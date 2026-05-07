@@ -1,0 +1,350 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid mt-4 mb-4 px-4">
+
+    <!-- ========================= PAGE TITLE ========================= -->
+    <div class="mb-4">
+        <h2 class="fw-semibold mobile-fonts">
+            Patient Reevaluation
+        </h2>
+    </div>
+
+    <!-- ========================= PATIENT INFO ========================= -->
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            <h5 class="mb-0">
+                Patient:
+                <strong>{{ assessment.patient_name }}</strong>
+            </h5>
+
+            <h6 class="mb-0 text-muted">
+                File No:
+                <strong>{{ assessment.file_number }}</strong>
+            </h6>
+        </div>
+    </div>
+
+    <form id="reevaluationForm">
+        <!-- ========================= ASSIGNMENT ========================= -->
+        {% if assessment %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">
+                Assignment
+            </div>
+
+            <div class="card-body">
+                {% if is_readonly %}
+                <div class="alert alert-warning">
+                    You are viewing this section in read-only mode because you are not the assigned clinician or
+                    student.
+                </div>
+                {% endif %}
+
+                <!-- SIGN OFF -->
+                {% if reevaluation and reevaluation.is_reevaluation_signed %}
+                <div class="alert alert-success">
+                    <strong>Signed-off by:</strong>
+                    {{ reevaluation.reevaluation_signed_by.official_name }}
+                    ({{ reevaluation.reevaluation_signed_by.role|title }})
+                    <br>
+
+                    <small class="text-muted">
+                        Signed at:
+                        {{ reevaluation.reevaluation_signed_at|date:"d M Y, h:i A" }}
+                    </small>
+                </div>
+                {% endif %}
+
+                {% if assessment.is_discharged %}
+                <div class="alert alert-info">
+                    <strong>Patient has been discharged.</strong>
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    <!-- STUDENT -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">
+                            Student
+                        </label>
+
+                        <select name="student" class="form-control" required
+                            {% if student_readonly or is_readonly %}disabled{% endif %}>
+
+                            <option value="">
+                                -- Select Student --
+                            </option>
+
+                            {% for s in students %}
+                            <option value="{{ s.id }}"
+                                {% if reevaluation and reevaluation.student.id == s.id %}selected{% endif %}
+                                {% if not reevaluation and request.user.profile.id == s.id and student_readonly %}selected{% endif %}>
+                                {{ s.member_id }} – {{ s.official_name }}
+                            </option>
+                            {% endfor %}
+
+                        </select>
+
+                        {% if student_readonly %}
+                        <input type="hidden" name="student"
+                            value="{% if reevaluation %}{{ reevaluation.student.id }}{% else %}{{ request.user.profile.id }}{% endif %}">
+                        {% endif %}
+                    </div>
+
+                    <!-- EVALUATOR -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">
+                            Evaluator (Clinician)
+                        </label>
+
+                        <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+
+                            <option value="">
+                                -- Select Clinician --
+                            </option>
+
+                            {% for c in clinicians %}
+                            <option value="{{ c.id }}"
+                                {% if reevaluation and reevaluation.evaluator.id == c.id %}selected{% endif %}>
+                                {{ c.member_id }} – {{ c.official_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========================= REEVALUATION ========================= -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">
+                Reevaluation Details
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <!-- DATE -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">
+                            Date of Reevaluation
+                        </label>
+
+                        <input type="date" name="date_of_reevaluation" class="form-control" required
+                            value="{% if reevaluation %}{{ reevaluation.date_of_reevaluation|date:'Y-m-d' }}{% endif %}"
+                            {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>
+                    </div>
+
+                    <!-- NEXT REEVALUATION -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            Next Reevaluation
+                        </label>
+
+                        <input type="date" name="next_reevaluation" class="form-control"
+                            value="{% if reevaluation %}{{ reevaluation.next_reevaluation|date:'Y-m-d' }}{% endif %}"
+                            {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>
+                    </div>
+                </div>
+
+                <!-- CURRENT STATUS -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Current Status
+                    </label>
+
+                    <textarea name="current_status" class="form-control" rows="4" required
+                        {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>{{ reevaluation.current_status|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- PHYSICAL EXAMINATION -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Physical Examination
+                    </label>
+
+                    <textarea name="physical_examination" class="form-control" rows="4" required
+                        {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>{{ reevaluation.physical_examination|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- DIAGNOSIS -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Diagnosis
+                    </label>
+
+                    <textarea name="diagnosis" class="form-control" rows="4" required
+                        {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>{{ reevaluation.diagnosis|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- TREATMENT PLAN -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Treatment Plan
+                    </label>
+
+                    <textarea name="treatment_plan" class="form-control" rows="4" required
+                        {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>{{ reevaluation.treatment_plan|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- OUTCOME MEASURES -->
+                <div>
+                    <label class="form-label required">
+                        Outcome Measures
+                    </label>
+
+                    <textarea name="outcome_measures" class="form-control" rows="4" required
+                        {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>{{ reevaluation.outcome_measures|default_if_none:'' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================= ACTION BUTTONS ========================= -->
+        <div class="mt-4 d-flex justify-content-end gap-2">
+            <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
+                Cancel
+            </a>
+
+            {% if not is_readonly %}
+            <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary btn-mobile">
+                {% if reevaluation %}
+                Update Reevaluation
+                {% else %}
+                Create Reevaluation
+                {% endif %}
+            </button>
+
+            {% if assessment and request.user.profile.role in "clinician admin" %}
+            <button type="submit" id="btnSignOff" name="action" value="sign_off" class="btn btn-success btn-mobile">
+                {% if reevaluation %}
+                Update & Sign Off
+                {% else %}
+                Create & Sign Off
+                {% endif %}
+            </button>
+            {% endif %}
+            {% endif %}
+        </div>
+
+    </form>
+</div>
+
+<script>
+    const ASSESSMENT_ID = "{{ assessment.id }}";
+    const REEVALUATION_ID = "{{ reevaluation.id|default:'' }}";
+
+    // =========================
+    // ACTION BUTTONS
+    // =========================
+    let clickedAction = "save";
+
+    const btnSave = document.getElementById("btnSave");
+    const btnSignOff = document.getElementById("btnSignOff");
+
+    if (btnSave) {
+        btnSave.addEventListener("click", () => {
+            clickedAction = "save";
+        });
+    }
+
+    if (btnSignOff) {
+        btnSignOff.addEventListener("click", () => {
+            clickedAction = "sign_off";
+        });
+    }
+
+    // =========================
+    // FORM SUBMIT
+    // =========================
+    document.getElementById("reevaluationForm")
+        .addEventListener("submit", function (e) {
+            e.preventDefault();
+            let confirmMessage =
+                "Are you sure you want to save this reevaluation?";
+
+            if (clickedAction === "sign_off") {
+                confirmMessage =
+                    "Are you sure you want to SIGN OFF this reevaluation?";
+            }
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            const formData = new FormData(this);
+            const payload = Object.fromEntries(formData.entries());
+            // =========================
+            // REQUIRED
+            // =========================
+            payload["assessment"] = Number(ASSESSMENT_ID);
+            payload["action"] = clickedAction;
+
+            // remove empty optional date
+            if (!payload["next_reevaluation"]) {
+                delete payload["next_reevaluation"];
+            }
+            
+            // =========================
+            // DATE VALIDATION
+            // =========================
+            if (payload["date_of_reevaluation"] && payload["next_reevaluation"]) {
+
+            const reevaluationDate = new Date(payload["date_of_reevaluation"]);
+            const nextAppointmentDate = new Date(payload["next_reevaluation"]);
+
+            // reset time
+            reevaluationDate.setHours(0,0,0,0);
+            nextAppointmentDate.setHours(0,0,0,0);
+
+            if (nextAppointmentDate < reevaluationDate) {
+                alert("Next appointment date cannot be earlier than reevaluation date.");
+                return;
+            }
+            }
+            // =========================
+            // API METHOD
+            // =========================
+            {% if reevaluation %}
+            payload["reevaluation_id"] = "{{ reevaluation.id }}";
+            const method = "PUT"; 
+            {% else %}
+            const method = "POST"; 
+            {% endif %}
+
+            // =========================
+            // API CALL
+            // =========================
+            fetch("{% url 'assessment_patient_reevaluation_api' %}", {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": CSRFTOKEN
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(err => {
+                            throw err;
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    alert(data.message || "Saved successfully");
+                    window.location.href =
+                        "{% url 'assessments_list' %}";
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(
+                        err.detail ||
+                        "Failed to save patient reevaluation."
+                    );
+                });
+        });
+</script>
+
+{% endblock %}

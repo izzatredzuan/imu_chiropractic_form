@@ -2,7 +2,7 @@ import json
 
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Assessments, SoapModality, Soaps
+from .models import Assessments, PatientReevaluation, SoapModality, Soaps
 
 @admin.register(Assessments)
 class AssessmentsAdmin(admin.ModelAdmin):
@@ -428,3 +428,115 @@ class SoapModalityAdmin(admin.ModelAdmin):
     )
 
     autocomplete_fields = ("soap",)
+
+
+# =========================================
+# Patient Reevaluation Admin
+# =========================================
+@admin.register(PatientReevaluation)
+class PatientReevaluationAdmin(admin.ModelAdmin):
+
+    list_display = (
+        "id",
+        "assessment",
+        "student",
+        "evaluator",
+        "date_of_reevaluation",
+        "next_reevaluation",
+        "created_at",
+        "is_reevaluation_signed",
+    )
+
+    list_filter = (
+        "is_reevaluation_signed",
+        "date_of_reevaluation",
+        "next_reevaluation",
+        "created_at",
+    )
+
+    search_fields = (
+        "assessment__patient_name",
+        "assessment__file_number",
+        "student__user__username",
+        "evaluator__user__username",
+    )
+
+    autocomplete_fields = (
+        "assessment",
+        "student",
+        "evaluator",
+        "reevaluation_signed_by",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+    fieldsets = (
+        (
+            "Assessment Link",
+            {"fields": ("assessment",)},
+        ),
+        (
+            "Assignment",
+            {
+                "fields": (
+                    "student",
+                    "evaluator",
+                )
+            },
+        ),
+        (
+            "Reevaluation Details",
+            {
+                "fields": (
+                    "date_of_reevaluation",
+                    "current_status",
+                    "physical_examination",
+                    "diagnosis",
+                    "treatment_plan",
+                    "outcome_measures",
+                )
+            },
+        ),
+        (
+            "Follow Up",
+            {"fields": ("next_reevaluation",)},
+        ),
+        (
+            "Sign Off",
+            {
+                "fields": (
+                    "is_reevaluation_signed",
+                    "reevaluation_signed_by",
+                    "reevaluation_signed_at",
+                )
+            },
+        ),
+        (
+            "Meta",
+            {
+                "fields": (
+                    "created_at",
+                    "created_by",
+                    "updated_at",
+                    "updated_by",
+                )
+            },
+        ),
+    )
+
+    # =========================================
+    # Auto set created_by and updated_by
+    # =========================================
+    def save_model(self, request, obj, form, change):
+        if request.user.is_authenticated and hasattr(request.user, "profile"):
+            profile = request.user.profile
+
+            if not change and obj.created_by is None:
+                obj.created_by = profile
+
+            obj.updated_by = profile
+
+        super().save_model(request, obj, form, change)

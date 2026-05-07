@@ -1,0 +1,46 @@
+<div class="modal fade" id="reevaluationLogModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Patient Reevaluation List
+                </h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- PATIENT INFO -->
+                <div class="mb-3 border-bottom pb-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            Patient:
+                            <strong id="modalReevaluationPatientName"></strong>
+                        </h5>
+
+                        <h6 class="mb-0 text-muted">
+                            File No:
+                            <strong id="modalReevaluationFileNumber"></strong>
+                        </h6>
+                    </div>
+                </div>
+
+                <!-- CREATE BUTTON -->
+                <div class="d-flex justify-content-end mb-3">
+                    <a id="createReevaluationBtn" href="#" class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>
+                        Create Reevaluation
+                    </a>
+                </div>
+
+                <!-- LIST -->
+                <div id="reevaluationListContainer">
+                    <div class="text-center text-muted">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

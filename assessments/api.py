@@ -10,13 +10,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from .models import Assessments, SoapModality, Soaps
+from .models import Assessments, SoapModality, Soaps, PatientReevaluation
 from .serializers import (
     AssessmentsListSerializer,
     AssessmentSection1And2CreateSerializer,
     AssessmentSection3Serializer,
     AssessmentSection4Serializer,
     AssessmentTreatmentPlanSerializer,
+    PatientReevaluationSerializer,
     SoapSerializer,
 )
 
@@ -1099,5 +1100,353 @@ class SoapAPIView(APIView):
             )
             return Response(
                 {"detail": "Failed to update SOAP", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class PatientReevaluationAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # =========================
+    # GET
+    # =========================
+    def get(self, request):
+        profile = request.user.profile
+
+        assessment_id = request.query_params.get("assessment_id")
+        reevaluation_id = request.query_params.get("reevaluation_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # -----------------------------
+        # Permission
+        # -----------------------------
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot view reevaluations for this assessment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # =========================
+        # GET SINGLE
+        # =========================
+        if reevaluation_id:
+            reevaluation = get_object_or_404(
+                PatientReevaluation,
+                id=reevaluation_id,
+                assessment=assessment,
+            )
+            serializer = PatientReevaluationSerializer(reevaluation)
+
+            logger.info(
+                f"VIEW_SINGLE - REEVALUATION | "
+                f"reevaluation_id={reevaluation.id}, "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role})"
+            )
+            return Response(serializer.data)
+
+        # =========================
+        # GET ALL
+        # =========================
+        reevaluations = PatientReevaluation.objects.filter(
+            assessment=assessment
+        )
+
+        serializer = PatientReevaluationSerializer(
+            reevaluations,
+            many=True,
+        )
+
+        logger.info(
+            f"VIEW_LIST - REEVALUATION | "
+            f"assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role}), "
+            f"count={reevaluations.count()}"
+        )
+        return Response(serializer.data)
+
+    # =========================
+    # POST
+    # =========================
+    def post(self, request):
+        profile = request.user.profile
+        action = request.data.get("action", "save")
+
+        serializer = PatientReevaluationSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        assessment = validated_data["assessment"]
+
+        # -----------------------------
+        # Permission check
+        # -----------------------------
+        if profile.role == "student":
+            if assessment.student != profile:
+                return Response(
+                    {
+                        "detail": (
+                            "You cannot create reevaluation "
+                            "for this assessment"
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            validated_data["student"] = profile
+
+        elif profile.role in ["admin", "clinician"]:
+            if not validated_data.get("student"):
+                return Response(
+                    {"student": "This field is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+            # -----------------------------
+            # Create Reevaluation
+            # -----------------------------
+            reevaluation = serializer.save(
+                student=validated_data.get("student"),
+                evaluator=validated_data.get("evaluator"),
+                created_by=profile,
+                updated_by=profile,
+            )
+
+            logger.info(
+                f"CREATE - REEVALUATION | "
+                f"reevaluation_id={reevaluation.id}, "
+                f"student={reevaluation.student.official_name if reevaluation.student else None}, "
+                f"evaluator={reevaluation.evaluator.official_name if reevaluation.evaluator else None}, "
+                f"assessment_id={reevaluation.assessment.id}, "
+                f"created_by={profile.official_name}, "
+                f"created_at={reevaluation.created_at}"
+            )
+
+            # -----------------------------
+            # SIGN OFF
+            # -----------------------------
+            if action == "sign_off":
+                if profile.role not in ["clinician", "admin"]:
+                    return Response(
+                        {"detail": "Not allowed to sign reevaluation"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                reevaluation.is_reevaluation_signed = True
+                reevaluation.reevaluation_signed_by = profile
+                reevaluation.reevaluation_signed_at = timezone.now()
+                reevaluation.save()
+
+                logger.info(
+                    f"SIGN_OFF - REEVALUATION | "
+                    f"reevaluation_id={reevaluation.id}, "
+                    f"assessment_id={reevaluation.assessment.id}, "
+                    f"signed_by={profile.official_name}, "
+                    f"signed_at={reevaluation.reevaluation_signed_at}"
+                )
+
+            return Response(
+                {
+                    "id": reevaluation.id,
+                    "message": "Patient reevaluation created successfully",
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Exception as e:
+            logger.error(
+                f"CREATE_FAILED - REEVALUATION | "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name}, "
+                f"error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {
+                    "detail": "Failed to create reevaluation",
+                    "error": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    # =========================
+    # PUT
+    # =========================
+    def put(self, request):
+        profile = request.user.profile
+
+        reevaluation_id = request.data.get("reevaluation_id")
+        action = request.data.get("action", "save")
+
+        if not reevaluation_id:
+            return Response(
+                {"reevaluation_id": "Reevaluation ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        reevaluation = get_object_or_404(
+            PatientReevaluation,
+            id=reevaluation_id,
+        )
+
+        # -----------------------------
+        # Permission check
+        # -----------------------------
+        if (
+            profile.role == "student"
+            and reevaluation.assessment.student != profile
+        ):
+            return Response(
+                {"detail": "You cannot edit this reevaluation"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = PatientReevaluationSerializer(
+            reevaluation,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        # -----------------------------
+        # Prevent student tampering
+        # -----------------------------
+        if profile.role == "student":
+            validated_data["student"] = profile
+        elif profile.role in ["admin", "clinician"]:
+            if (
+                "student" in validated_data
+                and not validated_data.get("student")
+            ):
+                return Response(
+                    {"student": "This field cannot be null"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+
+            # -----------------------------
+            # Save Reevaluation
+            # -----------------------------
+            reevaluation = serializer.save(
+                student=validated_data.get(
+                    "student",
+                    reevaluation.student,
+                ),
+                evaluator=validated_data.get(
+                    "evaluator",
+                    reevaluation.evaluator,
+                ),
+                updated_by=profile,
+            )
+
+            logger.info(
+                f"UPDATE - REEVALUATION | "
+                f"reevaluation_id={reevaluation.id}, "
+                f"student={reevaluation.student.official_name if reevaluation.student else None}, "
+                f"evaluator={reevaluation.evaluator.official_name if reevaluation.evaluator else None}, "
+                f"assessment_id={reevaluation.assessment.id}, "
+                f"updated_by={profile.official_name}, "
+                f"updated_at={reevaluation.updated_at}"
+            )
+
+            # =========================
+            # ACTION LOGIC
+            # =========================
+            # ---------- SAVE ----------
+            if action == "save":
+                reevaluation.is_reevaluation_signed = False
+                reevaluation.reevaluation_signed_by = None
+                reevaluation.reevaluation_signed_at = None
+
+                logger.info(
+                    f"SAVE - REEVALUATION | "
+                    f"reevaluation_id={reevaluation.id}, "
+                    f"assessment_id={reevaluation.assessment.id}, "
+                    f"updated_by={profile.official_name} | "
+                    f"Sign-off reset"
+                )
+
+            # ---------- SIGN OFF ----------
+            elif action == "sign_off":
+                if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - REEVALUATION | "
+                        f"reevaluation_id={reevaluation.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+
+                    return Response(
+                        {"detail": "Not allowed to sign reevaluation"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                reevaluation.is_reevaluation_signed = True
+                reevaluation.reevaluation_signed_by = profile
+                reevaluation.reevaluation_signed_at = timezone.now()
+
+                logger.info(
+                    f"SIGN_OFF - REEVALUATION | "
+                    f"reevaluation_id={reevaluation.id}, "
+                    f"assessment_id={reevaluation.assessment.id}, "
+                    f"signed_by={profile.official_name}, "
+                    f"signed_at={reevaluation.reevaluation_signed_at}"
+                )
+
+            reevaluation.save()
+
+            # =========================
+            # RESPONSE MESSAGE
+            # =========================
+            message = "Patient reevaluation updated successfully"
+
+            if action == "sign_off":
+                message = "Patient reevaluation signed off successfully"
+
+            elif action == "save":
+                message = (
+                    "Patient reevaluation updated successfully. "
+                    "Sign-off has been reset."
+                )
+
+            logger.info(
+                f"RESPONSE - REEVALUATION | "
+                f"reevaluation_id={reevaluation.id}, "
+                f"action={action}, "
+                f"message='{message}'"
+            )
+
+            return Response(
+                {"message": message},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+
+            logger.error(
+                f"UPDATE_FAILED - REEVALUATION | "
+                f"reevaluation_id={reevaluation.id}, "
+                f"user={profile.official_name}, "
+                f"error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {
+                    "detail": "Failed to update reevaluation",
+                    "error": str(e),
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
