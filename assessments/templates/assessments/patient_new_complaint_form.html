@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="container-fluid mt-4 mb-4 px-4">
+    <!-- ========================= PAGE TITLE ========================= -->
+    <div class="mb-4">
+        <h2 class="fw-semibold mobile-fonts">
+            Patient New Complaint
+        </h2>
+    </div>
+
+    <!-- ========================= PATIENT INFO ========================= -->
+    <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+            <h5 class="mb-0">
+                Patient:
+                <strong>{{ assessment.patient_name }}</strong>
+            </h5>
+
+            <h6 class="mb-0 text-muted">
+                File No:
+                <strong>{{ assessment.file_number }}</strong>
+            </h6>
+        </div>
+    </div>
+
+    <form id="newComplaintForm">
+        <!-- ========================= ASSIGNMENT ========================= -->
+        {% if assessment %}
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">
+                Assignment
+            </div>
+
+            <div class="card-body">
+                {% if is_readonly %}
+                <div class="alert alert-warning">
+                    You are viewing this section in read-only mode because you are not the assigned clinician or
+                    student.
+                </div>
+                {% endif %}
+
+                <!-- SIGN OFF -->
+                {% if new_complaint and new_complaint.is_new_complaint_signed %}
+                <div class="alert alert-success">
+                    <strong>Signed-off by:</strong>
+                    {{ new_complaint.new_complaint_signed_by.official_name }}
+                    ({{ new_complaint.new_complaint_signed_by.role|title }})
+                    <br>
+
+                    <small class="text-muted">
+                        Signed at:
+                        {{ new_complaint.new_complaint_signed_at|date:"d M Y, h:i A" }}
+                    </small>
+                </div>
+                {% endif %}
+
+                {% if assessment.is_discharged %}
+                <div class="alert alert-info">
+                    <strong>Patient has been discharged.</strong>
+                </div>
+                {% endif %}
+
+                <div class="row">
+                    <!-- STUDENT -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">
+                            Student
+                        </label>
+
+                        <select name="student" class="form-control" required
+                            {% if student_readonly or is_readonly %}disabled{% endif %}>
+                            <option value="">
+                                -- Select Student --
+                            </option>
+                            {% for s in students %}
+                            <option value="{{ s.id }}"
+                                {% if new_complaint and new_complaint.student.id == s.id %}selected{% endif %}
+                                {% if not new_complaint and request.user.profile.id == s.id and student_readonly %}selected{% endif %}>
+                                {{ s.member_id }} – {{ s.official_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+
+                        {% if student_readonly %}
+                        <input type="hidden" name="student"
+                            value="{% if new_complaint %}{{ new_complaint.student.id }}{% else %}{{ request.user.profile.id }}{% endif %}">
+                        {% endif %}
+                    </div>
+
+                    <!-- EVALUATOR -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">
+                            Evaluator (Clinician)
+                        </label>
+
+                        <select name="evaluator" class="form-control" required {% if is_readonly %}disabled{% endif %}>
+                            <option value="">
+                                -- Select Clinician --
+                            </option>
+                            {% for c in clinicians %}
+                            <option value="{{ c.id }}"
+                                {% if new_complaint and new_complaint.evaluator.id == c.id %}selected{% endif %}>
+                                {{ c.member_id }} – {{ c.official_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ========================= NEW COMPLAINT DETAILS ========================= -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold">
+                New Complaint Details
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+                    <!-- DATE -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label required">
+                            Date of New Complaint
+                        </label>
+
+                        <input type="date" name="date_of_new_complaint" class="form-control" required readonly
+                            value="{% if new_complaint and new_complaint.date_of_new_complaint %}{{ new_complaint.date_of_new_complaint|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}">
+                    </div>
+
+                    <!-- NEXT REEVALUATION -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            Next Reevaluation
+                        </label>
+
+                        <input type="date" name="next_reevaluation" class="form-control"
+                            value="{% if new_complaint and new_complaint.next_reevaluation %}{{ new_complaint.next_reevaluation|date:'Y-m-d' }}{% endif %}"
+                            min="{% if new_complaint and new_complaint.created_at %}{{ new_complaint.created_at|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}"
+                            {% if is_readonly or new_complaint.is_new_complaint_signed %}disabled{% endif %}>
+                    </div>
+
+                </div>
+
+                <!-- NEW COMPLAINT HISTORY -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        New Complaint History
+                    </label>
+
+                    <textarea name="new_complaint_history" class="form-control" rows="4" required
+                        {% if is_readonly or new_complaint.is_new_complaint_signed %}disabled{% endif %}>{{ new_complaint.new_complaint_history|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- PHYSICAL EXAMINATION -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Physical Examination
+                    </label>
+
+                    <textarea name="physical_examination" class="form-control" rows="4" required
+                        {% if is_readonly or new_complaint.is_new_complaint_signed %}disabled{% endif %}>{{ new_complaint.physical_examination|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- DIFFERENTIAL DIAGNOSIS -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Differential Diagnosis
+                    </label>
+
+                    <textarea name="different_diagnosis" class="form-control" rows="4" required
+                        {% if is_readonly or new_complaint.is_new_complaint_signed %}disabled{% endif %}>{{ new_complaint.different_diagnosis|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- DIAGNOSIS -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Diagnosis
+                    </label>
+
+                    <textarea name="diagnosis" class="form-control" rows="4" required
+                        {% if is_readonly or new_complaint.is_new_complaint_signed %}disabled{% endif %}>{{ new_complaint.diagnosis|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- TREATMENT PLAN -->
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Treatment Plan
+                    </label>
+
+                    <textarea name="treatment_plan" class="form-control" rows="4" required
+                        {% if is_readonly or new_complaint.is_new_complaint_signed %}disabled{% endif %}>{{ new_complaint.treatment_plan|default_if_none:'' }}</textarea>
+                </div>
+
+                <!-- OUTCOME MEASURES -->
+                <div>
+                    <label class="form-label required">
+                        Outcome Measures
+                    </label>
+
+                    <textarea name="outcome_measures" class="form-control" rows="4" required
+                        {% if is_readonly or new_complaint.is_new_complaint_signed %}disabled{% endif %}>{{ new_complaint.outcome_measures|default_if_none:'' }}</textarea>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================= ACTION BUTTONS ========================= -->
+        <div class="mt-4 d-flex justify-content-end gap-2">
+            <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
+                Cancel
+            </a>
+
+            {% if not is_readonly %}
+            <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary btn-mobile">
+                {% if new_complaint %}
+                Update New Complaint
+                {% else %}
+                Create New Complaint
+                {% endif %}
+            </button>
+
+            {% if assessment and request.user.profile.role in "clinician admin" %}
+            <button type="submit" id="btnSignOff" name="action" value="sign_off" class="btn btn-success btn-mobile">
+                {% if new_complaint %}
+                Update & Sign Off
+                {% else %}
+                Create & Sign Off
+                {% endif %}
+            </button>
+            {% endif %}
+            {% endif %}
+        </div>
+
+    </form>
+</div>
+
+<script>
+    const ASSESSMENT_ID = "{{ assessment.id }}";
+    const NEW_COMPLAINT_ID = "{{ new_complaint.id|default:'' }}";
+
+    // =========================
+    // ACTION BUTTONS
+    // =========================
+    let clickedAction = "save";
+    const btnSave = document.getElementById("btnSave");
+    const btnSignOff = document.getElementById("btnSignOff");
+
+    if (btnSave) {
+        btnSave.addEventListener("click", () => {
+            clickedAction = "save";
+        });
+    }
+
+    if (btnSignOff) {
+        btnSignOff.addEventListener("click", () => {
+            clickedAction = "sign_off";
+        });
+    }
+
+    // =========================
+    // FORM SUBMIT
+    // =========================
+    document.getElementById("newComplaintForm")
+        .addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            let confirmMessage =
+                "Are you sure you want to save this new complaint?";
+            if (clickedAction === "sign_off") {
+                confirmMessage =
+                    "Are you sure you want to SIGN OFF this new complaint?";
+            }
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            const formData = new FormData(this);
+            const payload = Object.fromEntries(formData.entries());
+
+            // =========================
+            // REQUIRED
+            // =========================
+            payload["assessment"] = Number(ASSESSMENT_ID);
+            payload["action"] = clickedAction;
+
+            // remove empty optional date
+            if (!payload["next_reevaluation"]) {
+                delete payload["next_reevaluation"];
+            }
+
+            // =========================
+            // DATE VALIDATION
+            // =========================
+            if (
+                payload["date_of_new_complaint"] &&
+                payload["next_reevaluation"]
+            ) {
+                const complaintDate = new Date(
+                    payload["date_of_new_complaint"]
+                );
+                const nextAppointmentDate = new Date(
+                    payload["next_reevaluation"]
+                );
+
+                // reset time
+                complaintDate.setHours(0, 0, 0, 0);
+                nextAppointmentDate.setHours(0, 0, 0, 0);
+                if (nextAppointmentDate < complaintDate) {
+                    alert(
+                        "Next reevaluation date cannot be earlier than new complaint date."
+                    );
+                    return;
+                }
+            }
+
+            // =========================
+            // API METHOD
+            // =========================
+            {% if new_complaint %}
+            payload["new_complaint_id"] = "{{ new_complaint.id }}";
+            const method = "PUT"; 
+            {% else %}
+            const method = "POST"; 
+            {% endif %}
+
+            // =========================
+            // API CALL
+            // =========================
+            fetch("{% url 'assessment_patient_new_complaint_api' %}", {
+                    method: method,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": CSRFTOKEN
+                    },
+                    body: JSON.stringify(payload)
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(err => {
+                            throw err;
+                        });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    alert(data.message || "Saved successfully");
+                    window.location.href =
+                        "{% url 'assessments_list' %}";
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(
+                        err.detail ||
+                        "Failed to save patient new complaint."
+                    );
+                });
+        });
+</script>
+
+{% endblock %}

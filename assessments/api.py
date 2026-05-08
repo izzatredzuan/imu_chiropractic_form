@@ -10,13 +10,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from .models import Assessments, SoapModality, Soaps, PatientReevaluation
+from .models import Assessments, PatientNewComplaint, SoapModality, Soaps, PatientReevaluation
 from .serializers import (
     AssessmentsListSerializer,
     AssessmentSection1And2CreateSerializer,
     AssessmentSection3Serializer,
     AssessmentSection4Serializer,
     AssessmentTreatmentPlanSerializer,
+    PatientNewComplaintSerializer,
     PatientReevaluationSerializer,
     SoapSerializer,
 )
@@ -1446,6 +1447,385 @@ class PatientReevaluationAPIView(APIView):
             return Response(
                 {
                     "detail": "Failed to update reevaluation",
+                    "error": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class PatientNewComplaintAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # =========================
+    # GET
+    # =========================
+    def get(self, request):
+        profile = request.user.profile
+
+        assessment_id = request.query_params.get("assessment_id")
+        new_complaint_id = request.query_params.get("new_complaint_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # -----------------------------
+        # Permission
+        # -----------------------------
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {
+                    "detail": (
+                        "You cannot view new complaints "
+                        "for this assessment"
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # =========================
+        # GET SINGLE
+        # =========================
+        if new_complaint_id:
+            new_complaint = get_object_or_404(
+                PatientNewComplaint,
+                id=new_complaint_id,
+                assessment=assessment,
+            )
+
+            serializer = PatientNewComplaintSerializer(new_complaint)
+
+            logger.info(
+                f"VIEW_SINGLE - NEW_COMPLAINT | "
+                f"new_complaint_id={new_complaint.id}, "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role})"
+            )
+
+            return Response(serializer.data)
+
+        # =========================
+        # GET ALL
+        # =========================
+        new_complaints = PatientNewComplaint.objects.filter(
+            assessment=assessment
+        )
+
+        serializer = PatientNewComplaintSerializer(
+            new_complaints,
+            many=True,
+        )
+
+        logger.info(
+            f"VIEW_LIST - NEW_COMPLAINT | "
+            f"assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role}), "
+            f"count={new_complaints.count()}"
+        )
+
+        return Response(serializer.data)
+
+    # =========================
+    # POST
+    # =========================
+    def post(self, request):
+        profile = request.user.profile
+        action = request.data.get("action", "save")
+
+        serializer = PatientNewComplaintSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+        assessment = validated_data["assessment"]
+
+        # -----------------------------
+        # Permission check
+        # -----------------------------
+        if profile.role == "student":
+
+            if assessment.student != profile:
+                return Response(
+                    {
+                        "detail": (
+                            "You cannot create new complaint "
+                            "for this assessment"
+                        )
+                    },
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            validated_data["student"] = profile
+
+        elif profile.role in ["admin", "clinician"]:
+
+            if not validated_data.get("student"):
+                return Response(
+                    {"student": "This field is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+
+            # -----------------------------
+            # Create New Complaint
+            # -----------------------------
+            new_complaint = serializer.save(
+                student=validated_data.get("student"),
+                evaluator=validated_data.get("evaluator"),
+                created_by=profile,
+                updated_by=profile,
+            )
+
+            logger.info(
+                f"CREATE - NEW_COMPLAINT | "
+                f"new_complaint_id={new_complaint.id}, "
+                f"student={new_complaint.student.official_name if new_complaint.student else None}, "
+                f"evaluator={new_complaint.evaluator.official_name if new_complaint.evaluator else None}, "
+                f"assessment_id={new_complaint.assessment.id}, "
+                f"created_by={profile.official_name}, "
+                f"created_at={new_complaint.created_at}"
+            )
+
+            # -----------------------------
+            # SIGN OFF
+            # -----------------------------
+            if action == "sign_off":
+
+                if profile.role not in ["clinician", "admin"]:
+                    return Response(
+                        {"detail": "Not allowed to sign new complaint"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                new_complaint.is_new_complaint_signed = True
+                new_complaint.new_complaint_signed_by = profile
+                new_complaint.new_complaint_signed_at = timezone.now()
+
+                new_complaint.save()
+
+                logger.info(
+                    f"SIGN_OFF - NEW_COMPLAINT | "
+                    f"new_complaint_id={new_complaint.id}, "
+                    f"assessment_id={new_complaint.assessment.id}, "
+                    f"signed_by={profile.official_name}, "
+                    f"signed_at={new_complaint.new_complaint_signed_at}"
+                )
+
+            return Response(
+                {
+                    "id": new_complaint.id,
+                    "message": (
+                        "Patient new complaint created successfully"
+                    ),
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Exception as e:
+
+            logger.error(
+                f"CREATE_FAILED - NEW_COMPLAINT | "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name}, "
+                f"error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {
+                    "detail": "Failed to create new complaint",
+                    "error": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    # =========================
+    # PUT
+    # =========================
+    def put(self, request):
+        profile = request.user.profile
+
+        new_complaint_id = request.data.get("new_complaint_id")
+        action = request.data.get("action", "save")
+
+        if not new_complaint_id:
+            return Response(
+                {
+                    "new_complaint_id": (
+                        "New complaint ID is required"
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        new_complaint = get_object_or_404(
+            PatientNewComplaint,
+            id=new_complaint_id,
+        )
+
+        # -----------------------------
+        # Permission check
+        # -----------------------------
+        if (
+            profile.role == "student"
+            and new_complaint.assessment.student != profile
+        ):
+            return Response(
+                {"detail": "You cannot edit this new complaint"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = PatientNewComplaintSerializer(
+            new_complaint,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        # -----------------------------
+        # Prevent student tampering
+        # -----------------------------
+        if profile.role == "student":
+            validated_data["student"] = profile
+
+        elif profile.role in ["admin", "clinician"]:
+
+            if (
+                "student" in validated_data
+                and not validated_data.get("student")
+            ):
+                return Response(
+                    {"student": "This field cannot be null"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        try:
+
+            # -----------------------------
+            # Save New Complaint
+            # -----------------------------
+            new_complaint = serializer.save(
+                student=validated_data.get(
+                    "student",
+                    new_complaint.student,
+                ),
+                evaluator=validated_data.get(
+                    "evaluator",
+                    new_complaint.evaluator,
+                ),
+                updated_by=profile,
+            )
+
+            logger.info(
+                f"UPDATE - NEW_COMPLAINT | "
+                f"new_complaint_id={new_complaint.id}, "
+                f"student={new_complaint.student.official_name if new_complaint.student else None}, "
+                f"evaluator={new_complaint.evaluator.official_name if new_complaint.evaluator else None}, "
+                f"assessment_id={new_complaint.assessment.id}, "
+                f"updated_by={profile.official_name}, "
+                f"updated_at={new_complaint.updated_at}"
+            )
+
+            # =========================
+            # ACTION LOGIC
+            # =========================
+
+            # ---------- SAVE ----------
+            if action == "save":
+
+                new_complaint.is_new_complaint_signed = False
+                new_complaint.new_complaint_signed_by = None
+                new_complaint.new_complaint_signed_at = None
+
+                logger.info(
+                    f"SAVE - NEW_COMPLAINT | "
+                    f"new_complaint_id={new_complaint.id}, "
+                    f"assessment_id={new_complaint.assessment.id}, "
+                    f"updated_by={profile.official_name} | "
+                    f"Sign-off reset"
+                )
+
+            # ---------- SIGN OFF ----------
+            elif action == "sign_off":
+
+                if profile.role not in ["clinician", "admin"]:
+
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - NEW_COMPLAINT | "
+                        f"new_complaint_id={new_complaint.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+
+                    return Response(
+                        {"detail": "Not allowed to sign new complaint"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                new_complaint.is_new_complaint_signed = True
+                new_complaint.new_complaint_signed_by = profile
+                new_complaint.new_complaint_signed_at = timezone.now()
+
+                logger.info(
+                    f"SIGN_OFF - NEW_COMPLAINT | "
+                    f"new_complaint_id={new_complaint.id}, "
+                    f"assessment_id={new_complaint.assessment.id}, "
+                    f"signed_by={profile.official_name}, "
+                    f"signed_at={new_complaint.new_complaint_signed_at}"
+                )
+
+            new_complaint.save()
+
+            # =========================
+            # RESPONSE MESSAGE
+            # =========================
+            message = "Patient new complaint updated successfully"
+
+            if action == "sign_off":
+                message = (
+                    "Patient new complaint signed off successfully"
+                )
+
+            elif action == "save":
+                message = (
+                    "Patient new complaint updated successfully. "
+                    "Sign-off has been reset."
+                )
+
+            logger.info(
+                f"RESPONSE - NEW_COMPLAINT | "
+                f"new_complaint_id={new_complaint.id}, "
+                f"action={action}, "
+                f"message='{message}'"
+            )
+
+            return Response(
+                {"message": message},
+                status=status.HTTP_200_OK,
+            )
+
+        except Exception as e:
+
+            logger.error(
+                f"UPDATE_FAILED - NEW_COMPLAINT | "
+                f"new_complaint_id={new_complaint.id}, "
+                f"user={profile.official_name}, "
+                f"error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {
+                    "detail": "Failed to update new complaint",
                     "error": str(e),
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

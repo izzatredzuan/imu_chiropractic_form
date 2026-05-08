@@ -253,6 +253,45 @@
                 }
             },
             {
+                title: "New Complaint",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+
+                render: function (row) {
+                    let icon = "bi-file-post";
+                    let iconColor = "text-primary";
+                    let tooltip = "View Patient New Complaints";
+
+                    if (row.is_discharged) {
+                        return lock_if_discharged();
+                    }
+
+                    const section4Signed =
+                        row.section_4_signed_at || row.is_section_4_signed;
+
+                    if (!section4Signed) {
+                        return lock_column(
+                            icon,
+                            "Patient New Complaint locked until Section 4 is signed off"
+                        );
+                    }
+
+                    return `
+                        <a class="iconColor"
+                        onclick="event.preventDefault(); href=''">
+                            <i class="bi ${icon} ${iconColor} new-complaint-log-btn"
+                            role="button"
+                            title="${tooltip}"
+                            data-id="${row.id}"
+                            style="cursor:pointer; font-size:1.25rem;">
+                            </i>
+                        </a>
+                    `;
+                }
+            },
+            {
                 title: "Created",
                 data: "created_at",
                 className: "text-center align-middle",
@@ -721,7 +760,7 @@
         }
 
         // ==================================
-        // REEVALUATION LOG MODAL
+        // REEVALUATION MODAL
         // ==================================
         const reevaluationLogModal = new bootstrap.Modal(
             document.getElementById('reevaluationLogModal')
@@ -1012,10 +1051,317 @@
             });
             $('#reevaluationListContainer').html(html);
         }
+
+        // ==================================
+        // NEW COMPLAINT LOG MODAL
+        // ==================================
+        const newComplaintLogModal = new bootstrap.Modal(
+            document.getElementById('newComplaintLogModal')
+        );
+
+        // =========================
+        // OPEN MODAL + FETCH DATA
+        // =========================
+        $('#assessmentsTable').on(
+            'click',
+            '.new-complaint-log-btn',
+            function () {
+                const rowData = table.row($(this).closest('tr')).data();
+                const assessmentId = rowData.id;
+                const urlTemplate =
+                    "{% url 'assessment_patient_new_complaint_create' 0 %}";
+                const createUrl =
+                    urlTemplate.replace("0", assessmentId);
+
+                // HEADER
+                $('#modalNewComplaintPatientName')
+                    .text(rowData.patient_name);
+
+                $('#modalNewComplaintFileNumber')
+                    .text(rowData.file_number);
+
+                // BUTTON ACCESS
+                const section4Signed =
+                    rowData.section_4_signed_at ||
+                    rowData.is_section_4_signed;
+                const canAccess =
+                    ("{{ profile }}" === rowData.clinician) ||
+                    ("{{ profile }}" === rowData.student);
+
+                if (
+                    rowData.is_discharged ||
+                    !section4Signed ||
+                    !canAccess
+                ) {
+                    $('#createNewComplaintBtn')
+                        .addClass('disabled')
+                        .removeAttr('href')
+                        .attr(
+                            'title',
+                            'You cannot create a new complaint for this assessment'
+                        );
+                } else {
+                    $('#createNewComplaintBtn')
+                        .removeClass('disabled')
+                        .attr('href', createUrl)
+                        .attr(
+                            'title',
+                            'Create New Complaint'
+                        );
+                }
+
+                // SHOW MODAL
+                newComplaintLogModal.show();
+
+                // LOADING
+                $('#newComplaintListContainer').html(`
+                    <div class="text-center text-muted">
+                        Loading...
+                    </div>
+                `);
+
+                const apiUrl =
+                    "{% url 'assessment_patient_new_complaint_api' %}" +
+                    "?assessment_id=" +
+                    assessmentId;
+
+                fetch(apiUrl)
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error(
+                                "Failed to fetch new complaints."
+                            );
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        renderNewComplaintList(
+                            data,
+                            assessmentId
+                        );
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        $('#newComplaintTotalCount').text(0);
+                        $('#newComplaintListContainer').html(`
+                            <div class="text-danger text-center">
+                                Failed to load new complaints.
+                            </div>
+                        `);
+                    });
+            }
+        );
+
+        // =========================
+        // RENDER LIST
+        // =========================
+        function renderNewComplaintList(
+            data,
+            assessmentId
+        ) {
+
+            // SAFE COUNT
+            const totalCount = Array.isArray(data)
+                ? data.length
+                : 0;
+
+            // UPDATE UI
+            $('#newComplaintTotalCount').text(totalCount);
+
+            // EMPTY STATE
+            if (!totalCount) {
+                $('#newComplaintListContainer').html(`
+                    <div class="text-center text-muted">
+                        No new complaints found.
+                    </div>
+                `);
+                return;
+            }
+
+            let html = "";
+            data.forEach(newComplaint => {
+                const createdDate =
+                    newComplaint.created_at
+                    ?
+                    moment(newComplaint.created_at)
+                    .format("DD/MM/YYYY HH:mm")
+                    :
+                    "-";
+                const updatedDate =
+                    newComplaint.updated_at
+                    ?
+                    moment(newComplaint.updated_at)
+                    .format("DD/MM/YYYY HH:mm")
+                    :
+                    "-";
+                const signedBadge =
+                    newComplaint.is_new_complaint_signed
+                    ?
+                    `<span class="badge signed">
+                        Signed
+                    </span>`
+                    :
+                    `<span class="badge ready">
+                        Ready for Sign-Off
+                    </span>`;
+                const signedSection =
+                    newComplaint.is_new_complaint_signed
+                    ?
+                    `
+                    <div class="alert alert-success mt-0 mb-3 py-2 px-3">
+                        <strong>Signed-off by:</strong>
+                        ${newComplaint.signed_by_name || "-"}
+                        <br>
+
+                        <small class="text-muted">
+                            Signed at:
+                            ${
+                                newComplaint.new_complaint_signed_at
+                                ?
+                                moment(
+                                    newComplaint.new_complaint_signed_at
+                                ).format("DD MMM YYYY, hh:mm A")
+                                :
+                                "-"
+                            }
+                        </small>
+                    </div>
+                    `
+                    :
+                    "";
+
+                const urlTemplate =
+                    "{% url 'assessment_patient_new_complaint_edit' 0 1 %}";
+                const fullUrl =
+                    urlTemplate
+                    .replace("0", assessmentId)
+                    .replace("1", newComplaint.id);
+
+                html += `
+                    <div class="card mb-4 shadow-sm hover-shadow"
+                        style="cursor:pointer;">
+
+                        <!-- HEADER -->
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-semibold">
+                                    New Complaint
+                                </span>
+                                <br>
+
+                                <small class="text-muted">
+                                    <strong>ID:</strong>
+                                    ${newComplaint.id}
+                                </small>
+                            </div>
+
+                            ${signedBadge}
+                        </div>
+
+                        <div class="card-body">
+                            ${signedSection}
+
+                            <!-- STUDENT + CLINICIAN -->
+                            <div class="mb-3">
+                                <div class="row small text-muted">
+
+                                    <div class="col-6">
+                                        <strong>Student:</strong><br>
+                                        ${newComplaint.student_name || "-"}
+                                    </div>
+
+                                    <div class="col-6">
+                                        <strong>Clinician:</strong><br>
+                                        ${newComplaint.evaluator_name || "-"}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DATES -->
+                            <div class="mb-3 small text-muted">
+                                <div>
+                                    <strong>New Complaint Date:</strong>
+                                    ${
+                                        newComplaint.date_of_new_complaint
+                                        ?
+                                        moment(
+                                            newComplaint.date_of_new_complaint
+                                        ).format("DD/MM/YYYY")
+                                        :
+                                        "-"
+                                    }
+                                </div>
+
+                                <div>
+                                    <strong>Next Reevaluation:</strong>
+                                    ${
+                                        newComplaint.next_reevaluation
+                                        ?
+                                        moment(
+                                            newComplaint.next_reevaluation
+                                        ).format("DD/MM/YYYY")
+                                        :
+                                        "-"
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- DIAGNOSIS -->
+                            <div class="mb-3">
+                                <div class="fw-semibold small text-muted mb-1">
+                                    <strong>Diagnosis:</strong>
+                                </div>
+
+                                <div class="small">
+                                    ${
+                                        newComplaint.diagnosis
+                                        ?
+                                        newComplaint.diagnosis.substring(0, 150)
+                                        :
+                                        "-"
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- CREATED + UPDATED -->
+                            <div class="row small text-muted mb-2">
+                                <div class="col-6">
+                                    <strong>Created:</strong><br>
+                                    ${createdDate}<br>
+
+                                    <span class="text-muted">
+                                        by ${newComplaint.created_by || "-"}
+                                    </span>
+                                </div>
+
+                                <div class="col-6">
+                                    <strong>Updated:</strong><br>
+                                    ${updatedDate}<br>
+
+                                    <span class="text-muted">
+                                        by ${newComplaint.updated_by || "-"}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- EDIT BUTTON -->
+                            <div class="d-flex justify-content-end">
+                                <a href="${fullUrl}"
+                                class="btn btn-primary edit-btn px-3">
+                                    Edit
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            $('#newComplaintListContainer').html(html);
+        }
     });
 </script>
 
 {% include 'assessments/modal/_discharge_confirmation_modal.html' %}
 {% include 'assessments/modal/_soap_log_modal.html' %}
 {% include 'assessments/modal/_patient_reevaluation_modal.html' %}
+{% include 'assessments/modal/_patient_new_complaint_modal.html' %}
 {% endblock %}

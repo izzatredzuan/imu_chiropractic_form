@@ -58,6 +58,16 @@ urlpatterns = [
         views.PatientReevaluationFormView.as_view(),
         name="assessment_patient_reevaluation_edit",
     ),
+    path(
+        "<int:assessment_id>/patient-new-complaint/create/",
+        views.PatientNewComplaintFormView.as_view(),
+        name="assessment_patient_new_complaint_create",
+    ),
+    path(
+        "<int:assessment_id>/patient-new-complaint/<int:new_complaint_id>/",
+        views.PatientNewComplaintFormView.as_view(),
+        name="assessment_patient_new_complaint_edit",
+    ),
 
     # API endpoints
     path(
@@ -94,5 +104,10 @@ urlpatterns = [
         "api/assessments/patient-reevaluation/",
         api.PatientReevaluationAPIView.as_view(),
         name="assessment_patient_reevaluation_api",
+    ),
+    path(
+        "api/assessments/patient-new-complaint/",
+        api.PatientNewComplaintAPIView.as_view(),
+        name="assessment_patient_new_complaint_api",
     ),
 ]

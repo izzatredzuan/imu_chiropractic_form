@@ -5,7 +5,13 @@ from django.shortcuts import (
 )
 from django.views import View
 from accounts.models import Profile
-from .models import Assessments, Soaps, SoapModality, PatientReevaluation
+from .models import (
+    Assessments,
+    PatientNewComplaint,
+    Soaps,
+    SoapModality,
+    PatientReevaluation,
+)
 from .utils import (
     clinician_is_readonly,
 )
@@ -15,10 +21,8 @@ class AssessmentListView(View):
     template_name = "assessments/assessments.html"
 
     def get(self, request):
-        profile = request.user.profile # Debugging line
-        context = {
-            "profile": profile
-        }
+        profile = request.user.profile  # Debugging line
+        context = {"profile": profile}
         return render(request, self.template_name, context)
 
 
@@ -120,7 +124,7 @@ class SoapFormView(View):
         else:
             assessment = None
         return assessment
-    
+
     def get(self, request, assessment_id=None, soap_id=None):
         profile = request.user.profile
         assessment = self.get_assessment(request, assessment_id)
@@ -146,15 +150,18 @@ class SoapFormView(View):
                 # Optional hook for create logic
                 is_readonly = self.get_create_readonly(profile)
 
-
         context = {
             "assessment": assessment,
             "assessment_id": assessment.id if assessment else None,
             "soap": soap,
             "student_readonly": profile.role == "student",
             "is_readonly": is_readonly,
-            "students": Profile.objects.filter(role="student").order_by("official_name"),
-            "clinicians": Profile.objects.filter(role="clinician").order_by("official_name"),
+            "students": Profile.objects.filter(role="student").order_by(
+                "official_name"
+            ),
+            "clinicians": Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            ),
             "MODALITIES_CHOICES": SoapModality._meta.get_field("modality").choices,
         }
 
@@ -202,13 +209,8 @@ class PatientReevaluationFormView(View):
         if reevaluation:
             if assessment:
                 # Student can only access their own
-                if (
-                    profile.role == "student"
-                    and reevaluation.student != profile
-                ):
-                    return HttpResponseForbidden(
-                        "You cannot access this reevaluation."
-                    )
+                if profile.role == "student" and reevaluation.student != profile:
+                    return HttpResponseForbidden("You cannot access this reevaluation.")
 
                 # Clinician not assigned → readonly
                 is_readonly = clinician_is_readonly(
@@ -226,12 +228,98 @@ class PatientReevaluationFormView(View):
             "reevaluation": reevaluation,
             "student_readonly": profile.role == "student",
             "is_readonly": is_readonly,
-            "students": Profile.objects.filter(
-                role="student"
-            ).order_by("official_name"),
-            "clinicians": Profile.objects.filter(
-                role="clinician"
-            ).order_by("official_name"),
+            "students": Profile.objects.filter(role="student").order_by(
+                "official_name"
+            ),
+            "clinicians": Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            ),
+        }
+
+        return render(
+            request,
+            self.template_name,
+            context,
+        )
+
+
+class PatientNewComplaintFormView(View):
+    template_name = "assessments/patient_new_complaint_form.html"
+
+    def get_assessment(self, request, assessment_id):
+        """
+        Hook to get assessment.
+        Can be overridden by child.
+        """
+        if assessment_id:
+            assessment = get_object_or_404(
+                Assessments,
+                id=assessment_id,
+            )
+        else:
+            assessment = None
+
+        return assessment
+
+    def get(
+        self,
+        request,
+        assessment_id=None,
+        new_complaint_id=None,
+    ):
+        profile = request.user.profile
+
+        assessment = self.get_assessment(
+            request,
+            assessment_id,
+        )
+
+        new_complaint = None
+
+        if new_complaint_id:
+            new_complaint = get_object_or_404(
+                PatientNewComplaint,
+                id=new_complaint_id,
+                assessment_id=assessment_id,
+            )
+
+        is_readonly = False
+
+        # =========================
+        # Permission checks
+        # =========================
+        if new_complaint:
+
+            if assessment:
+
+                # Student can only access their own
+                if profile.role == "student" and new_complaint.student != profile:
+                    return HttpResponseForbidden(
+                        "You cannot access this new complaint."
+                    )
+
+                # Clinician not assigned → readonly
+                is_readonly = clinician_is_readonly(
+                    profile,
+                    new_complaint,
+                )
+
+            else:
+                # Optional hook for create logic
+                is_readonly = self.get_create_readonly(profile)
+
+        context = {
+            "assessment": assessment,
+            "assessment_id": assessment.id if assessment else None,
+            "new_complaint": new_complaint,
+            "student_readonly": profile.role == "student",
+            "is_readonly": is_readonly,
+            "students": Profile.objects.filter(role="student").order_by(
+                "official_name"
+            ),
+            "clinicians": Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            ),
         }
 
         return render(

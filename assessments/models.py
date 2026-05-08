@@ -460,3 +460,75 @@ class PatientReevaluation(models.Model):
             models.Index(fields=["created_at"]),
             models.Index(fields=["next_reevaluation"]),
         ]
+
+
+class PatientNewComplaint(models.Model):
+    assessment = models.ForeignKey(
+        Assessments, on_delete=models.CASCADE, related_name="patient_new_complaints"
+    )
+
+    student = models.ForeignKey(
+        Profile,
+        on_delete=models.PROTECT,
+        related_name="student_patient_new_complaints",
+        limit_choices_to={"role": "student"},
+    )
+
+    evaluator = models.ForeignKey(
+        Profile,
+        on_delete=models.PROTECT,
+        related_name="evaluator_patient_new_complaints",
+        limit_choices_to={"role": "clinician"},
+    )
+
+    date_of_new_complaint = models.DateField(null=True, blank=True, default=None)
+    new_complaint_history = models.TextField(blank=True, default="")
+    physical_examination = models.TextField(blank=True, default="")
+    different_diagnosis = models.TextField(blank=True, default="")
+    diagnosis = models.TextField(blank=True, default="")
+    treatment_plan = models.TextField(blank=True, default="")
+    outcome_measures = models.TextField(blank=True, default="")
+
+    next_reevaluation = models.DateField(null=True, blank=True, default=None)
+
+    is_new_complaint_signed = models.BooleanField(default=False)
+    new_complaint_signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="new_complaint_signed",
+        limit_choices_to={"role": "clinician"},
+        default=None,
+    )
+    new_complaint_signed_at = models.DateTimeField(null=True, blank=True, default=None)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_patient_new_complaints",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_patient_new_complaints",
+    )
+
+    def __str__(self):
+        return f"Patient New Complaint #{self.id} - {self.assessment.patient_name}"
+    
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Patient New Complaint"
+        verbose_name_plural = "Patient New Complaints"
+        indexes = [
+            models.Index(fields=["assessment"]),
+            models.Index(fields=["created_at"]),
+            models.Index(fields=["next_reevaluation"]),
+        ]

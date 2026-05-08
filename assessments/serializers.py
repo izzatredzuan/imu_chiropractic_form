@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from accounts.models import Profile
-from .models import Assessments, SoapModality, Soaps, PatientReevaluation
+from .models import Assessments, PatientNewComplaint, SoapModality, Soaps, PatientReevaluation
 from .utils import is_section_complete
 from .constants import (
     SECTION_1_FIELDS,
@@ -527,3 +527,100 @@ class PatientReevaluationSerializer(serializers.ModelSerializer):
             )
 
         return data
+
+
+class PatientNewComplaintSerializer(serializers.ModelSerializer):
+    evaluator = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.filter(role="clinician"),
+        required=True,
+    )
+
+    student = serializers.PrimaryKeyRelatedField(
+        queryset=Profile.objects.filter(role="student"),
+        required=True,
+    )
+
+    student_name = serializers.CharField(
+        source="student.official_name",
+        read_only=True,
+    )
+
+    evaluator_name = serializers.CharField(
+        source="evaluator.official_name",
+        read_only=True,
+    )
+
+    signed_by_name = serializers.CharField(
+        source="new_complaint_signed_by.official_name",
+        read_only=True,
+    )
+
+    created_by = serializers.CharField(
+        source="created_by.official_name",
+        read_only=True,
+    )
+
+    updated_by = serializers.CharField(
+        source="updated_by.official_name",
+        read_only=True,
+    )
+
+    class Meta:
+        model = PatientNewComplaint
+
+        fields = [
+            "id",
+            "assessment",
+            "student",
+            "evaluator",
+
+            "date_of_new_complaint",
+            "new_complaint_history",
+            "physical_examination",
+            "different_diagnosis",
+            "diagnosis",
+            "treatment_plan",
+            "outcome_measures",
+            "next_reevaluation",
+
+            "is_new_complaint_signed",
+            "new_complaint_signed_by",
+            "new_complaint_signed_at",
+
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
+
+            "student_name",
+            "evaluator_name",
+            "signed_by_name",
+        ]
+
+        read_only_fields = [
+            "created_at",
+            "updated_at",
+            "is_new_complaint_signed",
+            "new_complaint_signed_at",
+        ]
+
+    def validate(self, data):
+        date_of_new_complaint = data.get("date_of_new_complaint")
+        next_reevaluation = data.get("next_reevaluation")
+
+        if (
+            date_of_new_complaint
+            and next_reevaluation
+            and next_reevaluation < date_of_new_complaint
+        ):
+            raise serializers.ValidationError(
+                {
+                    "next_reevaluation": (
+                        "Next reevaluation date cannot be earlier "
+                        "than new complaint date."
+                    )
+                }
+            )
+
+        return data
+
