@@ -402,8 +402,12 @@
         <!-- NEXT APPOINTMENT -->
         <div>
           <label class="form-label">Next Appointment</label>
-          <input type="date" name="next_appointment" class="form-control" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}
-            value="{% if soap %}{{ soap.next_appointment|date:'Y-m-d' }}{% endif %}">
+          <input type="date"
+                name="next_appointment"
+                class="form-control"
+                value="{% if soap and soap.next_appointment %}{{ soap.next_appointment|date:'Y-m-d' }}{% endif %}"
+                min="{% if soap and soap.created_at %}{{ soap.created_at|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}"
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
         </div>
       </div>
     </div>

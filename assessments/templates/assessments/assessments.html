@@ -224,7 +224,7 @@
                 render: function (row) {
                     let icon = "bi-clipboard2-check";
                     let iconColor = "text-primary";
-                    let tooltip = "View Patient Reevaluations";
+                    let tooltip = "View Patient Re-Evaluations";
 
                     if (row.is_discharged) {
                         return lock_if_discharged();
@@ -235,7 +235,7 @@
                     if (!section4Signed) {
                         return lock_column(
                             icon,
-                            "Patient Reevaluation locked until Section 4 is signed off"
+                            "Patient Re-Evaluation locked until Section 4 is signed off"
                         );
                     }
 
@@ -807,6 +807,7 @@
                     })
                     .catch(err => {
                         console.error(err);
+                        $('#reevaluationTotalCount').text(0);
                         $('#reevaluationListContainer').html(`
                             <div class="text-danger text-center">
                                 Failed to load reevaluations.
@@ -823,7 +824,16 @@
             data,
             assessmentId
         ) {
-            if (!data.length) {
+            // SAFE COUNT
+            const totalCount = Array.isArray(data)
+                ? data.length
+                : 0;
+
+            // UPDATE UI
+            $('#reevaluationTotalCount').text(totalCount);
+
+            // EMPTY STATE
+            if (!totalCount) {
                 $('#reevaluationListContainer').html(`
                     <div class="text-center text-muted">
                         No reevaluations found.

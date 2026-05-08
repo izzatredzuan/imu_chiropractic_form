@@ -8,7 +8,7 @@
     <!-- ========================= PAGE TITLE ========================= -->
     <div class="mb-4">
         <h2 class="fw-semibold mobile-fonts">
-            Patient Reevaluation
+            Patient Re-Evaluation
         </h2>
     </div>
 
@@ -133,9 +133,12 @@
                             Date of Reevaluation
                         </label>
 
-                        <input type="date" name="date_of_reevaluation" class="form-control" required
-                            value="{% if reevaluation %}{{ reevaluation.date_of_reevaluation|date:'Y-m-d' }}{% endif %}"
-                            {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>
+                        <input type="date"
+                            name="date_of_reevaluation"
+                            class="form-control"
+                            required
+                            readonly
+                            value="{% if reevaluation and reevaluation.date_of_reevaluation %}{{ reevaluation.date_of_reevaluation|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}">
                     </div>
 
                     <!-- NEXT REEVALUATION -->
@@ -144,8 +147,11 @@
                             Next Reevaluation
                         </label>
 
-                        <input type="date" name="next_reevaluation" class="form-control"
-                            value="{% if reevaluation %}{{ reevaluation.next_reevaluation|date:'Y-m-d' }}{% endif %}"
+                        <input type="date"
+                            name="next_reevaluation"
+                            class="form-control"
+                            value="{% if reevaluation and reevaluation.next_reevaluation %}{{ reevaluation.next_reevaluation|date:'Y-m-d' }}{% endif %}"
+                            min="{% if reevaluation and reevaluation.created_at %}{{ reevaluation.created_at|date:'Y-m-d' }}{% else %}{% now 'Y-m-d' %}{% endif %}"
                             {% if is_readonly or reevaluation.is_reevaluation_signed %}disabled{% endif %}>
                     </div>
                 </div>
@@ -341,7 +347,7 @@
                     console.error(err);
                     alert(
                         err.detail ||
-                        "Failed to save patient reevaluation."
+                        "Failed to save patient re-evaluation."
                     );
                 });
         });
