@@ -327,3 +327,12 @@ class PatientNewComplaintFormView(View):
             self.template_name,
             context,
         )
+
+
+class NotesView(View):
+    template_name = "assessments/notes.html"
+
+    def get(self, request, assessment_id=None):
+        profile = request.user.profile
+        context = {"profile": profile, "assessment_id": assessment_id}
+        return render(request, self.template_name, context)

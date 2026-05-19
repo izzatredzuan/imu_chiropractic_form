@@ -3,7 +3,13 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 from django.utils import timezone
 from accounts.models import Profile
-from .models import Assessments, PatientNewComplaint, SoapModality, Soaps, PatientReevaluation
+from .models import (
+    Assessments,
+    PatientNewComplaint,
+    SoapModality,
+    Soaps,
+    PatientReevaluation,
+)
 from .utils import is_section_complete
 from .constants import (
     SECTION_1_FIELDS,
@@ -91,10 +97,26 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
     student = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.filter(role="student"), required=True
     )
+    gender_text = serializers.CharField(source="get_gender_display", read_only=True)
     section_1_anatomy_markers = serializers.ListField(
         child=serializers.DictField(), required=False
     )
     signature_data = serializers.CharField(write_only=True, required=False)
+    section_1_signed_by_name = serializers.CharField(
+        source="section_1_signed_by.official_name", read_only=True
+    )
+    section_1_signed_by_role = serializers.CharField(
+        source="section_1_signed_by.role", read_only=True
+    )
+    section_2_signed_by_name = serializers.CharField(
+        source="section_2_signed_by.official_name", read_only=True
+    )
+    section_2_signed_by_role = serializers.CharField(
+        source="section_2_signed_by.role", read_only=True
+    )
+    reason_for_discharge_text = serializers.CharField(
+        source="get_reason_for_discharge_display", read_only=True
+    )
 
     class Meta:
         model = Assessments
@@ -105,6 +127,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "patient_name",
             "file_number",
             "gender",
+            "gender_text",
             "date_of_birth",
             "pulse",
             "respiratory",
@@ -136,9 +159,33 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "red_flags",
             "yellow_flags",
             "contraindications",
+            # Common Fields
             "is_discharged",
             "reason_for_discharge",
+            "reason_for_discharge_text",
             "discharge_remarks",
+            "updated_by",
+            "updated_at",
+            "is_section_1_signed",
+            "section_1_signed_by_name",
+            "section_1_signed_by_role",
+            "section_1_signed_at",
+            "is_section_2_signed",
+            "section_2_signed_by_name",
+            "section_2_signed_by_role",
+            "section_2_signed_at",
+        ]
+        read_only_fields = [
+            "gender_text",
+            "is_section_1_signed",
+            "section_1_signed_by_name",
+            "section_1_signed_by_role",
+            "section_1_signed_at",
+            "is_section_2_signed",
+            "section_2_signed_by_name",
+            "section_2_signed_by_role",
+            "section_2_signed_at",
+            "reason_for_discharge_text",
         ]
 
     def create(self, validated_data):
@@ -196,11 +243,13 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
                 continue
 
             try:
-                cleaned.append({
-                    "id": int(m.get("id")) if m.get("id") is not None else None,
-                    "x": float(m["x"]),
-                    "y": float(m["y"]),
-                })
+                cleaned.append(
+                    {
+                        "id": int(m.get("id")) if m.get("id") is not None else None,
+                        "x": float(m["x"]),
+                        "y": float(m["y"]),
+                    }
+                )
             except (ValueError, TypeError):
                 continue
 
@@ -230,6 +279,13 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
 
 
 class AssessmentSection3Serializer(serializers.ModelSerializer):
+    section_3_signed_by_name = serializers.CharField(
+        source="section_3_signed_by.official_name", read_only=True
+    )
+    section_3_signed_by_role = serializers.CharField(
+        source="section_3_signed_by.role", read_only=True
+    )
+
     class Meta:
         model = Assessments
         fields = [
@@ -259,9 +315,15 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "lab",
             "working_diagnosis",
             "is_section_3_signed",
+            "section_3_signed_by_name",
+            "section_3_signed_by_role",
+            "section_3_signed_at",
         ]
         read_only_fields = [
             "is_section_3_signed",
+            "section_3_signed_by_name",
+            "section_3_signed_by_role",
+            "section_3_signed_at",
         ]
 
     def update(self, instance, validated_data):
@@ -273,6 +335,13 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
 
 
 class AssessmentSection4Serializer(serializers.ModelSerializer):
+    section_4_signed_by_name = serializers.CharField(
+        source="section_4_signed_by.official_name", read_only=True
+    )
+    section_4_signed_by_role = serializers.CharField(
+        source="section_4_signed_by.role", read_only=True
+    )
+
     class Meta:
         model = Assessments
         fields = [
@@ -282,15 +351,26 @@ class AssessmentSection4Serializer(serializers.ModelSerializer):
             "diagnosis",
             "diagnosis_date",
             "is_section_4_signed",
-            "section_4_signed_by",
+            "section_4_signed_by_name",
+            "section_4_signed_by_role",
             "section_4_signed_at",
         ]
         read_only_fields = [
             "is_section_4_signed",
+            "section_4_signed_by_name",
+            "section_4_signed_by_role",
+            "section_4_signed_at",
         ]
 
 
 class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
+    treatment_plan_signed_by_name = serializers.CharField(
+        source="treatment_plan_signed_by.official_name", read_only=True
+    )
+    treatment_plan_signed_by_role = serializers.CharField(
+        source="treatment_plan_signed_by.role", read_only=True
+    )
+
     class Meta:
         model = Assessments
         fields = [
@@ -300,21 +380,33 @@ class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
             "phase_3",
             "treatment_remarks",
             "is_treatment_plan_signed",
+            "treatment_plan_signed_by_name",
+            "treatment_plan_signed_by_role",
+            "treatment_plan_signed_at",
         ]
         read_only_fields = [
             "is_treatment_plan_signed",
+            "treatment_plan_signed_by_name",
+            "treatment_plan_signed_by_role",
+            "treatment_plan_signed_at",
         ]
 
 
 class SoapModalitySerializer(serializers.ModelSerializer):
+    modality_text = serializers.CharField(source="get_modality_display", read_only=True)
+
     class Meta:
         model = SoapModality
         fields = [
             "id",
             "modality",
+            "modality_text",
             "location",
             "settings",
             "duration_intensity",
+        ]
+        read_only_fields = [
+            "modality_text",
         ]
 
 
@@ -344,6 +436,7 @@ class SoapSerializer(serializers.ModelSerializer):
     signed_by_name = serializers.CharField(
         source="soap_signed_by.official_name", read_only=True
     )
+    signed_by_role = serializers.CharField(source="soap_signed_by.role", read_only=True)
 
     class Meta:
         model = Soaps
@@ -378,6 +471,7 @@ class SoapSerializer(serializers.ModelSerializer):
             "student_name",
             "evaluator_name",
             "signed_by_name",
+            "signed_by_role",
             "soap_modalities",
         ]
 
@@ -385,6 +479,8 @@ class SoapSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "is_soap_signed",
+            "signed_by_name",
+            "signed_by_role",
             "soap_signed_at",
         ]
 
@@ -432,7 +528,7 @@ class SoapSerializer(serializers.ModelSerializer):
             )
 
         return data
-    
+
 
 class PatientReevaluationSerializer(serializers.ModelSerializer):
     evaluator = serializers.PrimaryKeyRelatedField(
@@ -459,6 +555,10 @@ class PatientReevaluationSerializer(serializers.ModelSerializer):
         source="reevaluation_signed_by.official_name",
         read_only=True,
     )
+    signed_by_role = serializers.CharField(
+        source="reevaluation_signed_by.role",
+        read_only=True,
+    )
 
     created_by = serializers.CharField(
         source="created_by.official_name",
@@ -478,7 +578,6 @@ class PatientReevaluationSerializer(serializers.ModelSerializer):
             "assessment",
             "student",
             "evaluator",
-
             "date_of_reevaluation",
             "current_status",
             "physical_examination",
@@ -486,19 +585,17 @@ class PatientReevaluationSerializer(serializers.ModelSerializer):
             "treatment_plan",
             "outcome_measures",
             "next_reevaluation",
-
             "is_reevaluation_signed",
             "reevaluation_signed_by",
             "reevaluation_signed_at",
-
             "created_by",
             "created_at",
             "updated_by",
             "updated_at",
-
             "student_name",
             "evaluator_name",
             "signed_by_name",
+            "signed_by_role",
         ]
 
         read_only_fields = [
@@ -555,6 +652,10 @@ class PatientNewComplaintSerializer(serializers.ModelSerializer):
         read_only=True,
     )
 
+    signed_by_role = serializers.CharField(
+        source="new_complaint_signed_by.role",
+        read_only=True,
+    )
     created_by = serializers.CharField(
         source="created_by.official_name",
         read_only=True,
@@ -573,7 +674,6 @@ class PatientNewComplaintSerializer(serializers.ModelSerializer):
             "assessment",
             "student",
             "evaluator",
-
             "date_of_new_complaint",
             "new_complaint_history",
             "physical_examination",
@@ -582,19 +682,17 @@ class PatientNewComplaintSerializer(serializers.ModelSerializer):
             "treatment_plan",
             "outcome_measures",
             "next_reevaluation",
-
             "is_new_complaint_signed",
             "new_complaint_signed_by",
             "new_complaint_signed_at",
-
             "created_by",
             "created_at",
             "updated_by",
             "updated_at",
-
             "student_name",
             "evaluator_name",
             "signed_by_name",
+            "signed_by_role",
         ]
 
         read_only_fields = [
@@ -624,3 +722,46 @@ class PatientNewComplaintSerializer(serializers.ModelSerializer):
 
         return data
 
+
+class AssessmentNotesSerializer(serializers.ModelSerializer):
+    section_1_2 = serializers.SerializerMethodField()
+    section_3 = serializers.SerializerMethodField()
+    section_4 = serializers.SerializerMethodField()
+    treatment_plan = serializers.SerializerMethodField()
+
+    soaps = SoapSerializer(many=True, read_only=True)
+    reevaluations = serializers.SerializerMethodField()
+    new_complaints = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Assessments
+        fields = [
+            "id",
+            "section_1_2",
+            "section_3",
+            "section_4",
+            "treatment_plan",
+            "soaps",
+            "reevaluations",
+            "new_complaints",
+        ]
+
+    def get_section_1_2(self, obj):
+        return AssessmentSection1And2CreateSerializer(obj).data
+
+    def get_section_3(self, obj):
+        return AssessmentSection3Serializer(obj).data
+
+    def get_section_4(self, obj):
+        return AssessmentSection4Serializer(obj).data
+
+    def get_treatment_plan(self, obj):
+        return AssessmentTreatmentPlanSerializer(obj).data
+
+    def get_reevaluations(self, obj):
+        qs = PatientReevaluation.objects.filter(assessment=obj)
+        return PatientReevaluationSerializer(qs, many=True).data
+
+    def get_new_complaints(self, obj):
+        qs = PatientNewComplaint.objects.filter(assessment=obj)
+        return PatientNewComplaintSerializer(qs, many=True).data

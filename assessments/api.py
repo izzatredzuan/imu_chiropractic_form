@@ -17,9 +17,10 @@ from .serializers import (
     AssessmentSection3Serializer,
     AssessmentSection4Serializer,
     AssessmentTreatmentPlanSerializer,
-    PatientNewComplaintSerializer,
-    PatientReevaluationSerializer,
     SoapSerializer,
+    PatientReevaluationSerializer,
+    PatientNewComplaintSerializer,
+    AssessmentNotesSerializer,
 )
 
 logger = logging.getLogger("assessments")
@@ -1830,3 +1831,37 @@ class PatientNewComplaintAPIView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+        
+
+class AssessmentNotesAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        profile = request.user.profile
+        assessment_id = request.query_params.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # -----------------------------
+        # Permission check
+        # -----------------------------
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot view this assessment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AssessmentNotesSerializer(assessment)
+
+        logger.info(
+            f"VIEW - FULL NOTES | assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role})"
+        )
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

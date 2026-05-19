@@ -346,11 +346,24 @@
                 searchable: false,
                 className: "text-center align-middle",
                 render: function (row) {
-                    return `
-                        <i class="bi bi-journal-text text-primary notes-btn"
-                        data-id="${row.id}"
-                        title="View Notes"
-                        style="cursor:pointer; font-size:1.2rem;"></i>
+                    let icon = "bi-journal-text";
+                    let iconColor = "text-primary";
+                    let tooltip = "View Assessment Notes";
+                    const urlTemplate = "{% url 'assessment_notes' 0 %}";
+                    const url = urlTemplate.replace("0", row.id);
+
+                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
+                    if (!section4Signed) {
+                        return lock_column(icon, "Notes locked until Section 4 is signed off");
+                    }
+
+                     return `
+                        <a href="${url}">
+                            <i class="bi ${icon} ${iconColor}"
+                            title="${tooltip}"
+                            style="font-size:1.25rem; cursor:pointer;">
+                            </i>
+                        </a>
                     `;
                 }
             },

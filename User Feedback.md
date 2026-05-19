@@ -13,10 +13,12 @@ Enhancement Suggestion:
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
 
-QUESTION to ask in the future to Chiro team:
-
 Bugs:
 - Datatable sorting is incorrect
+
+QUESTION to ask in the future to Chiro team:
+
+
 
 ======================================================= COMPLETED =======================================================
 Major:

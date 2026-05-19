@@ -68,6 +68,11 @@ urlpatterns = [
         views.PatientNewComplaintFormView.as_view(),
         name="assessment_patient_new_complaint_edit",
     ),
+    path(
+        "<int:assessment_id>/notes/",
+        views.NotesView.as_view(),
+        name="assessment_notes",
+    ),
 
     # API endpoints
     path(
@@ -109,5 +114,10 @@ urlpatterns = [
         "api/assessments/patient-new-complaint/",
         api.PatientNewComplaintAPIView.as_view(),
         name="assessment_patient_new_complaint_api",
+    ),
+    path(
+        "api/assessments/notes/",
+        api.AssessmentNotesAPIView.as_view(),
+        name="assessment_notes_api",
     ),
 ]

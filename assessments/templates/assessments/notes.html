@@ -1,0 +1,1303 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+  body {
+    background: #f5f7fb;
+  }
+
+  .summary-header {
+    background: linear-gradient(135deg, #1f3c88, #355cbe);
+    color: white;
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .summary-header h2 {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  .summary-subtitle {
+    opacity: 0.9;
+    margin-top: 5px;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: 14px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e8edf5;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+    font-weight: 700;
+    color: #1f3c88;
+    background: #fff;
+    border-bottom: 1px solid #edf1f7;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+
+  .section-body {
+    padding: 20px;
+  }
+
+  .summary-subtitle {
+    opacity: 0.9;
+    margin-top: 5px;
+  }
+
+  .section-card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 22px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e8edf5;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #1f3c88;
+    border-bottom: 1px solid #edf1f7;
+    padding-bottom: 10px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 16px;
+  }
+
+  .info-item {
+    margin-bottom: 14px;
+  }
+
+  .label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #7b8794;
+    margin-bottom: 4px;
+  }
+
+  .value {
+    color: #1f2937;
+    white-space: pre-wrap;
+    line-height: 1.5;
+  }
+
+  .timeline-card {
+    border-left: 4px solid #355cbe;
+    background: #fafcff;
+    padding: 18px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+    border: 1px solid #e4ebf5;
+  }
+
+  .timeline-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .timeline-title {
+    font-weight: 700;
+    font-size: 16px;
+  }
+
+  .badge-custom {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .badge-success {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .badge-warning {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .subsection-title {
+    font-weight: 700;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    color: #355cbe;
+  }
+
+  .mini-card {
+    border: 1px solid #e8edf5;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: white;
+  }
+
+  .vitals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+
+  .vital-box {
+    background: #f7faff;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+  }
+
+  .vital-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1f3c88;
+  }
+
+  .vital-label {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* =========================
+     Medical Content Sections
+  ========================= */
+  .medical-section {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .medical-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    padding: 18px 20px;
+    transition: all 0.2s ease;
+  }
+
+  .medical-card:hover {
+    border-color: #cfd8e3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
+  .medical-label {
+    font-size: 12px;
+    font-weight: 800;
+    color: #475569;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .medical-value {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #111827;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* =========================
+     Anatomy Marker System
+  ========================= */
+
+  #anatomyWrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 500px;
+    touch-action: manipulation;
+  }
+
+  #anatomyImage {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  #markerLayer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  .anatomy-marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #c0392b;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+  }
+
+  /* =========================
+     Signature safety layering
+  ========================= */
+  .signature-img,
+  .rom-img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    margin-top: 10px;
+  }
+
+  .empty-value {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  @media print {
+    body {
+      background: white;
+    }
+
+    .section-card {
+      box-shadow: none;
+      border: 1px solid #ddd;
+    }
+  }
+
+  /* =========================
+     SOAP
+  ========================= */
+  .modalities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .modality-card {
+    padding: 16px;
+  }
+
+  .modality-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #0d6efd;
+  }
+
+  .modality-item {
+    margin-bottom: 10px;
+  }
+
+  .soap-anatomy-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .soap-anatomy-image {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  .soap-marker-layer {
+    position: absolute;
+    inset: 0;
+  }
+
+  .soap-marker {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #dc3545;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
+    cursor: default;
+  }
+
+  @media (max-width: 991px) {
+    .soap-anatomy-wrapper {
+      max-width: 260px;
+    }
+  }
+</style>
+
+<div class="container-fluid py-4 mt-4 mb-4 px-4">
+
+  <div class="mb-4">
+    <h2 class="fw-semibold mobile-fonts">
+      Patient Assessments Summary
+    </h2>
+  </div>
+
+  <div class="accordion" id="assessmentAccordion">
+
+    <!-- SECTION 1 -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingOne">
+        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#sec1"
+          aria-expanded="true" aria-controls="sec1">
+          Section 1 - Patient Overview
+        </button>
+      </h2>
+
+      <div id="sec1" class="accordion-collapse collapse show">
+
+        <div class="accordion-body section-body">
+          <div id="patientOverview"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingTwo">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec2"
+          aria-expanded="false" aria-controls="sec2">
+          Section 2 - Patient Assessment
+        </button>
+      </h2>
+
+      <div id="sec2" class="accordion-collapse collapse show">
+
+        <div class="accordion-body section-body">
+          <div id="section12"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingThree">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec3"
+          aria-expanded="false" aria-controls="sec3">
+          Section 3 – Physical Examination
+        </button>
+      </h2>
+
+      <div id="sec3" class="accordion-collapse collapse show">
+
+        <div class="accordion-body section-body">
+          <div id="section3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4 -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingFour">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#sec4"
+          aria-expanded="false" aria-controls="sec4">
+          Section 4 – Problem & Interventions List
+        </button>
+      </h2>
+
+      <div id="sec4" class="accordion-collapse collapse show ">
+
+        <div class="accordion-body section-body">
+          <div id="section4"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TREATMENT -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingFive">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#treat"
+          aria-expanded="false" aria-controls="treat">
+          Treatment Plan
+        </button>
+      </h2>
+
+      <div id="treat" class="accordion-collapse collapse">
+
+        <div class="accordion-body section-body">
+          <div id="treatment"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOAP -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingSix">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#soapSec"
+          aria-expanded="false" aria-controls="soapSec">
+          SOAP Notes
+        </button>
+      </h2>
+
+      <div id="soapSec" class="accordion-collapse collapse">
+
+        <div class="accordion-body section-body">
+          <div id="soap"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- RE-EVALUATIONS -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingSeven">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reevalSec"
+          aria-expanded="false" aria-controls="reevalSec">
+          Re-Evaluations
+        </button>
+      </h2>
+
+      <div id="reevalSec" class="accordion-collapse collapse">
+
+        <div class="accordion-body section-body">
+          <div id="reeval"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- NEW COMPLAINTS -->
+    <div class="accordion-item section-card">
+      <h2 class="accordion-header" id="headingEight">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#compSec"
+          aria-expanded="false" aria-controls="compSec">
+          New Complaints
+        </button>
+      </h2>
+
+      <div id="compSec" class="accordion-collapse collapse">
+
+        <div class="accordion-body section-body">
+          <div id="complaints"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const ASSESSMENT_ID = "{{ assessment_id }}";
+
+  const apiUrl =
+    "{% url 'assessment_notes_api' %}?assessment_id=" + ASSESSMENT_ID;
+
+  function safe(v) {
+    return (v === null || v === undefined || v === "") ?
+      '<span class="empty-value"></span>' :
+      v;
+  }
+
+  function yesNo(v) {
+    return v ? "Yes" : "No";
+  }
+
+  function formatDate(dateStr, includeTime = false) {
+    if (!dateStr) return "";
+
+    const d = new Date(dateStr);
+
+    return d.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      ...(includeTime && {
+        hour: "2-digit",
+        minute: "2-digit"
+      })
+    });
+  }
+
+  function badge(signed) {
+    return signed ?
+      `<span class="badge-custom badge-success">Signed</span>` :
+      `<span class="badge-custom badge-warning">Pending</span>`;
+  }
+
+  fetch(apiUrl)
+    .then(res => res.json())
+    .then(data => {
+      // =====================================
+      // SECTION 1 & 2
+      // =====================================
+
+      const s12 = data.section_1_2;
+
+      document.getElementById("patientOverview").innerHTML = `
+      ${renderSignedOff(
+        s12.is_section_1_signed,
+        s12.section_1_signed_by_name,
+        s12.section_1_signed_by_role,
+        s12.section_1_signed_at
+      )}
+          
+      <div class="info-grid">
+
+        <div class="info-item">
+          <span class="medical-label">Patient Name</span>
+          <div class="value">${safe(s12.patient_name)}</div>
+        </div>
+
+        <div class="info-item">
+          <span class="medical-label">File Number</span>
+          <div class="value">${safe(s12.file_number)}</div>
+        </div>
+
+        <div class="info-item">
+          <span class="medical-label">Gender</span>
+          <div class="value">${safe(s12.gender_text)}</div>
+        </div>
+
+        <div class="info-item">
+          <span class="medical-label">Date of Birth</span>
+          <div class="value">${formatDate(s12.date_of_birth)}</div>
+        </div>
+      </div>
+
+      <div class="subsection-title">Vitals</div>
+      <div class="vitals-grid">
+        <div class="vital-box">
+          <div class="vital-value">${safe(s12.pulse)}</div>
+          <div class="vital-label">Pulse</div>
+        </div>
+
+        <div class="vital-box">
+          <div class="vital-value">${safe(s12.systolic_bp)}/${safe(s12.diastolic_bp)}</div>
+          <div class="vital-label">Blood Pressure</div>
+        </div>
+
+        <div class="vital-box">
+          <div class="vital-value">${safe(s12.respiratory)}</div>
+          <div class="vital-label">Respiratory</div>
+        </div>
+      </div>
+
+      <div class="subsection-title">Summary</div>
+      <div class="info-grid">
+
+        <div class="info-item">
+          <span class="medical-label">Summary</span>
+          <div class="value">${safe(s12.summary)}</div>
+        </div>
+
+        <div class="info-item">
+          <span class="medical-label">Special Directions</span>
+          <div class="value">${safe(s12.special_direction)}</div>
+        </div>
+      </div>
+
+      <div class="row mt-4 align-items-stretch">
+        <!-- LEFT SIDE -->
+        <div class="col-lg-6 mb-4 d-flex">
+          <div class="w-100 d-flex flex-column gap-3">
+            <!-- CONSENTS -->
+            <div class="card shadow-sm">
+              <div class="card-header fw-semibold">Consents</div>
+
+              <div class="card-body">
+                <div class="mini-card mb-2">
+                  <label>
+                    <input type="checkbox"
+                          ${s12.education_consent ? "checked" : ""}
+                          disabled>
+                    Education Consent
+                  </label>
+                </div>
+
+                <div class="mini-card mb-2">
+                  <label>
+                    <input type="checkbox"
+                          ${s12.research_consent ? "checked" : ""}
+                          disabled>
+                    Research Consent
+                  </label>
+                </div>
+
+                <div class="mini-card">
+                  <label>
+                    <input type="checkbox"
+                          ${s12.marketing_consent ? "checked" : ""}
+                          disabled>
+                    Marketing Consent
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- SIGNATURE -->
+            ${
+              s12.initial_patient_consent_signature
+                ? `
+                <div class="card shadow-sm">
+                  <div class="card-header fw-semibold">
+                    Patient Signature
+                  </div>
+
+                  <div class="card-body text-center">
+                    <img class="signature-img img-fluid"
+                        src="${s12.initial_patient_consent_signature}">
+                  </div>
+                </div>
+              `
+                : ""
+            }
+
+            <!-- DISCHARGE -->
+            <div class="card shadow-sm">
+              <div class="card-header fw-semibold">
+                Discharge Information
+              </div>
+
+              <div class="card-body">
+                <div class="info-item mb-2">
+                  <span class="medical-label">Discharge Status</span>
+                  <div class="value">${s12.is_discharged ? "Discharged" : "Not Discharged"}</div>
+                </div>
+
+                ${
+                  s12.is_discharged
+                    ? `
+                    <div class="info-item mb-2">
+                      <span class="medical-label">Reason</span>
+                      <div class="value">${safe(s12.reason_for_discharge_text)}</div>
+                    </div>
+
+                    <div class="info-item mb-2">
+                      <span class="medical-label">Remarks</span>
+                      <div class="value">${safe(s12.discharge_remarks)}</div>
+                    </div>
+
+                    <div class="info-item">
+                      <span class="medical-label">Date</span>
+                      <div class="value">${formatDate(s12.updated_at)}</div>
+                    </div>
+                  `
+                    : ""
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT SIDE (ANATOMY) -->
+        <div class="col-lg-6 mb-4 d-flex">
+          <div class="card shadow-sm w-100">
+            <div class="card-header fw-semibold">
+              Pain / Anatomy Markers
+            </div>
+
+            <div class="card-body d-flex justify-content-center align-items-center">
+              <div id="anatomyWrapper">
+                <img id="anatomyImage" src="/media/assessments/anatomy/Muscles_front_and_back.svg">
+                <div id="markerLayer"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+      document.getElementById("section12").innerHTML = `
+        ${renderSignedOff(
+          s12.is_section_2_signed,
+          s12.section_2_signed_by_name,
+          s12.section_2_signed_by_role,
+          s12.section_2_signed_at
+        )}
+
+        <div class="medical-section">
+
+          ${renderField("Chief Complaint", s12.chief_complaint)}
+
+          ${renderField("History of Condition", s12.history_of_condition)}
+
+          ${renderField("Pain", s12.pain)}
+
+          ${renderField("Aggravating Factors", s12.aggravating_factors)}
+
+          ${renderField("Relieving Factors", s12.relieving_factors)}
+
+          ${renderField("Associated Symptoms", s12.associated_symptoms)}
+
+          ${renderField("Differential Diagnosis", s12.differential_diagnosis)}
+
+          ${renderField("Past Illnesses", s12.past_illnesses)}
+
+          ${renderField("Family History", s12.family_hx)}
+
+          ${renderField("Red Flags", s12.red_flags)}
+
+          ${renderField("Yellow Flags", s12.yellow_flags)}
+
+        </div>
+      `;
+
+      // =====================================
+      // ANATOMY MARKERS
+      // =====================================
+
+      const markers =
+        s12.section_1_anatomy_markers || [];
+
+      const layer =
+        document.getElementById("markerLayer");
+
+      markers.forEach(m => {
+
+        const div = document.createElement("div");
+
+        div.className = "anatomy-marker";
+
+        div.style.left = (m.x * 100) + "%";
+        div.style.top = (m.y * 100) + "%";
+
+        layer.appendChild(div);
+
+      });
+
+      // =====================================
+      // SECTION 3
+      // =====================================
+
+      const s3 = data.section_3;
+
+      document.getElementById("section3").innerHTML = `
+        ${renderSignedOff(
+          s3.is_section_3_signed,
+          s3.section_3_signed_by_name,
+          s3.section_3_signed_by_role,
+          s3.section_3_signed_at
+        )}
+
+        <div class="medical-section">
+
+          ${renderField(
+            "Inspection Posture",
+            s3.inspection_posture
+          )}
+
+          ${renderField(
+            "Inspection Gait",
+            s3.inspection_gait
+          )}
+
+          ${renderField(
+            "Orthopedic Assessment",
+            s3.orthopedic_assessment
+          )}
+
+          ${renderField(
+            "Palpation",
+            s3.palpation
+          )}
+
+          ${renderField(
+            "ROM Active",
+            s3.rom_active
+          )}
+
+          ${renderField(
+            "ROM Passive",
+            s3.rom_passive
+          )}
+
+          ${renderField(
+            "ROM Resisted",
+            s3.rom_resisted
+          )}
+
+          ${renderField(
+            "Working Diagnosis",
+            s3.working_diagnosis
+          )}
+
+        </div>
+
+        ${
+          s3.rom_drawing
+            ? `
+              <div class="section-spacing">
+
+                <div class="subsection-title">
+                  ROM Drawing
+                </div>
+
+                <div class="text-center">
+                  <img
+                    class="rom-img img-fluid"
+                    src="${s3.rom_drawing}"
+                  >
+                </div>
+
+              </div>
+            `
+            : ""
+        }
+      `;
+      // =====================================
+      // SECTION 4
+      // =====================================
+      const s4 = data.section_4;
+      document.getElementById("section4").innerHTML = `
+        ${renderSignedOff(
+          s4.is_section_4_signed,
+          s4.section_4_signed_by_name,
+          s4.section_4_signed_by_role,
+          s4.section_4_signed_at
+        )}
+
+        <div class="info-item">
+          <span class="medical-label">Diagnosis</span>
+          <div class="value">${safe(s4.diagnosis)}</div>
+        </div>
+
+        <div class="info-item mt-3">
+          <span class="medical-label">Diagnosis Date</span>
+          <div class="value">${formatDate(s4.diagnosis_date)}</div>
+        </div>
+      `;
+
+      // =====================================
+      // TREATMENT PLAN
+      // =====================================
+      const tp = data.treatment_plan;
+      document.getElementById("treatment").innerHTML = `
+
+      ${renderSignedOff(
+        tp.is_treatment_plan_signed,
+        tp.treatment_plan_signed_by_name,
+        tp.treatment_plan_signed_by_role,
+        tp.treatment_plan_signed_at
+      )}
+
+      <div class="info-grid">
+        <div class="mini-card">
+          <div class="medical-label">Phase 1</div>
+          <div>${safe(tp.phase_1)}</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="medical-label">Phase 2</div>
+          <div>${safe(tp.phase_2)}</div>
+        </div>
+
+        <div class="mini-card">
+          <div class="medical-label">Phase 3</div>
+          <div>${safe(tp.phase_3)}</div>
+        </div>
+      </div>
+
+      <div class="section-spacing">
+        <div class="subsection-title">
+          Treatment Remarks
+        </div>
+
+        <div class="medical-card">
+          <div class="medical-value">${safe(tp.treatment_remarks)}</div>
+        </div>
+
+      </div>
+    `;
+
+      // =====================================
+      // SOAP NOTES
+      // =====================================
+      document.getElementById("soap").innerHTML =
+        data.soaps?.length
+        ? data.soaps.map(s => `
+          <div class="card mb-4 shadow-sm soap-card hover-shadow"
+              data-url="/soap/${s.id}/"
+              style="cursor: pointer;">
+
+            <!-- Header -->
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <span class="fw-semibold">S.O.A.P.</span><br>
+                <small class="text-muted">
+                  <strong>ID:</strong> ${s.id}
+                </small>
+              </div>
+            </div>
+
+            <div class="card-body">
+              ${renderSignedOff(
+                s.is_soap_signed,
+                s.signed_by_name,
+                s.signed_by_role,
+                s.soap_signed_at
+              )}
+
+              <div class="info-grid">
+                <div class="info-item">
+                  <span class="medical-label">Date</span>
+                  <div>${formatDate(s.created_at)}</div>
+                </div>
+
+                <div class="info-item">
+                  <span class="medical-label">Student</span>
+                  <div>${safe(s.student_name)}</div>
+                </div>
+
+                <div class="info-item">
+                  <span class="medical-label">Evaluator</span>
+                  <div>${safe(s.evaluator_name)}</div>
+                </div>
+              </div>
+
+              <div class="subsection-title">
+                Vitals
+              </div>
+
+              <div class="vitals-grid">
+                <div class="vital-box">
+                  <div class="vital-value">
+                    ${safe(s.soap_pulse)}
+                  </div>
+                  <div class="vital-label">
+                    Pulse
+                  </div>
+                </div>
+
+                <div class="vital-box">
+                  <div class="vital-value">
+                    ${safe(s.soap_systolic_bp)}/${safe(s.soap_diastolic_bp)}
+                  </div>
+                  <div class="vital-label">
+                    Blood Pressure
+                  </div>
+                </div>
+
+                <div class="vital-box">
+                  <div class="vital-value">
+                    ${safe(s.soap_respiratory)}
+                  </div>
+                  <div class="vital-label">
+                    Respiratory
+                  </div>
+                </div>
+              </div>
+
+              <div class="subsection-title">
+                S.O.A.P.
+              </div>
+
+              <div class="info-grid">
+                <div class="mini-card">
+                  <div class="medical-label">Subjective</div>
+                  <div>${safe(s.subjective)}</div>
+                </div>
+
+                <div class="mini-card">
+                  <div class="medical-label">Objective</div>
+                  <div>${safe(s.objective)}</div>
+                </div>
+
+                <div class="mini-card">
+                  <div class="medical-label">Assessment</div>
+                  <div>${safe(s.soap_assessment)}</div>
+                </div>
+
+                <div class="mini-card">
+                  <div class="medical-label">Plan</div>
+                  <div>${safe(s.plan)}</div>
+                </div>
+              </div>
+
+              <div class="subsection-title">
+                Treatment Response
+              </div>
+
+              <div class="info-grid">
+                <div class="mini-card">
+                  <label>
+                    <input type="checkbox"
+                          ${s.patient_improved_with_treatment ? "checked" : ""}
+                          disabled>
+                    Improved With Treatment
+                  </label>
+                </div>
+
+                <div class="mini-card">
+                  <label>
+                    <input type="checkbox"
+                          ${s.patient_tolerated_treatment_well ? "checked" : ""}
+                          disabled>
+                    Tolerated Treatment Well
+                  </label>
+                </div>
+
+                <div class="mini-card">
+                  <label>
+                    <input type="checkbox"
+                          ${s.pain_after_treatment ? "checked" : ""}
+                          disabled>
+                    Pain After Treatment
+                  </label>
+                </div>
+
+                <div class="mini-card">
+                  <label>
+                    <input type="checkbox"
+                          ${s.adverse_reactions_to_treatment ? "checked" : ""}
+                          disabled>
+                    Adverse Reaction To Treatment
+                  </label>
+                </div>
+              </div>
+
+              <div class="row mt-4">
+                <!-- LEFT MODALITIES -->
+                <div class="col-lg-7 mb-4">
+                  <div class="card shadow-sm">
+                    <div class="card-header fw-semibold">
+                      Modalities
+                    </div>
+
+                    <div class="card-body">
+                      <div class="modalities-grid">
+                        ${
+                          s.soap_modalities?.filter(m =>
+                            m.modality ||
+                            m.location ||
+                            m.settings ||
+                            m.duration_intensity
+                          ).length
+                            ? s.soap_modalities.map(m => `
+                              <div class="mini-card modality-card">
+
+                                <div class="modality-title">
+                                  ${safe(m.modality_text)}
+                                </div>
+
+                                <div class="modality-item">
+                                  <span class="medical-label">Location:</span>
+                                  <div>${safe(m.location)}</div>
+                                </div>
+
+                                <div class="modality-item">
+                                  <span class="medical-label">Settings:</span>
+                                  <div>${safe(m.settings)}</div>
+                                </div>
+
+                                <div class="modality-item">
+                                  <span class="medical-label">Duration / Intensity:</span>
+                                  <div>${safe(m.duration_intensity)}</div>
+                                </div>
+
+                              </div>
+                            `).join("")
+                            : '<div class="empty-value">No modalities</div>'
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RIGHT S.O.A.P. ANATOMY MARKERS -->
+                <div class="col-lg-5 mb-4">
+                  <div class="card shadow-sm">
+                    <div class="card-header fw-semibold">
+                      Anatomy Markers
+                    </div>
+
+                    <div class="card-body text-center">
+                      <div class="soap-anatomy-wrapper position-relative mx-auto">
+                        <img
+                          class="soap-anatomy-image"
+                          src="/media/assessments/anatomy/spine.png"
+                        >
+                        <div class="soap-marker-layer">
+                          ${
+                            s.markers?.length
+                              ? s.markers.map(marker => `
+                                <div
+                                  class="soap-marker"
+                                  style="
+                                    left:${marker.x * 100}%;
+                                    top:${marker.y * 100}%;
+                                  "
+                                  title="${safe(marker.note || '')}"
+                                >
+                                  ${marker.id}
+                                </div>
+                              `).join("")
+                              : ""
+                          }
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `).join("")
+        : emptyState("No S.O.A.P. Notes Exist");
+
+      // =====================================
+      // RE-EVALUATIONS
+      // =====================================
+      document.getElementById("reeval").innerHTML =
+      data.reevaluations?.length
+        ? data.reevaluations.map(r => `
+        <div class="card mb-4 shadow-sm">
+          <!-- HEADER -->
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-semibold">Re-Evaluation</span><br>
+              <small class="text-muted">
+                <strong>ID:</strong> ${r.id}
+              </small>
+            </div>
+          </div>
+
+          <div class="card-body">
+            ${renderSignedOff(
+              r.is_reevaluation_signed,
+              r.signed_by_name,
+              r.signed_by_role,
+              r.reevaluation_signed_at
+            )}
+
+            <div class="info-grid mb-4">
+              <div class="info-item">
+                <span class="medical-label">Date</span>
+                <div class="value">${formatDate(r.date_of_reevaluation)}</div>
+              </div>
+
+              <div class="info-item">
+                <span class="medical-label">Student</span>
+                <div class="value">${safe(r.student_name)}</div>
+              </div>
+
+              <div class="info-item">
+                <span class="medical-label">Evaluator</span>
+                <div class="value">${safe(r.evaluator_name)}</div>
+              </div>
+            </div>
+
+            <div class="medical-section">
+              ${renderField("Current Status", r.current_status)}
+              ${renderField("Diagnosis", r.diagnosis)}
+              ${renderField("Treatment Plan", r.treatment_plan)}
+            </div>
+
+          </div>
+        </div>
+      `).join("")
+      : emptyState("No Re-Evaluations Exist");
+
+      // =====================================
+      // NEW COMPLAINTS
+      // =====================================
+      document.getElementById("complaints").innerHTML =
+        data.new_complaints?.length
+          ? data.new_complaints.map(c => `
+
+        <div class="card mb-4 shadow-sm">
+          <!-- HEADER -->
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+              <span class="fw-semibold">New Complaint</span><br>
+              <small class="text-muted">
+                <strong>ID:</strong> ${c.id}
+              </small>
+            </div>
+          </div>
+
+          <div class="card-body">
+            ${renderSignedOff(
+              c.is_new_complaint_signed,
+              c.signed_by_name,
+              c.signed_by_role,
+              c.new_complaint_signed_at
+            )}
+            
+            <div class="info-grid mb-4">
+              <div class="info-item">
+                <span class="medical-label">Date</span>
+                <div>${formatDate(c.date_of_new_complaint)}</div>
+              </div>
+
+              <div class="info-item">
+                <span class="medical-label">Student</span>
+                <div>${safe(c.student_name)}</div>
+              </div>
+
+              <div class="info-item">
+                <span class="medical-label">Evaluator</span>
+                <div>${safe(c.evaluator_name)}</div>
+              </div>
+            </div>
+
+            <div class="medical-section">
+              ${renderField("Current Status", c.new_complaint_history)}
+              ${renderField("Diagnosis", c.diagnosis)}
+              ${renderField("Differential Diagnosis", c.different_diagnosis)}
+              ${renderField("Physical Examination", c.physical_examination)}
+              ${renderField("Treatment Plan", c.treatment_plan)}
+            </div>
+          </div>
+        </div>
+      `).join("")
+      : emptyState("No New Complaints Exist");
+    });
+
+  function renderField(label, value) {
+    return `
+        <div class="medical-card">
+          <div class="medical-label">${label}</div>
+          <div class="medical-value">${safe(value) || "-"}</div>
+        </div>
+      `;
+  }
+
+  function renderSignedOff(isSigned, name, role, signedAt) {
+    if (!isSigned) return "";
+    return `
+      <div class="alert alert-success">
+        <strong>Signed-off by:</strong>
+        ${safe(name)}
+        (${safe(role)})<br>
+        <small class="text-muted">
+          Signed at: ${formatDate(signedAt, true)}
+        </small>
+      </div>
+    `;
+  }
+  function emptyState(message = "No data available") {
+    return `<div class="empty-value">${message}</div>`;
+  }
+
+</script>
+
+{% endblock %}
