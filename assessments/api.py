@@ -1,7 +1,7 @@
 import logging
 import base64
-from urllib import request
 import uuid
+from urllib import request
 from django.core.files.base import ContentFile
 from django.shortcuts import get_object_or_404
 from accounts.models import Profile
@@ -110,23 +110,7 @@ class AssessmentSection1And2APIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         signature_data = request.data.get("signature_data")
-        if signature_data:
-            try:
-                format, imgstr = signature_data.split(";base64,")
-                ext = format.split("/")[-1]
-                signature_file = ContentFile(
-                    base64.b64decode(imgstr), name=f"signature.{ext}"
-                )
-                serializer.validated_data["initial_patient_consent_signature"] = (
-                    signature_file
-                )
-            except Exception as e:
-                logger.error(f"SIGNATURE_ERROR - Invalid signature data: {str(e)}")
-                return Response(
-                    {"signature_data": f"Invalid image data: {str(e)}"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
+        
         # --------------------------------
         # Create assessment
         # --------------------------------
@@ -188,27 +172,19 @@ class AssessmentSection1And2APIView(APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        signature_data = request.data.get("signature_data")
         try:
-            if signature_data:
-                format, imgstr = signature_data.split(";base64,")
-                ext = format.split("/")[-1]
-                signature_file = ContentFile(
-                    base64.b64decode(imgstr), name=f"signature.{ext}"
-                )
-                serializer.save(initial_patient_consent_signature=signature_file)
-                logger.info(
-                    f"SIGNATURE_UPDATED - Signature updated for assessment {assessment.id} by {profile.official_name}"
-                )
-            else:
-                serializer.save()
+            serializer.save()
+            logger.info(
+                f"UPDATE - Assessment updated successfully: assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role})"
+            )
         except Exception as e:
             logger.error(
-                f"SIGNATURE_SAVE_FAILED - Assessment {assessment.id} | Error: {str(e)}",
-                exc_info=True,
+                f"UPDATE - Failed to update assessment: assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role}), error={str(e)}"
             )
             return Response(
-                {"detail": "Failed to save signature", "error": str(e)},
+                {"detail": "Failed to update assessment", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -373,10 +349,6 @@ class AssessmentSection3APIView(APIView):
             )
 
         serializer = AssessmentSection3Serializer(assessment)
-        logger.info(
-            f"VIEW - Section 3 | assessment_id={assessment.id}, "
-            f"user={profile.official_name} ({profile.role})"
-        )
 
         return Response(serializer.data)
 
@@ -396,12 +368,23 @@ class AssessmentSection3APIView(APIView):
 
         assessment = get_object_or_404(Assessments, id=assessment_id)
 
+        # access control
         if profile.role == "student" and assessment.student != profile:
             return Response(
                 {"detail": "You cannot edit this section"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        # =========================
+        # CLEAN ROM INPUT
+        # =========================
+        rom_drawing_data = request.data.get("rom_drawing_data")
+        if rom_drawing_data in ["", "null", "undefined"]:
+            rom_drawing_data = None
+
+        # =========================
+        # SERIALIZER UPDATE (SINGLE SOURCE OF TRUTH)
+        # =========================
         serializer = AssessmentSection3Serializer(
             assessment,
             data=request.data,
@@ -409,120 +392,89 @@ class AssessmentSection3APIView(APIView):
             context={"request": request},
         )
 
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save()
+        except Exception as e:
+            return Response(
+                {"detail": "Validation failed", "error": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         # =========================
-        # ROM DRAWING HANDLING
+        # ROM DRAWING HANDLING (SEPARATE SAFE STEP)
         # =========================
-        rom_drawing_data = request.data.get("rom_drawing_data")
-
         try:
             if rom_drawing_data:
                 format, imgstr = rom_drawing_data.split(";base64,")
                 ext = format.split("/")[-1]
 
-                # delete old file
-                if assessment.rom_drawing:
-                    assessment.rom_drawing.delete(save=False)
+                # delete old image safely
+                if instance.rom_drawing:
+                    instance.rom_drawing.delete(save=False)
 
-                    logger.info(
-                        f"ROM_DRAWING_DELETED - assessment_id={assessment.id}, "
-                        f"user={profile.official_name} ({profile.role})"
-                    )
-
-                rom_file = ContentFile(
+                instance.rom_drawing = ContentFile(
                     base64.b64decode(imgstr),
-                    name=f"rom_drawing_{assessment.id}_{uuid.uuid4().hex}.{ext}",
+                    name=f"rom_drawing_{instance.id}_{uuid.uuid4().hex}.{ext}",
                 )
-
-                serializer.save(rom_drawing=rom_file)
-
-                logger.info(
-                    f"ROM_DRAWING_UPDATED - assessment_id={assessment.id}, "
-                    f"user={profile.official_name} ({profile.role})"
-                )
-            else:
-                serializer.save()
+                instance.save(update_fields=["rom_drawing"])
 
         except Exception as e:
-            logger.error(
-                f"ROM_DRAWING_ERROR - assessment_id={assessment.id}, "
-                f"user={profile.official_name} ({profile.role}), "
-                f"error={str(e)}",
-                exc_info=True,
-            )
-
             return Response(
-                {"rom_drawing_data": f"Invalid image data: {str(e)}"},
+                {
+                    "rom_drawing_data": "Invalid image data",
+                    "error": str(e),
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # refresh instance after save
-        assessment.refresh_from_db()
+        # refresh final state
+        instance.refresh_from_db()
 
         # =========================
-        # ACTION LOGIC (SIGN-OFF)
+        # ACTION LOGIC
         # =========================
-        try:
-            if action == "save_section_3":
-                assessment.is_section_3_signed = False
-
-                logger.info(
-                    f"SAVE_SECTION_3 - assessment_id={assessment.id}, "
-                    f"user={profile.official_name} ({profile.role})"
-                )
-
-            elif action == "sign_off_section_3":
-                if profile.role not in ["clinician", "admin"]:
-                    logger.warning(
-                        f"SIGN_OFF_DENIED - Section 3 | "
-                        f"assessment_id={assessment.id}, user={profile.official_name} ({profile.role})"
-                    )
-                    return Response(
-                        {"detail": "Not allowed to sign off"},
-                        status=status.HTTP_403_FORBIDDEN,
-                    )
-
-                assessment.is_section_3_signed = True
-                assessment.section_3_signed_by = profile
-                assessment.section_3_signed_at = timezone.now()
-
-                logger.info(
-                    f"SIGN_OFF_SECTION_3 - assessment_id={assessment.id}, "
-                    f"student={assessment.student.official_name}, "
-                    f"signed_by={profile.official_name} ({profile.role})"
-                )
-            assessment.save()
-
-            # =========================
-            # RESPONSE
-            # =========================
-            message = "Section 3 updated successfully"
-
-            if action == "sign_off_section_3":
-                message = "Section 3 signed off successfully"
-
-            logger.info(
-                f"UPDATE_SUCCESS - Section 3 | assessment_id={assessment.id}, "
-                f"action={action}, user={profile.official_name} ({profile.role})"
-            )
+        if action == "save_section_3":
+            instance.is_section_3_signed = False
+            instance.section_3_signed_by = None
+            instance.section_3_signed_at = None
+            instance.save(update_fields=[
+                "is_section_3_signed",
+                "section_3_signed_by",
+                "section_3_signed_at",
+            ])
 
             return Response(
-                {"message": message},
+                {"message": "Section 3 updated successfully"},
                 status=status.HTTP_200_OK,
             )
 
-        except Exception as e:
-            logger.error(
-                f"UPDATE_FAILED - Section 3 | assessment_id={assessment.id}, "
-                f"user={profile.official_name}, error={str(e)}",
-                exc_info=True,
-            )
+        elif action == "sign_off_section_3":
+
+            if profile.role not in ["clinician", "admin"]:
+                return Response(
+                    {"detail": "Not allowed to sign off"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            instance.is_section_3_signed = True
+            instance.section_3_signed_by = profile
+            instance.section_3_signed_at = timezone.now()
+            instance.save(update_fields=[
+                "is_section_3_signed",
+                "section_3_signed_by",
+                "section_3_signed_at",
+            ])
 
             return Response(
-                {"detail": "Failed to update Section 3", "error": str(e)},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"message": "Section 3 signed off successfully"},
+                status=status.HTTP_200_OK,
             )
+
+        return Response(
+            {"detail": "Invalid action"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 class AssessmentSection4APIView(APIView):

@@ -1,4 +1,5 @@
 import base64
+import uuid
 from rest_framework import serializers
 from django.core.files.base import ContentFile
 from django.utils import timezone
@@ -258,20 +259,32 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             cleaned = cleaned[:50]
 
         return cleaned
-
+    
     def _save_signature(self, instance, signature_data):
         if not signature_data:
             return
+
         try:
             format, imgstr = signature_data.split(";base64,")
             ext = format.split("/")[-1]
-            data = ContentFile(
-                base64.b64decode(imgstr), name=f"signature_{instance.id}.{ext}"
+
+            file = ContentFile(
+                base64.b64decode(imgstr),
+                name=f"{uuid.uuid4()}.{ext}",
             )
-            instance.initial_patient_consent_signature = data
+
+            instance.initial_patient_consent_signature = file
             instance.is_initial_patient_consent_signed = True
             instance.initial_patient_consent_signed_at = timezone.now()
-            instance.save()
+
+            instance.save(
+                update_fields=[
+                    "initial_patient_consent_signature",
+                    "is_initial_patient_consent_signed",
+                    "initial_patient_consent_signed_at",
+                ]
+            )
+
         except Exception as e:
             raise serializers.ValidationError(
                 {"signature_data": f"Invalid image data: {str(e)}"}
@@ -279,6 +292,10 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
 
 
 class AssessmentSection3Serializer(serializers.ModelSerializer):
+    # rom_drawing_data = serializers.CharField(
+    #     write_only=True,
+    #     required=False,
+    # )
     section_3_signed_by_name = serializers.CharField(
         source="section_3_signed_by.official_name", read_only=True
     )
@@ -302,6 +319,7 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "rom_passive",
             "rom_resisted",
             "rom_drawing",
+            # "rom_drawing_data",
             "first_chiropractic",
             "cranial_nerves",
             "cerebellar",
@@ -326,12 +344,52 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "section_3_signed_at",
         ]
 
+    # def update(self, instance, validated_data):
+    #     request = self.context.get("request")
+    #     if request:
+    #         instance.updated_by = request.user.profile
+
+    #     return super().update(instance, validated_data)
+
     def update(self, instance, validated_data):
         request = self.context.get("request")
         if request:
             instance.updated_by = request.user.profile
 
-        return super().update(instance, validated_data)
+        # rom_drawing_data = validated_data.pop("rom_drawing_data", None)
+        # # ignore empty values
+        # if rom_drawing_data in ["", "null", "undefined"]:
+        #     rom_drawing_data = None
+
+        instance = super().update(instance, validated_data)
+
+        # if rom_drawing_data:
+        #     self._save_rom_drawing(instance, rom_drawing_data)
+
+        return instance
+
+    def _save_rom_drawing(self, instance, rom_drawing_data):
+        try:
+            format, imgstr = rom_drawing_data.split(";base64,")
+            ext = format.split("/")[-1]
+
+            # delete previous file
+            if instance.rom_drawing:
+                instance.rom_drawing.delete(save=False)
+
+            file = ContentFile(
+                base64.b64decode(imgstr),
+                name=f"{uuid.uuid4()}.{ext}",
+            )
+
+            instance.rom_drawing = file
+
+            instance.save(update_fields=["rom_drawing"])
+
+        except Exception as e:
+            raise serializers.ValidationError(
+                {"rom_drawing_data": f"Invalid image data: {str(e)}"}
+            )
 
 
 class AssessmentSection4Serializer(serializers.ModelSerializer):

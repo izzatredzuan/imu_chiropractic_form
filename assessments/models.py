@@ -1,4 +1,8 @@
+import os
+import uuid
+
 from django.db import models
+from django.utils.text import slugify
 from accounts.models import Profile
 
 GENDER_CHOICES = (
@@ -29,18 +33,86 @@ MODALITIES_CHOICES = (
 )
 
 
+def assessment_upload_path(category):
+    """
+    Reusable upload path generator for assessment files.
+
+    Example output:
+    assessments/patient_signatures/15/3f4f1f9f-consent-signature.png
+    """
+
+    def upload_path(instance, filename):
+        # Extract extension safely
+        ext = os.path.splitext(filename)[1].lower()
+
+        # Remove dangerous characters from original filename
+        original_name = os.path.splitext(filename)[0]
+        clean_name = slugify(original_name)
+
+        # Fallback if filename becomes empty
+        if not clean_name:
+            clean_name = "file"
+
+        # Generate unique filename
+        unique_name = f"{uuid.uuid4().hex[:8]}-{clean_name}{ext}"
+
+        # Handle unsaved instance safely
+        assessment_id = instance.pk or "temp"
+
+        return (
+            f"assessments/"
+            f"{assessment_id}/"
+            f"{category}/"
+            f"{unique_name}"
+        )
+    return upload_path
+
+
 class Assessments(models.Model):
     # =====================
     # Initial Patient Consent
     # =====================
-    is_initial_patient_consent_signed = models.BooleanField(default=False)
     marketing_consent = models.BooleanField(default=False)
     education_consent = models.BooleanField(default=False)
     research_consent = models.BooleanField(default=False)
+    is_initial_patient_consent_signed = models.BooleanField(default=False)
     initial_patient_consent_signature = models.ImageField(
-        upload_to="assessments/patient_signatures/", null=True, blank=True
+        upload_to=assessment_upload_path("patient_signatures"), null=True, blank=True
     )
     initial_patient_consent_signed_at = models.DateTimeField(
+        null=True, blank=True, default=None
+    )
+
+    is_attending_consent_signed = models.BooleanField(default=False)
+    attending_consent_signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="attending_consent_signed_assessments",
+        limit_choices_to={"role": ["clinician", "student"]},
+        default=None,
+    )
+    attending_consent_signature = models.ImageField(
+        upload_to=assessment_upload_path("attending_signatures"), null=True, blank=True
+    )
+    attending_consent_signed_at = models.DateTimeField(
+        null=True, blank=True, default=None
+    )
+
+    is_witness_consent_signed = models.BooleanField(default=False)
+    witness_consent_signature = models.ImageField(
+        upload_to=assessment_upload_path("witness_signatures"), null=True, blank=True
+    )
+    witness_consent_signed_at = models.DateTimeField(
+        null=True, blank=True, default=None
+    )
+
+    is_pdpa_consent_signed = models.BooleanField(default=False)
+    pdpa_consent_signature = models.ImageField(
+        upload_to=assessment_upload_path("pdpa_signatures"), null=True, blank=True
+    )
+    pdpa_consent_signed_at = models.DateTimeField(
         null=True, blank=True, default=None
     )
 
@@ -150,7 +222,7 @@ class Assessments(models.Model):
     rom_passive = models.TextField(blank=True, default="")
     rom_resisted = models.TextField(blank=True, default="")
     rom_drawing = models.ImageField(
-        upload_to="assessments/rom_drawings/", null=True, blank=True
+        upload_to=assessment_upload_path("rom_drawing"), null=True, blank=True
     )
 
     first_chiropractic = models.TextField(blank=True, default="")

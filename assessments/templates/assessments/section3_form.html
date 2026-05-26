@@ -325,7 +325,7 @@
 </div>
 
 <script>
-  let clickedAction = "save_section_1";
+  let clickedAction = "save_section_3";
 
   document.getElementById("btnSave")?.addEventListener("click", () => clickedAction = "save_section_3");
   {% if assessment and request.user.profile.role in "clinician admin" %}
@@ -552,7 +552,6 @@
     formData.forEach((value, key) => {
       payload[key] = value;
     });
-
     payload["assessment_id"] = "{{ assessment.id }}";
     
     // ONLY SEND IF CHANGED
@@ -568,14 +567,20 @@
       },
       body: JSON.stringify(payload)
     })
-    .then(res => res.json())
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Request failed");
+      }
+      return data;
+    })
     .then(data => {
       alert(data.message || "Updated successfully");
       window.location.href = "{% url 'assessments_list' %}";
     })
     .catch(err => {
-      console.error(err);
-      alert("Something went wrong");
+      console.error("FULL ERROR:", err);
+      alert("ERROR: " + err.message);
     });
   });
 </script>
