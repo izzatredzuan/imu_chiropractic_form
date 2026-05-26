@@ -115,7 +115,13 @@
                     <textarea name="diagnosis" class="form-control" rows="4" required
                         {% if is_readonly or assessment.is_section_4_signed %}disabled{% endif %}>{{ assessment.diagnosis }}</textarea>
                 </div>
-
+                <div class="mb-3">
+                    <label class="form-label required">
+                        Intervention Approved
+                    </label>
+                    <textarea name="intervention_approved" class="form-control" rows="4" required
+                        {% if is_readonly or assessment.is_section_4_signed %}disabled{% endif %}>{{ assessment.intervention_approved }}</textarea>
+                </div>       
                 <div class="mb-3">
                     <label class="form-label required">
                         Diagnosis Date

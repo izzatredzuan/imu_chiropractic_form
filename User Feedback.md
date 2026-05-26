@@ -8,6 +8,27 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 - Add Image uploading field in Treatment
 - User creation, student need a field for cohorts
 
+Priority:
+21/05/2026
+Section1 :
+- Add new consent section
+- Change phase 1 is complete logic, special direction is not mandatory. [DONE]
+- Note on anatomy marker, remover "Left-click a marker to add/edit a note. Right-click to delete." instructions [DONE]
+ 
+Section 4:
+- Add "intervention approved" field [DONE]
+ 
+S.O.A.P
+- Fail to create because assessment id not passed [DONE]
+ 
+Note:
+- Add Convert to pdf function
+- For soap anatomy On hold click doest show marker details [DONE]
+
+Discharge:
+- Need signoff section
+
+
 Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve

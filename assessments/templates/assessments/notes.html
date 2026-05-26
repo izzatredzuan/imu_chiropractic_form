@@ -319,9 +319,9 @@
   }
 
   .soap-anatomy-image {
+    display: block;
     width: 100%;
     height: auto;
-    display: block;
   }
 
   .soap-marker-layer {
@@ -329,9 +329,12 @@
     inset: 0;
   }
 
-  .soap-marker {
+  .soap-marker-wrapper {
     position: absolute;
     transform: translate(-50%, -50%);
+  }
+
+  .soap-marker {
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -339,14 +342,60 @@
     color: #fff;
     font-size: 11px;
     font-weight: 600;
+
     display: flex;
     align-items: center;
     justify-content: center;
+
     border: 2px solid #fff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, .2);
-    cursor: default;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
+  .soap-tooltip {
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: none;
+    z-index: 9999;
+
+    min-width: 120px;
+    max-width: 420px;
+
+    padding: 6px 8px;
+    border-radius: 6px;
+
+    background: #333;
+    color: #fff;
+
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+
+    white-space: normal;
+    word-break: break-word;
+
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+
+  /* Desktop hover */
+  .soap-marker-wrapper:hover .soap-tooltip {
+    display: block;
+  }
+
+  /* Mobile touch */
+  @media (hover: none) {
+    .soap-marker-wrapper:active .soap-tooltip {
+      display: block;
+    }
+  }
+
+  /* Responsive */
   @media (max-width: 991px) {
     .soap-anatomy-wrapper {
       max-width: 260px;
@@ -1140,14 +1189,23 @@
                             s.markers?.length
                               ? s.markers.map(marker => `
                                 <div
-                                  class="soap-marker"
+                                  class="soap-marker-wrapper"
                                   style="
+                                    position:absolute;
                                     left:${marker.x * 100}%;
                                     top:${marker.y * 100}%;
+                                    transform:translate(-50%, -50%);
                                   "
-                                  title="${safe(marker.note || '')}"
                                 >
-                                  ${marker.id}
+
+                                  <div class="soap-marker">
+                                    ${marker.id}
+                                  </div>
+
+                                  <div class="soap-tooltip">
+                                    ${safe(marker.note || '')}
+                                  </div>
+
                                 </div>
                               `).join("")
                               : ""

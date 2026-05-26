@@ -184,6 +184,7 @@ class Assessments(models.Model):
     # Section 4 – Problem and Interventions List
     # =====================
     diagnosis = models.TextField(blank=True, default="")
+    intervention_approved = models.TextField(blank=True, default="")
     diagnosis_date = models.DateField(null=True, blank=True)
 
     is_section_4_signed = models.BooleanField(default=False)

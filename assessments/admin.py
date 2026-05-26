@@ -168,6 +168,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "diagnosis",
+                    "intervention_approved",
                     "diagnosis_date",
                     "is_section_4_signed",
                     "section_4_signed_by",

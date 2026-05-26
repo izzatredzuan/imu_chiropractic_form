@@ -7,8 +7,6 @@ SECTION_1_FIELDS = [
     "respiratory",
     "systolic_bp",
     "diastolic_bp",
-    "summary",
-    "special_direction",
 ]
 
 SECTION_2_FIELDS = [
@@ -58,6 +56,7 @@ SECTION_3_FIELDS = [
 
 SECTION_4_FIELDS = [
     "diagnosis",
+    "intervention_approved",
     "diagnosis_date",
 ]
 

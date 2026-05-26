@@ -349,6 +349,7 @@ class AssessmentSection4Serializer(serializers.ModelSerializer):
             "student",
             "evaluator",
             "diagnosis",
+            "intervention_approved",
             "diagnosis_date",
             "is_section_4_signed",
             "section_4_signed_by_name",
