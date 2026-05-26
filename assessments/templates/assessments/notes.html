@@ -702,24 +702,6 @@
               </div>
             </div>
 
-            <!-- SIGNATURE -->
-            ${
-              s12.initial_patient_consent_signature
-                ? `
-                <div class="card shadow-sm">
-                  <div class="card-header fw-semibold">
-                    Patient Signature
-                  </div>
-
-                  <div class="card-body text-center">
-                    <img class="signature-img img-fluid"
-                        src="${s12.initial_patient_consent_signature}">
-                  </div>
-                </div>
-              `
-                : ""
-            }
-
             <!-- DISCHARGE -->
             <div class="card shadow-sm">
               <div class="card-header fw-semibold">
@@ -768,6 +750,81 @@
               <div id="anatomyWrapper">
                 <img id="anatomyImage" src="/media/assessments/anatomy/Muscles_front_and_back.svg">
                 <div id="markerLayer"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNATURES -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+              Signatures
+            </div>
+
+            <div class="card-body">
+              <div class="row g-4 justify-content-center text-center">
+                <!-- Patient Signature -->
+                ${
+                  s12.initial_patient_consent_signature
+                    ? `
+                    <div class="col-md-3">
+                      <div class="mini-card">
+                        <div class="medical-label">Patient</div>
+                        <img class="signature-img d-block mx-auto"
+                            src="${s12.initial_patient_consent_signature}">
+                      </div>
+                    </div>
+                  `
+                    : ""
+                }
+
+                <!-- Attending -->
+                ${
+                  s12.attending_consent_signature
+                    ? `
+                    <div class="col-md-3">
+                      <div class="mini-card">
+                        <div class="medical-label">Attending</div>
+                        <img class="signature-img d-block mx-auto"
+                            src="${s12.attending_consent_signature}">
+                      </div>
+                    </div>
+                  `
+                    : ""
+                }
+
+                <!-- Witness -->
+                ${
+                  s12.witness_consent_signature
+                    ? `
+                    <div class="col-md-3">
+                      <div class="mini-card">
+                        <div class="medical-label">Witness</div>
+                        <img class="signature-img d-block mx-auto"
+                            src="${s12.witness_consent_signature}">
+                      </div>
+                    </div>
+                  `
+                    : ""
+                }
+
+                <!-- PDPA -->
+                ${
+                  s12.pdpa_consent_signature
+                    ? `
+                    <div class="col-md-3">
+                      <div class="mini-card">
+                        <div class="medical-label">PDPA</div>
+                        <img class="signature-img d-block mx-auto"
+                            src="${s12.pdpa_consent_signature}">
+                      </div>
+                    </div>
+                  `
+                    : ""
+                }
               </div>
             </div>
           </div>
@@ -923,15 +980,19 @@
           s4.section_4_signed_by_role,
           s4.section_4_signed_at
         )}
-
-        <div class="info-item">
-          <span class="medical-label">Diagnosis</span>
-          <div class="value">${safe(s4.diagnosis)}</div>
-        </div>
-
-        <div class="info-item mt-3">
-          <span class="medical-label">Diagnosis Date</span>
-          <div class="value">${formatDate(s4.diagnosis_date)}</div>
+        <div class="medical-section">
+          ${renderField(
+            "Diagnosis",
+            s4.diagnosis
+          )}
+          ${renderField(
+            "Intervention Approved",
+            s4.intervention_approved
+          )}
+          ${renderField(
+            "Diagnosis",
+            formatDate(s4.diagnosis_date)
+          )}
         </div>
       `;
 

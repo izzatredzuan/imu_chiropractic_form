@@ -103,6 +103,9 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         child=serializers.DictField(), required=False
     )
     signature_data = serializers.CharField(write_only=True, required=False)
+    attending_signature_data = serializers.CharField(write_only=True, required=False)
+    witness_signature_data = serializers.CharField(write_only=True, required=False)
+    pdpa_signature_data = serializers.CharField(write_only=True, required=False)
     section_1_signed_by_name = serializers.CharField(
         source="section_1_signed_by.official_name", read_only=True
     )
@@ -140,8 +143,21 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "education_consent",
             "research_consent",
             "marketing_consent",
+            "is_initial_patient_consent_signed",
             "initial_patient_consent_signature",
             "signature_data",
+            "is_attending_consent_signed",
+            "attending_signature_data",
+            "attending_consent_signature",
+            "attending_consent_signed_at",
+            "is_witness_consent_signed",
+            "witness_signature_data",
+            "witness_consent_signature",
+            "witness_consent_signed_at",
+            "is_pdpa_consent_signed",
+            "pdpa_signature_data",
+            "pdpa_consent_signature",
+            "pdpa_consent_signed_at",
             # Section 2 – Presenting Complaint
             "chief_complaint",
             "history_of_condition",
@@ -161,10 +177,6 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "yellow_flags",
             "contraindications",
             # Common Fields
-            "is_discharged",
-            "reason_for_discharge",
-            "reason_for_discharge_text",
-            "discharge_remarks",
             "updated_by",
             "updated_at",
             "is_section_1_signed",
@@ -175,6 +187,10 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "section_2_signed_by_name",
             "section_2_signed_by_role",
             "section_2_signed_at",
+            "is_discharged",
+            "reason_for_discharge",
+            "reason_for_discharge_text",
+            "discharge_remarks",
         ]
         read_only_fields = [
             "gender_text",
@@ -209,11 +225,23 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         validated_data["created_by"] = user_profile
         validated_data["updated_by"] = user_profile
 
-        signature_data = validated_data.pop("signature_data", None)
+        initial_signature = validated_data.pop("signature_data", None)
+        attending_signature = validated_data.pop("attending_signature_data", None)
+        witness_signature = validated_data.pop("witness_signature_data", None)
+        pdpa_signature = validated_data.pop("pdpa_signature_data", None)
         instance = super().create(validated_data)
 
-        if signature_data:
-            self._save_signature(instance, signature_data)
+        if initial_signature:
+            self._save_signature(instance, initial_signature, "initial_patient_consent")
+
+        if attending_signature:
+            self._save_signature(instance, attending_signature, "attending_consent")
+
+        if witness_signature:
+            self._save_signature(instance, witness_signature, "witness_consent")
+
+        if pdpa_signature:
+            self._save_signature(instance, pdpa_signature, "pdpa_consent")
 
         return instance
 
@@ -222,11 +250,24 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         user_profile = request.user.profile
         instance.updated_by = user_profile
 
-        signature_data = validated_data.pop("signature_data", None)
+        initial_signature = validated_data.pop("signature_data", None)
+        attending_signature = validated_data.pop("attending_signature_data", None)
+        witness_signature = validated_data.pop("witness_signature_data", None)
+        pdpa_signature = validated_data.pop("pdpa_signature_data", None)
+
         instance = super().update(instance, validated_data)
 
-        if signature_data:
-            self._save_signature(instance, signature_data)
+        if initial_signature:
+            self._save_signature(instance, initial_signature, "initial_patient_consent")
+
+        if attending_signature:
+            self._save_signature(instance, attending_signature, "attending_consent")
+
+        if witness_signature:
+            self._save_signature(instance, witness_signature, "witness_consent")
+
+        if pdpa_signature:
+            self._save_signature(instance, pdpa_signature, "pdpa_consent")
 
         return instance
 
@@ -260,7 +301,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
 
         return cleaned
     
-    def _save_signature(self, instance, signature_data):
+    def _save_signature(self, instance, signature_data, field_prefix):
         if not signature_data:
             return
 
@@ -273,23 +314,36 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
                 name=f"{uuid.uuid4()}.{ext}",
             )
 
-            instance.initial_patient_consent_signature = file
-            instance.is_initial_patient_consent_signed = True
-            instance.initial_patient_consent_signed_at = timezone.now()
+            # -----------------------------
+            # Explicit field mapping (FIX)
+            # -----------------------------
+            if field_prefix == "initial_patient_consent":
+                instance.initial_patient_consent_signature = file
+                instance.is_initial_patient_consent_signed = True
+                instance.initial_patient_consent_signed_at = timezone.now()
 
-            instance.save(
-                update_fields=[
-                    "initial_patient_consent_signature",
-                    "is_initial_patient_consent_signed",
-                    "initial_patient_consent_signed_at",
-                ]
-            )
+            elif field_prefix == "attending_consent":
+                instance.attending_consent_signature = file
+                instance.is_attending_consent_signed = True
+                instance.attending_consent_signed_at = timezone.now()
+
+            elif field_prefix == "witness_consent":
+                instance.witness_consent_signature = file
+                instance.is_witness_consent_signed = True
+                instance.witness_consent_signed_at = timezone.now()
+
+            elif field_prefix == "pdpa_consent":
+                instance.pdpa_consent_signature = file
+                instance.is_pdpa_consent_signed = True
+                instance.pdpa_consent_signed_at = timezone.now()
+
+            instance.save()
 
         except Exception as e:
             raise serializers.ValidationError(
                 {"signature_data": f"Invalid image data: {str(e)}"}
             )
-
+        
 
 class AssessmentSection3Serializer(serializers.ModelSerializer):
     # rom_drawing_data = serializers.CharField(

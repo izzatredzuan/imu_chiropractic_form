@@ -110,6 +110,9 @@ class AssessmentSection1And2APIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         signature_data = request.data.get("signature_data")
+        attending_signature_data = request.data.get("attending_signature_data")
+        witness_signature_data = request.data.get("witness_signature_data")
+        pdpa_signature_data = request.data.get("pdpa_signature_data")
         
         # --------------------------------
         # Create assessment
@@ -125,9 +128,18 @@ class AssessmentSection1And2APIView(APIView):
                 f"created_by={request.user.username} - {request.user.profile.official_name}"
             )
 
-            if signature_data:
+            if any([
+                signature_data,
+                attending_signature_data,
+                witness_signature_data,
+                pdpa_signature_data
+            ]):
                 logger.info(
-                    f"SIGNATURE_SAVED - Initial patient consent signature saved for assessment {assessment.id}"
+                    f"SIGNATURE_SAVED - Signatures processed for assessment {assessment.id} | "
+                    f"initial={bool(signature_data)}, "
+                    f"attending={bool(attending_signature_data)}, "
+                    f"witness={bool(witness_signature_data)}, "
+                    f"pdpa={bool(pdpa_signature_data)}"
                 )
 
             return Response(
@@ -136,7 +148,8 @@ class AssessmentSection1And2APIView(APIView):
             )
         except Exception as e:
             logger.error(
-                f"CREATE - Failed to create assessment: patient name={assessment.patient_name}"
+                f"CREATE - Failed to create assessment: "
+                f"patient name={request.data.get('patient_name', 'N/A')}, "
                 f"created_by={request.user.username} - {request.user.profile.official_name}, "
                 f"error={str(e)}"
             )
@@ -178,6 +191,25 @@ class AssessmentSection1And2APIView(APIView):
                 f"UPDATE - Assessment updated successfully: assessment_id={assessment.id}, "
                 f"user={profile.official_name} ({profile.role})"
             )
+
+            signature_data = request.data.get("signature_data")
+            attending_signature_data = request.data.get("attending_signature_data")
+            witness_signature_data = request.data.get("witness_signature_data")
+            pdpa_signature_data = request.data.get("pdpa_signature_data")
+
+            if any([
+                signature_data,
+                attending_signature_data,
+                witness_signature_data,
+                pdpa_signature_data
+            ]):
+                logger.info(
+                    f"SIGNATURE_UPDATE - assessment_id={assessment.id} | "
+                    f"initial={bool(signature_data)}, "
+                    f"attending={bool(attending_signature_data)}, "
+                    f"witness={bool(witness_signature_data)}, "
+                    f"pdpa={bool(pdpa_signature_data)}"
+                )
         except Exception as e:
             logger.error(
                 f"UPDATE - Failed to update assessment: assessment_id={assessment.id}, "
