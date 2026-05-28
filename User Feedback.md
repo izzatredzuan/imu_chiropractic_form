@@ -11,7 +11,7 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 Priority:
 21/05/2026
 Section1 :
-- Add new consent section
+- Add new consent section [DONE]
 - Change phase 1 is complete logic, special direction is not mandatory. [DONE]
 - Note on anatomy marker, remover "Left-click a marker to add/edit a note. Right-click to delete." instructions [DONE]
  
@@ -33,6 +33,10 @@ Enhancement Suggestion:
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
+
+28/05/2026
+- Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue
+- Fix outdated Constant
 
 Bugs:
 - Datatable sorting is incorrect

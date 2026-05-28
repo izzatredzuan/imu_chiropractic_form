@@ -766,65 +766,81 @@
 
             <div class="card-body">
               <div class="row g-4 justify-content-center text-center">
-                <!-- Patient Signature -->
-                ${
-                  s12.initial_patient_consent_signature
-                    ? `
-                    <div class="col-md-3">
-                      <div class="mini-card">
-                        <div class="medical-label">Patient</div>
-                        <img class="signature-img d-block mx-auto"
-                            src="${s12.initial_patient_consent_signature}">
+                <!-- Patient -->
+                ${s12.initial_patient_consent_signature ? `
+                  <div class="col-md-3">
+                    <div class="mini-card">
+                      <div class="medical-label">Patient</div>
+                      <img class="signature-img d-block mx-auto"
+                          src="${s12.initial_patient_consent_signature}">
+                      <div class="mt-2 small text-muted">
+                        <strong>${safe(s12.patient_name)}</strong>
+                      </div>
+
+                      <div class="small text-muted">
+                        ${formatDate(s12.initial_patient_consent_signed_at)}
                       </div>
                     </div>
-                  `
-                    : ""
-                }
+                  </div>
+                ` : ""}
 
                 <!-- Attending -->
-                ${
-                  s12.attending_consent_signature
-                    ? `
-                    <div class="col-md-3">
-                      <div class="mini-card">
-                        <div class="medical-label">Attending</div>
-                        <img class="signature-img d-block mx-auto"
-                            src="${s12.attending_consent_signature}">
+                ${s12.attending_consent_signature ? `
+                  <div class="col-md-3">
+                    <div class="mini-card">
+                      <div class="medical-label">Attending</div>
+                      <img class="signature-img d-block mx-auto"
+                          src="${s12.attending_consent_signature}">
+
+                      <div class="mt-2 small text-muted">
+                        <strong>${safe(s12.attending_consent_signed_by_name)}</strong>
+                      </div>
+
+                      <div class="small text-muted">
+                        ${formatDate(s12.attending_consent_signed_at)}
                       </div>
                     </div>
-                  `
-                    : ""
-                }
+                  </div>
+                ` : ""}
 
                 <!-- Witness -->
-                ${
-                  s12.witness_consent_signature
-                    ? `
-                    <div class="col-md-3">
-                      <div class="mini-card">
-                        <div class="medical-label">Witness</div>
-                        <img class="signature-img d-block mx-auto"
-                            src="${s12.witness_consent_signature}">
+                ${s12.witness_consent_signature ? `
+                  <div class="col-md-3">
+                    <div class="mini-card">
+                      <div class="medical-label">Witness</div>
+                      <img class="signature-img d-block mx-auto"
+                          src="${s12.witness_consent_signature}">
+
+                      <div class="mt-2 small text-muted">
+                        <strong>${safe(s12.witness_consent_signed_by)}</strong>
+                      </div>
+
+                      <div class="small text-muted">
+                        ${formatDate(s12.witness_consent_signed_at)}
                       </div>
                     </div>
-                  `
-                    : ""
-                }
+                  </div>
+                ` : ""}
 
                 <!-- PDPA -->
-                ${
-                  s12.pdpa_consent_signature
-                    ? `
-                    <div class="col-md-3">
-                      <div class="mini-card">
-                        <div class="medical-label">PDPA</div>
-                        <img class="signature-img d-block mx-auto"
-                            src="${s12.pdpa_consent_signature}">
+                ${s12.pdpa_consent_signature ? `
+                  <div class="col-md-3">
+                    <div class="mini-card">
+                      <div class="medical-label">PDPA</div>
+                      <img class="signature-img d-block mx-auto"
+                          src="${s12.pdpa_consent_signature}">
+
+                      <div class="mt-2 small text-muted">
+                        <strong>${safe(s12.patient_name)}</strong>
+                      </div>
+
+                      <div class="small text-muted">
+                        ${formatDate(s12.pdpa_consent_signed_at)}
                       </div>
                     </div>
-                  `
-                    : ""
-                }
+                  </div>
+                ` : ""}
+
               </div>
             </div>
           </div>

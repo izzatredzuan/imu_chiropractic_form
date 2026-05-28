@@ -46,5 +46,8 @@ class Profile(models.Model):
     profile_log = models.TextField(blank=True, null=True)
     is_locked = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ["official_name"]
+
     def __str__(self):
         return f"{self.member_id} - {self.official_name}"

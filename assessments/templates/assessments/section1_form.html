@@ -250,6 +250,12 @@
         {% if assessment and assessment.is_initial_patient_consent_signed %}
           <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
+
+            <small class="text-muted d-block">
+              Signed by:
+              {{ assessment.patient_name }}
+            </small>
+
             <small class="text-muted">
               Signed at:
               {{ assessment.initial_patient_consent_signed_at|date:"d M Y, h:i A" }}
@@ -303,6 +309,12 @@
         {% if assessment and assessment.is_attending_consent_signed %}
           <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
+
+            <small class="text-muted d-block">
+              Signed by:
+              {{ assessment.attending_consent_signed_by.official_name }}
+            </small>
+
             <small class="text-muted">
               Signed at:
               {{ assessment.attending_consent_signed_at|date:"d M Y, h:i A" }}
@@ -337,6 +349,29 @@
             </button>
           </div>
 
+          <div class="mb-3">
+            <label class="form-label required">Attending Signed By</label>
+            <select name="attending_consent_signed_by" class="form-control" required>
+              <option value="">-- Select Person --</option>
+
+              <optgroup label="Clinicians">
+                {% for c in clinicians %}
+                  <option value="{{ c.id }}">
+                    {{ c.member_id }} – {{ c.official_name }}
+                  </option>
+                {% endfor %}
+              </optgroup>
+
+              <optgroup label="Students">
+                {% for s in students %}
+                  <option value="{{ s.id }}">
+                    {{ s.member_id }} – {{ s.official_name }}
+                  </option>
+                {% endfor %}
+              </optgroup>
+            </select>
+          </div>
+
           <input type="hidden"
                 name="attending_signature_data"
                 id="attendingSignatureData">
@@ -357,6 +392,11 @@
         {% if assessment and assessment.is_witness_consent_signed %}
           <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
+            <small class="text-muted d-block">
+              Signed by:
+              {{ assessment.witness_consent_signed_by }}
+            </small>
+
             <small class="text-muted">
               Signed at:
               {{ assessment.witness_consent_signed_at|date:"d M Y, h:i A" }}
@@ -389,6 +429,15 @@
                     data-target="witness">
               Clear
             </button>
+          </div>
+
+          <div class="mt-2">
+            <label class="form-label required">Witness Name</label>
+            <input type="text"
+                  name="witness_consent_signed_by"
+                  id="witnessName"
+                  class="form-control"
+                  placeholder="Enter witness name">
           </div>
 
           <input type="hidden"
@@ -457,6 +506,12 @@
         {% if assessment and assessment.is_pdpa_consent_signed %}
           <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
+
+            <small class="text-muted d-block">
+              Signed by:
+              {{ assessment.patient_name }}
+            </small>
+
             <small class="text-muted">
               Signed at:
               {{ assessment.pdpa_consent_signed_at|date:"d M Y, h:i A" }}
@@ -805,7 +860,6 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
   });
 
   anatomyImage?.addEventListener("touchstart", function (e) {
-
     if (isSigning) return;
   });
 
@@ -913,6 +967,14 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
         "attending_signature_data",
         signaturePads["attending"].canvas.toDataURL("image/png")
       );
+    }
+
+    const witnessPad = signaturePads["witness"];
+    const witnessName = document.getElementById("witnessName")?.value?.trim();
+
+    if (witnessPad?.strokes.length > 0 && !witnessName) {
+      alert("Witness name is required.");
+      return;
     }
 
     if (signaturePads["witness"]?.strokes.length > 0) {

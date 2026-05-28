@@ -89,6 +89,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "attending_consent_signature",
                     "attending_consent_signed_at",
                     "is_witness_consent_signed",
+                    "witness_consent_signed_by",
                     "witness_consent_signature",
                     "witness_consent_signed_at",
                     "is_pdpa_consent_signed",
