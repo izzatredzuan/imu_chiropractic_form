@@ -73,6 +73,7 @@ class BaseAssessmentFormView(View):
             "clinicians": Profile.objects.filter(role="clinician").order_by(
                 "official_name"
             ),
+            "can_signoff": profile.role in ["clinician", "admin"],
         }
 
         return render(request, self.template_name, context)
@@ -163,6 +164,7 @@ class SoapFormView(View):
                 "official_name"
             ),
             "MODALITIES_CHOICES": SoapModality._meta.get_field("modality").choices,
+            "can_signoff": profile.role in ["clinician", "admin"],
         }
 
         return render(request, self.template_name, context)
@@ -234,6 +236,7 @@ class PatientReevaluationFormView(View):
             "clinicians": Profile.objects.filter(role="clinician").order_by(
                 "official_name"
             ),
+            "can_signoff": profile.role in ["clinician", "admin"],
         }
 
         return render(
@@ -320,6 +323,7 @@ class PatientNewComplaintFormView(View):
             "clinicians": Profile.objects.filter(role="clinician").order_by(
                 "official_name"
             ),
+            "can_signoff": profile.role in ["clinician", "admin"],
         }
 
         return render(

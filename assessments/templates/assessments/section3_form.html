@@ -197,8 +197,8 @@
           <canvas id="romDrawingPad" class="border rounded w-100"></canvas>
 
           <div class="mt-2 d-flex gap-2 justify-content-center">
-            <button type="button" class="btn btn-sm ready btn-mobile"" id="undoRom">Undo</button>
-            <button type="button" class="btn btn-sm cancelled btn-mobile"" id="clearRom">Clear</button>
+            <button type="button" class="btn btn-sm ready btn-mobile" id="undoRom">Undo</button>
+            <button type="button" class="btn btn-sm cancelled btn-mobile" id="clearRom">Clear</button>
           </div>
         </div>
 
@@ -313,7 +313,7 @@
         Update Section 3
       </button>
 
-      {% if assessment and request.user.profile.role in "clinician admin" %}
+      {% if assessment and can_signoff %}
       <button type="submit" id="btnSignOff" name="action" value="sign_off_section_3" class="btn btn-success btn-mobile">
         Update & Sign Off Section 3
       </button>
@@ -328,7 +328,7 @@
   let clickedAction = "save_section_3";
 
   document.getElementById("btnSave")?.addEventListener("click", () => clickedAction = "save_section_3");
-  {% if assessment and request.user.profile.role in "clinician admin" %}
+  {% if assessment and can_signoff %}
   document.getElementById("btnSignOff")?.addEventListener("click", () => clickedAction = "sign_off_section_3");
   {% endif %}
 

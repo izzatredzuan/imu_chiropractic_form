@@ -147,7 +147,7 @@
                 Update Section 4
             </button>
 
-            {% if assessment and request.user.profile.role in "clinician admin" %}
+            {% if assessment and can_signoff %}
             <button type="submit" id="btnSignOff" name="action" value="sign_off_section_4"
                 class="btn btn-success btn-mobile">
                 Update & Sign Off Section 4
@@ -173,7 +173,7 @@
         });
     }
 
-    {% if assessment and request.user.profile.role in "clinician admin" %}
+    {% if assessment and can_signoff %}
     if (btnSignOff) {
         btnSignOff.addEventListener("click", function () {
             clickedAction = "sign_off_section_4";
@@ -185,7 +185,7 @@
     document.getElementById("section4Form").addEventListener("submit", function (e) {
         e.preventDefault();
         let confirmMessage =
-            "Are you sure you want to save the changes? Sign-off will be reset.";
+            "Are you sure you want to save changes? Existing sign-off may be reset.";
 
         if (clickedAction === "sign_off_section_4") {
             confirmMessage =

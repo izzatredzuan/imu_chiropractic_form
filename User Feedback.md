@@ -35,7 +35,7 @@ Enhancement Suggestion:
 - Add filter for assessment, display entry by month
 
 28/05/2026
-- Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue
+- Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue [DONE]
 - Fix outdated Constant
 
 Bugs:

@@ -420,7 +420,7 @@
       <button type="submit" id="btnSave" name="action" value="save" class="btn btn-primary btn-mobile">
         {% if soap %}Update SOAP{% else %}Create SOAP{% endif %}
       </button>
-      {% if assessment and request.user.profile.role in "clinician admin" %}
+      {% if assessment and can_signoff %}
       <button type="submit" id="btnSignOff" name="action" value="sign_off" class="btn btn-success btn-mobile">
         {% if soap %}Update SOAP & Sign Off{% else %}Create SOAP & Sign Off{% endif %}
       </button>

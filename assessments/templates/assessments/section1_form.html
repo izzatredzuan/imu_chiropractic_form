@@ -570,7 +570,7 @@
         {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
       </button>
 
-      {% if assessment and request.user.profile.role in "clinician admin" %}
+      {% if assessment and can_signoff %}
       <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success btn-mobile">
         Update & Sign Off Section 1
       </button>
@@ -588,7 +588,7 @@ document.getElementById("btnSave")?.addEventListener("click", () => {
   clickedAction = "save_section_1";
 });
 
-{% if assessment and request.user.profile.role == "clinician" or request.user.profile.role == "admin" %}
+{% if assessment and can_signoff %}
 document.getElementById("btnSignOff")?.addEventListener("click", () => {
   clickedAction = "sign_off_section_1";
 });
@@ -910,7 +910,7 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
 
     let confirmMessage =
       {% if assessment %}
-        "Are you sure you want to save the changes? Sign-off will be reset.";
+        "Are you sure you want to save changes? Existing sign-off may be reset.";
       {% else %}
         "Are you sure you want to save the changes?";
       {% endif %}

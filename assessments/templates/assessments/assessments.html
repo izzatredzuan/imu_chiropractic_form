@@ -165,11 +165,18 @@
                     if (!section4Signed) {
                         return lock_column(icon, "Treatment Plan locked until Section 4 is signed off");
                     }
-
-                    // If signed → green clipboard
+                    
                     if (row.is_treatment_plan_signed) {
                         iconColor = "text-success";
                         tooltip = "View Treatment Plan (Signed)";
+                    }
+                    else if (row.is_treatment_plan_complete) {
+                        iconColor = "text-warning";
+                        tooltip = "Treatment Plan Complete - Ready for Sign-Off";
+                    }
+                    else {
+                        iconColor = "text-primary";
+                        tooltip = "Treatment Plan In Progress";
                     }
 
                     // Otherwise clickable
