@@ -2,7 +2,7 @@ import json
 
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Assessments, PatientNewComplaint, PatientReevaluation, SoapModality, Soaps
+from .models import Assessments, AssessmentAttachment, PatientNewComplaint, PatientReevaluation, SoapModality, Soaps
 
 @admin.register(Assessments)
 class AssessmentsAdmin(admin.ModelAdmin):
@@ -23,6 +23,8 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "is_section_4_signed",
         "is_treatment_plan_signed",
         "is_discharged",
+        "discharge_signed_by",
+        "discharge_signed_at",
         "updated_at",
     )
 
@@ -38,6 +40,8 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "is_section_4_signed",
         "is_treatment_plan_signed",
         "is_discharged",
+        "discharge_signed_by",
+        "discharge_signed_at",
         "created_at",
     )
 
@@ -61,6 +65,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
         "section_3_signed_at",
         "section_4_signed_at",
         "treatment_plan_signed_at",
+        "discharge_signed_at",
         "pretty_section_1_markers",
     )
 
@@ -208,7 +213,15 @@ class AssessmentsAdmin(admin.ModelAdmin):
         ),
         (
             "Discharge",
-            {"fields": ("is_discharged", "reason_for_discharge", "discharge_remarks")},
+            {
+                "fields": (
+                    "is_discharged",
+                    "reason_for_discharge",
+                    "discharge_remarks",
+                    "discharge_signed_by",
+                    "discharge_signed_at",
+                )
+            },
         ),
         (
             "Meta",
@@ -254,6 +267,108 @@ class AssessmentsAdmin(admin.ModelAdmin):
 
             # Always update updated_by
             obj.updated_by = profile
+
+        super().save_model(request, obj, form, change)
+
+
+# =========================================
+# Assessment Attachment Admin
+# =========================================
+@admin.register(AssessmentAttachment)
+class AssessmentAttachmentAdmin(admin.ModelAdmin):
+
+    # =====================
+    # List view
+    # =====================
+    list_display = (
+        "id",
+        "assessment",
+        "file_name",
+        "label",
+        "uploaded_by",
+        "uploaded_at",
+    )
+
+    list_filter = (
+        "uploaded_at",
+        "uploaded_by",
+    )
+
+    search_fields = (
+        "assessment__patient_name",
+        "assessment__file_number",
+        "label",
+        "file",
+        "uploaded_by__user__username",
+    )
+
+    autocomplete_fields = (
+        "assessment",
+        "uploaded_by",
+    )
+
+    readonly_fields = (
+        "uploaded_at",
+        "file_preview",
+    )
+
+    ordering = ("-uploaded_at",)
+
+    # =====================
+    # Field layout
+    # =====================
+    fieldsets = (
+        (
+            "Link",
+            {"fields": ("assessment",)},
+        ),
+        (
+            "File Info",
+            {"fields": ("file", "label", "file_preview")},
+        ),
+        (
+            "Meta",
+            {"fields": ("uploaded_by", "uploaded_at")},
+        ),
+    )
+
+    # =====================
+    # Helpers
+    # =====================
+    def file_name(self, obj):
+        if obj.file:
+            return obj.file.name.split("/")[-1]
+        return "-"
+    file_name.short_description = "File Name"
+
+    def file_preview(self, obj):
+        if not obj.file:
+            return "No file"
+
+        url = obj.file.url
+
+        # image preview
+        if obj.file.name.lower().endswith(("png", "jpg", "jpeg")):
+            return format_html(
+                "<img src='{}' style='max-height:200px;border-radius:6px;' />",
+                url
+            )
+
+        # generic file link
+        return format_html(
+            "<a href='{}' target='_blank'>Open File</a>",
+            url
+        )
+
+    file_preview.short_description = "Preview"
+
+    # =====================
+    # Auto assign uploader
+    # =====================
+    def save_model(self, request, obj, form, change):
+        if request.user.is_authenticated and hasattr(request.user, "profile"):
+            if not change and obj.uploaded_by is None:
+                obj.uploaded_by = request.user.profile
 
         super().save_model(request, obj, form, change)
 

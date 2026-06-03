@@ -5,28 +5,13 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
     - Add delete function for modalities if it is not sign off yet
 
 28/04/2026
-- Add Image uploading field in Treatment
+- Add File uploading field in Treatment Plan [In Progress]
 - User creation, student need a field for cohorts
 
 Priority:
 21/05/2026
-Section1 :
-- Add new consent section [DONE]
-- Change phase 1 is complete logic, special direction is not mandatory. [DONE]
-- Note on anatomy marker, remover "Left-click a marker to add/edit a note. Right-click to delete." instructions [DONE]
- 
-Section 4:
-- Add "intervention approved" field [DONE]
- 
-S.O.A.P
-- Fail to create because assessment id not passed [DONE]
- 
 Note:
 - Add Convert to pdf function
-- For soap anatomy On hold click doest show marker details [DONE]
-
-Discharge:
-- Need signoff section
 
 
 Enhancement Suggestion:
@@ -99,6 +84,25 @@ Minor:
     - For SOAP need to able to add notes in the marking but Section 1 dont requires note [DONE]
 
 - Several fields need to be added alter but need to wait for Chiro team to provides the fields information [DONE]
+
+Priority:
+21/05/2026
+Section 1 :
+- Add new consent section [DONE]
+- Change phase 1 is complete logic, special direction is not mandatory. [DONE]
+- Note on anatomy marker, remover "Left-click a marker to add/edit a note. Right-click to delete." instructions [DONE]
+ 
+Section 4:
+- Add "intervention approved" field [DONE]
+ 
+S.O.A.P
+- Fail to create because assessment id not passed [DONE]
+ 
+Note:
+- For soap anatomy On hold click doest show marker details [DONE]
+
+Discharge:
+- Need signoff section [DONE]
 
 ======================================================= CANCELLED =======================================================
 Bugs:

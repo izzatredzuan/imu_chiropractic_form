@@ -668,6 +668,46 @@
         <!-- LEFT SIDE -->
         <div class="col-lg-6 mb-4 d-flex">
           <div class="w-100 d-flex flex-column gap-3">
+            <!-- DISCHARGE -->
+            <div class="card shadow-sm">
+              <div class="card-header fw-semibold">
+                Discharge Information
+              </div>
+
+              <div class="card-body">
+                <div class="info-item mb-2">
+                  <span class="medical-label">Discharge Status</span>
+                  <div class="value">${s12.is_discharged ? "Discharged" : "Not Discharged"}</div>
+                </div>
+
+                ${
+                  s12.is_discharged
+                    ? `
+                    <div class="info-item mb-2">
+                      <span class="medical-label">Reason</span>
+                      <div class="value">${safe(s12.reason_for_discharge_text)}</div>
+                    </div>
+
+                    <div class="info-item mb-2">
+                      <span class="medical-label">Remarks</span>
+                      <div class="value">${safe(s12.discharge_remarks)}</div>
+                    </div>
+                    
+                    <div class="info-item">
+                      <span class="medical-label">Discharged by</span>
+                      <div class="value">${safe(s12.discharge_signed_by_name)} (${safe(s12.discharge_signed_by_role)})</div>
+                    </div>
+
+                    <div class="info-item">
+                      <span class="medical-label">Date</span>
+                      <div class="value">${formatDate(s12.discharge_signed_at)}</div>
+                    </div>
+                  `
+                    : ""
+                }
+              </div>
+            </div>
+
             <!-- CONSENTS -->
             <div class="card shadow-sm">
               <div class="card-header fw-semibold">Consents</div>
@@ -699,41 +739,6 @@
                     Marketing Consent
                   </label>
                 </div>
-              </div>
-            </div>
-
-            <!-- DISCHARGE -->
-            <div class="card shadow-sm">
-              <div class="card-header fw-semibold">
-                Discharge Information
-              </div>
-
-              <div class="card-body">
-                <div class="info-item mb-2">
-                  <span class="medical-label">Discharge Status</span>
-                  <div class="value">${s12.is_discharged ? "Discharged" : "Not Discharged"}</div>
-                </div>
-
-                ${
-                  s12.is_discharged
-                    ? `
-                    <div class="info-item mb-2">
-                      <span class="medical-label">Reason</span>
-                      <div class="value">${safe(s12.reason_for_discharge_text)}</div>
-                    </div>
-
-                    <div class="info-item mb-2">
-                      <span class="medical-label">Remarks</span>
-                      <div class="value">${safe(s12.discharge_remarks)}</div>
-                    </div>
-
-                    <div class="info-item">
-                      <span class="medical-label">Date</span>
-                      <div class="value">${formatDate(s12.updated_at)}</div>
-                    </div>
-                  `
-                    : ""
-                }
               </div>
             </div>
           </div>

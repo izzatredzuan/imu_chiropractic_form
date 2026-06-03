@@ -18,6 +18,7 @@ from .constants import (
     SECTION_3_FIELDS,
     SECTION_4_FIELDS,
     TREATMENT_PLAN_FIELDS,
+    DISCHARGE_FIELDS,
 )
 
 
@@ -34,12 +35,21 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
     reason_for_discharge_text = serializers.CharField(
         source="get_reason_for_discharge_display", read_only=True
     )
+    discharge_signed_by_name = serializers.CharField(
+        source="discharge_signed_by.official_name",
+        read_only=True,
+    )
+    discharge_signed_by_role = serializers.CharField(
+        source="discharge_signed_by.role",
+        read_only=True,
+    )
 
     is_section_1_complete = serializers.SerializerMethodField()
     is_section_2_complete = serializers.SerializerMethodField()
     is_section_3_complete = serializers.SerializerMethodField()
     is_section_4_complete = serializers.SerializerMethodField()
     is_treatment_plan_complete = serializers.SerializerMethodField()
+    is_discharge_complete = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
     updated_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
 
@@ -66,9 +76,13 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "is_treatment_plan_signed",
             "is_treatment_plan_complete",
             "is_discharged",
+            "is_discharge_complete",
             "reason_for_discharge",
             "reason_for_discharge_text",
             "discharge_remarks",
+            "discharge_signed_by_name",
+            "discharge_signed_by_role",
+            "discharge_signed_at",
             "created_by",
             "created_at",
             "updated_by",
@@ -89,7 +103,10 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
 
     def get_is_treatment_plan_complete(self, obj):
         return is_section_complete(obj, TREATMENT_PLAN_FIELDS)
-
+    
+    def get_is_discharge_complete(self, obj):
+        return is_section_complete(obj, DISCHARGE_FIELDS)
+    
 
 class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
     evaluator = serializers.PrimaryKeyRelatedField(
@@ -133,6 +150,14 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
     )
     reason_for_discharge_text = serializers.CharField(
         source="get_reason_for_discharge_display", read_only=True
+    )
+    discharge_signed_by_name = serializers.CharField(
+        source="discharge_signed_by.official_name",
+        read_only=True,
+    )
+    discharge_signed_by_role = serializers.CharField(
+        source="discharge_signed_by.role",
+        read_only=True,
     )
 
     class Meta:
@@ -210,10 +235,14 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "section_2_signed_by_name",
             "section_2_signed_by_role",
             "section_2_signed_at",
+
             "is_discharged",
             "reason_for_discharge",
             "reason_for_discharge_text",
             "discharge_remarks",
+            "discharge_signed_by_name",
+            "discharge_signed_by_role",
+            "discharge_signed_at",
         ]
         read_only_fields = [
             "gender_text",
@@ -226,6 +255,9 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "section_2_signed_by_role",
             "section_2_signed_at",
             "reason_for_discharge_text",
+            "discharge_signed_by_name",
+            "discharge_signed_by_role",
+            "discharge_signed_at",
         ]
 
     def create(self, validated_data):

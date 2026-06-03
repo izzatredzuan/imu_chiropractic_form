@@ -360,7 +360,8 @@
                     const url = urlTemplate.replace("0", row.id);
 
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
-                    if (!section4Signed) {
+                    const isDischarged = row.is_discharged;
+                    if (!section4Signed && !isDischarged) {
                         return lock_column(icon, "Notes locked until Section 4 is signed off");
                     }
 
@@ -384,28 +385,40 @@
                     let icon = "bi-box-arrow-right";
                     let iconColor = "text-danger";
                     let tooltip = "Discharge Patient";
-
+                    
+                    if (row.is_discharge_complete) {
+                        iconColor = "text-warning";
+                        tooltip = "Discharge Complete - Ready for Sign-Off";
+                    }
                     // If already discharged, show disabled icon
                     if (row.is_discharged) {
                         const reason = row.reason_for_discharge_text || "";
+                        const remarks = row.discharge_remarks || "-";
+
+                        const dischargedBy = row.discharge_signed_by_name || "Unknown";
+                        const dischargedAt = row.discharge_signed_at
+                            ? moment(row.discharge_signed_at).format("DD/MM/YYYY")
+                            : "-";
                         tooltip = `${row.discharge_remarks}`;
                         return `
-                            <div class="d-flex flex-column align-items-center small">
+                            <div class="d-flex flex-column align-items-center small text-center">
                                 <i class="bi bi-check-circle-fill text-success mb-1"
-                                title="${tooltip}"
-                                style="font-size:1.1rem;"></i>
-
-                                <div class="text-muted text-center"
-                                    style="font-size:0.75rem; line-height:1.2;">
+                                title="${remarks}"
+                                style="font-size:1.2rem;"></i>
+                                <div class="fw-semibold text-success" style="font-size:0.75rem;">
+                                    Discharged
+                                </div>
+                                <div class="text-muted" style="font-size:0.72rem; line-height:1.2;">
                                     ${reason}
+                                </div>
+                                <div class="text-muted mt-1" style="font-size:0.7rem;">
+                                    By: ${dischargedBy}
+                                </div>
+                                <div class="text-muted" style="font-size:0.7rem;">
+                                    At: ${dischargedAt}
                                 </div>
                             </div>
                         `;
-                    }
-
-                    // Only clinicians can discharge
-                    if (USER_ROLE !== "clinician") {
-                        return lock_column(icon, "Only clinicians are allowed to discharge patients");
                     }
 
                     // Otherwise show clickable discharge icon
@@ -517,13 +530,34 @@
             setModalValue('modalStudent', rowData.student);
             $('#dischargeAssessmentId').val(rowData.id);
 
+            $('#reasonForDischarge').val(rowData.reason_for_discharge || '');
+            $('#dischargeRemarks').val(rowData.discharge_remarks || '');
+
             dischargeModal.show();
         });
 
         /* ----------------------------------
          * Confirm discharge
          * ---------------------------------- */
-        $('#confirmDischargeBtn').on('click', function () {
+        let dischargeAction = "save_discharge";
+
+        $('#saveDischargeBtn').on('click', function () {
+            dischargeAction = "save_discharge";
+            submitDischarge();
+        });
+
+        $('#signOffDischargeBtn').on('click', function () {
+             const confirmMsg = "Are you sure you want to SIGN OFF this discharge? Once confirmed, the patient record will be permanently finalized and locked.";
+
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            dischargeAction = "sign_off_discharge";
+            submitDischarge();
+        });
+
+        function submitDischarge() {
             const assessmentId = $('#dischargeAssessmentId').val();
             const reason = $('#reasonForDischarge').val();
             const remarks = $('#dischargeRemarks').val().trim();
@@ -537,8 +571,6 @@
                 return;
             }
 
-            const btn = $(this);
-            btn.prop('disabled', true);
             $.ajax({
                 url: "{% url 'assessment_section1_and_2_api' %}",
                 method: "PUT",
@@ -548,20 +580,16 @@
                 },
                 data: JSON.stringify({
                     assessment_id: assessmentId,
-                    is_discharged: true,
+                    action: dischargeAction,
                     reason_for_discharge: reason,
                     discharge_remarks: remarks
                 }),
-                success: function () {
+                success: function (response) {
                     dischargeModal.hide();
-
-                    // Reset modal fields
                     $('#reasonForDischarge').val('');
                     $('#dischargeRemarks').val('');
-
                     table.ajax.reload(null, false);
-
-                    alert("Patient has been successfully discharged.");
+                    alert(response.message);
                 },
                 error: function (xhr) {
                     let msg = "Failed to discharge assessment.";
@@ -574,7 +602,7 @@
                     btn.prop('disabled', false);
                 }
             });
-        });
+        };
 
         /* ----------------------------------
          * S.O.A.P. Log Modal Logic

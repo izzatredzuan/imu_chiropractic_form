@@ -22,7 +22,7 @@ class AssessmentListView(View):
 
     def get(self, request):
         profile = request.user.profile  # Debugging line
-        context = {"profile": profile}
+        context = {"profile": profile, "can_signoff": profile.role in ["clinician", "admin"]}
         return render(request, self.template_name, context)
 
 

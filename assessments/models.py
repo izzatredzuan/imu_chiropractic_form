@@ -283,7 +283,7 @@ class Assessments(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="section5_signed_assessments",
+        related_name="treatment_plan_signed_assessments",
         limit_choices_to={"role": "clinician"},
         default=None,
     )
@@ -297,6 +297,16 @@ class Assessments(models.Model):
     )
     discharge_remarks = models.TextField(blank=True, default="")
     is_discharged = models.BooleanField(default=False)
+    discharge_signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="discharge_signed_assessments",
+        limit_choices_to={"role": "clinician"},
+        default=None,
+    )
+    discharge_signed_at = models.DateTimeField(null=True, blank=True, default=None)
 
     # =====================
     # Meta
@@ -330,6 +340,36 @@ class Assessments(models.Model):
             models.Index(fields=["patient_name"]),
             models.Index(fields=["created_at"]),
         ]
+
+
+class AssessmentAttachment(models.Model):
+    assessment = models.ForeignKey(
+        Assessments,
+        on_delete=models.CASCADE,
+        related_name="attachments"
+    )
+
+    file = models.FileField(
+        upload_to=AssessmentUploadPath("attachments")
+    )
+
+    uploaded_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
+    label = models.CharField(
+        max_length=100,
+        blank=True,
+        default=""
+    )
+
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.assessment.file_number} - {self.file.name}"
 
 
 class Soaps(models.Model):

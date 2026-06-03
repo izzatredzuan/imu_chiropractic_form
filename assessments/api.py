@@ -72,6 +72,26 @@ class AssessmentSection1And2APIView(APIView):
 
         assessment = get_object_or_404(Assessments, id=assessment_id)
 
+        # -------------------------
+        # Assessment locked after discharge
+        # -------------------------
+        if assessment.is_discharged:
+            logger.warning(
+                f"LOCKED_ASSESSMENT_EDIT_ATTEMPT | "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role})"
+            )
+
+            return Response(
+                {
+                    "detail": (
+                        "This assessment has been discharged and is locked. "
+                        "No further changes are allowed."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+    )
+
         # -----------------------------
         # Permission rules
         # -----------------------------
@@ -300,6 +320,50 @@ class AssessmentSection1And2APIView(APIView):
                     f"signed_by={profile.official_name} ({profile.role})"
                 )
 
+            # ---------- SAVE DISCHARGE ----------
+            elif action == "save_discharge":
+                assessment.is_discharged = False
+                assessment.discharge_signed_by = None
+                assessment.discharge_signed_at = None
+
+                logger.info(
+                    f"SAVE - Discharge | "
+                    f"assessment_id={assessment.id}, "
+                    f"user={profile.official_name} ({profile.role}) | "
+                    f"Reset discharge sign-off"
+                )
+
+            # ---------- SIGN OFF DISCHARGE ----------
+            elif action == "sign_off_discharge":
+
+                if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED - Discharge | "
+                        f"assessment_id={assessment.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+
+                    return Response(
+                        {"detail": "Not allowed to discharge patient"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                if not assessment.reason_for_discharge:
+                    return Response(
+                        {"detail": "Reason for discharge is required"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                assessment.is_discharged = True
+                assessment.discharge_signed_by = profile
+                assessment.discharge_signed_at = timezone.now()
+
+                logger.info(
+                    f"DISCHARGE_SIGNED | "
+                    f"assessment_id={assessment.id}, "
+                    f"student={assessment.student.official_name}, "
+                    f"signed_by={profile.official_name} ({profile.role})"
+                )
             assessment.save()
             logger.info(
                 f"UPDATE - Section 1 | "
@@ -331,6 +395,14 @@ class AssessmentSection1And2APIView(APIView):
                     "Section 2 updated successfully. "
                     "Section 2 sign-off has been reset."
                 )
+
+            elif action == "save_discharge":
+                message = (
+                    "Discharge updated successfully. "
+                )
+
+            elif action == "sign_off_discharge":
+                message = "Patient discharged successfully"
 
             logger.info(
                 f"RESPONSE - Assessment | "

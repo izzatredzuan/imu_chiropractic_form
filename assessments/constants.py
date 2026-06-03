@@ -118,3 +118,10 @@ TREATMENT_PLAN_FIELDS = [
     "phase_2",
     "phase_3",
 ]
+
+DISCHARGE_FIELDS = [
+    "student",
+    "evaluator",
+    "reason_for_discharge",
+    "discharge_remarks",
+]
