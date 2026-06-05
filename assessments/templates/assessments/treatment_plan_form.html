@@ -141,7 +141,108 @@
 
             </div>
         </div>
+        
+        <!-- ========================= Attachments ========================== -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span>Attachments</span>
 
+                <span class="badge bg-secondary">
+                    {{ assessment.attachments.count }} File(s)
+                </span>
+            </div>
+
+            <div class="card-body">
+                <input
+                    type="file"
+                    id="attachmentFiles"
+                    class="form-control mb-2"
+                    multiple
+                    {% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}
+                >
+
+                <small class="text-muted">
+                    Allowed: PDF, JPG, JPEG, PNG, DOC, DOCX (Max 10 MB each)
+                </small>
+
+                <hr>
+
+                {% if assessment.attachments.exists %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>File</th>
+                                <th>Uploaded By</th>
+                                <th>Date</th>
+                                <th class="text-center" width="120">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for attachment in assessment.attachments.all %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-file-earmark-text fs-4 text-primary me-2"></i>
+                                        <div>
+                                            <div class="fw-semibold">
+                                                {{ attachment.label }}
+                                            </div>
+
+                                            <small class="text-muted">
+                                                {{ attachment.file.size|filesizeformat }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    {{ attachment.uploaded_by.official_name }}
+                                </td>
+
+                                <td>
+                                    {{ attachment.uploaded_at|date:"d M Y, h:i A" }}
+                                </td>
+
+                                <td class="text-center align-middle">
+                                    <div class="d-inline-flex align-items-center justify-content-center gap-3">
+
+                                        <a href="{{ attachment.file.url }}"
+                                        target="_blank"
+                                        class="text-decoration-none">
+                                            <i class="bi bi-download text-primary"
+                                            role="button"
+                                            title="Download attachment"
+                                            style="cursor:pointer; font-size:1.25rem;">
+                                            </i>
+                                        </a>
+
+                                        {% if not assessment.is_treatment_plan_signed and not is_readonly %}
+                                        <i
+                                            class="bi bi-trash text-danger delete-attachment-btn"
+                                            role="button"
+                                            title="Delete attachment"
+                                            style="cursor:pointer; font-size:1.25rem;"
+                                            data-id="{{ attachment.id }}"
+                                            data-name="{{ attachment.label }}"
+                                        ></i>
+                                        {% endif %}
+
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        No attachments uploaded.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
 
         <!-- ========================= Submit Buttons ========================== -->
         <div class="mt-4 d-flex justify-content-end gap-2">
@@ -260,10 +361,19 @@
                 }
                 return res.json();
             })
-            .then(data => {
+            .then(async data => {
+                const files = document.getElementById("attachmentFiles").files;
+
+                if (files.length > 0) {
+                    if (!validateAttachments(files)) {
+                        return;
+                    }
+                    await uploadAttachments(files);
+                }
+
                 alert(data.message || "Treatment Plan updated successfully");
-                window.location.href = "{% url 'assessments_list' %}";
-            })
+
+                window.location.href = "{% url 'assessments_list' %}";})
             .catch(err => {
                 console.error(err);
                 alert(err.detail || "Failed. Please check required fields.");
@@ -277,7 +387,6 @@
 
     if (btnAddRemark) {
         btnAddRemark.addEventListener("click", function () {
-
             const textarea = document.getElementById("treatmentRemarks");
             const newRemark = document.getElementById("newRemarkText").value.trim();
             const editorName = "{{ request.user.profile.official_name|escapejs }}";
@@ -288,9 +397,7 @@
             }
 
             const now = new Date();
-
             const formattedDate = moment().format("DD/MM/YYYY h:mm A");
-
             const formattedRemark = `[${formattedDate} - ${editorName}]\n${newRemark}`;
 
             if (textarea.value.trim() !== "") {
@@ -307,5 +414,115 @@
             modal.hide();
         });
     }
+
+    // =========================
+    // Attachment Logic
+    // =========================
+    function validateAttachments(files) {
+        const allowedExtensions = [
+            "pdf",
+            "jpg",
+            "jpeg",
+            "png",
+            "doc",
+            "docx"
+        ];
+        const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+        for (const file of files) {
+            const extension =
+                file.name
+                    .split(".")
+                    .pop()
+                    .toLowerCase();
+
+            if (!allowedExtensions.includes(extension)) {
+                alert(
+                    `${file.name} is not an allowed file type.`
+                );
+                return false;
+            }
+
+            if (file.size > MAX_FILE_SIZE) {
+                alert(`${file.name} exceeds 10 MB.`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    async function uploadAttachments(files) {
+        const uploadData = new FormData();
+        uploadData.append(
+            "assessment_id",
+            "{{ assessment.id }}"
+        );
+
+        for (const file of files) {
+            uploadData.append("files", file);
+        }
+
+        const response = await fetch(
+            "{% url 'assessment_attachment_api' %}",
+            {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": CSRFTOKEN
+                },
+                body: uploadData
+            }
+        );
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw err;
+        }
+        return await response.json();
+    }
+
+    document.addEventListener("click", async function(e) {
+        const btn = e.target.closest(".delete-attachment-btn");
+        if (!btn) {
+            return;
+        }
+
+        const attachmentId = btn.dataset.id;
+        const attachmentName = btn.dataset.name;
+        if (!confirm( `Delete "${attachmentName}"?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                "{% url 'assessment_attachment_api' %}",
+                {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+                        "X-CSRFToken":
+                            CSRFTOKEN,
+                    },
+                    body: JSON.stringify({
+                        attachment_id:
+                            attachmentId
+                    })
+                }
+            );
+
+            const data = await response.json();
+            if (!response.ok) {
+                throw data;
+            }
+            alert(data.message);
+            btn.closest("tr").remove();
+        } catch(err) {
+            alert(
+                err.detail ||
+                "Failed to delete attachment."
+            );
+            console.error(err);
+        }
+    });
 </script>
 {% endblock %}

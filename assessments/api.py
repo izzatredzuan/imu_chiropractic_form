@@ -1,3 +1,4 @@
+import os
 import logging
 import base64
 import uuid
@@ -10,12 +11,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from .models import Assessments, PatientNewComplaint, SoapModality, Soaps, PatientReevaluation
+from .models import Assessments, AssessmentAttachment, PatientNewComplaint, SoapModality, Soaps, PatientReevaluation
 from .serializers import (
     AssessmentsListSerializer,
     AssessmentSection1And2CreateSerializer,
     AssessmentSection3Serializer,
     AssessmentSection4Serializer,
+    AssessmentAttachmentSerializer,
     AssessmentTreatmentPlanSerializer,
     SoapSerializer,
     PatientReevaluationSerializer,
@@ -24,6 +26,16 @@ from .serializers import (
 )
 
 logger = logging.getLogger("assessments")
+
+ALLOWED_EXTENSIONS = {
+    ".pdf",
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".doc",
+    ".docx",
+}
+MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
 class AssessmentsListAPIView(APIView):
@@ -677,6 +689,149 @@ class AssessmentSection4APIView(APIView):
 
         return Response(
             {"message": "Section 4 updated successfully"},
+            status=status.HTTP_200_OK,
+        )
+
+
+class AssessmentAttachmentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    # =========================
+    # GET
+    # =========================
+    def get(self, request):
+        profile = request.user.profile
+        assessment_id = request.query_params.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"detail": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        assessment = get_object_or_404(
+            Assessments,
+            id=assessment_id
+        )
+
+        logger.info(
+            f"VIEW - Attachments | "
+            f"assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role})"
+        )
+
+        serializer = AssessmentAttachmentSerializer(
+            assessment.attachments.all().order_by("-created_at"),
+            many=True
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    # =========================
+    # POST (UPLOAD)
+    # =========================
+    def post(self, request):
+        profile = request.user.profile
+        assessment_id = request.data.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"detail": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        assessment = get_object_or_404(
+            Assessments,
+            id=assessment_id
+        )
+
+        files = request.FILES.getlist("files")
+
+        if not files:
+            return Response(
+                {"detail": "No files uploaded"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        uploaded_count = 0
+        failed_files = []
+
+        for file in files:
+            ext = os.path.splitext(file.name)[1].lower()
+            if ext not in ALLOWED_EXTENSIONS:
+                failed_files.append(
+                    f"{file.name} (invalid type)"
+                )
+                continue
+
+            if file.size > MAX_FILE_SIZE:
+                failed_files.append(
+                    f"{file.name} (too large)"
+                )
+                continue
+
+            AssessmentAttachment.objects.create(
+                assessment=assessment,
+                file=file,
+                uploaded_by=profile,
+                label=file.name
+            )
+            uploaded_count += 1
+
+        logger.info(
+            f"UPLOAD - Attachments | "
+            f"assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role}), "
+            f"uploaded={uploaded_count}, "
+            f"failed={len(failed_files)}"
+        )
+
+        return Response(
+            {
+                "message": "Files uploaded successfully",
+                "uploaded": uploaded_count,
+                "failed": failed_files
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    # =========================
+    # DELETE
+    # =========================
+    def delete(self, request):
+        profile = request.user.profile
+        attachment_id = request.data.get("attachment_id")
+
+        if not attachment_id:
+            return Response(
+                {"detail": "Attachment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        attachment = get_object_or_404(
+            AssessmentAttachment,
+            id=attachment_id,
+        )
+
+        assessment = attachment.assessment
+        filename = attachment.file.name
+
+        # delete physical file first
+        if attachment.file:
+            attachment.file.delete(save=False)
+        attachment.delete()
+
+        logger.info(
+            f"DELETE - Attachment | "
+            f"attachment_id={attachment_id}, "
+            f"assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role}), "
+            f"file={filename}"
+        )
+
+        return Response(
+            {"message": "Attachment deleted successfully"},
             status=status.HTTP_200_OK,
         )
 

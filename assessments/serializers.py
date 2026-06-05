@@ -6,6 +6,7 @@ from django.utils import timezone
 from accounts.models import Profile
 from .models import (
     Assessments,
+    AssessmentAttachment,
     PatientNewComplaint,
     SoapModality,
     Soaps,
@@ -487,27 +488,12 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             "section_3_signed_at",
         ]
 
-    # def update(self, instance, validated_data):
-    #     request = self.context.get("request")
-    #     if request:
-    #         instance.updated_by = request.user.profile
-
-    #     return super().update(instance, validated_data)
-
     def update(self, instance, validated_data):
         request = self.context.get("request")
         if request:
             instance.updated_by = request.user.profile
 
-        # rom_drawing_data = validated_data.pop("rom_drawing_data", None)
-        # # ignore empty values
-        # if rom_drawing_data in ["", "null", "undefined"]:
-        #     rom_drawing_data = None
-
         instance = super().update(instance, validated_data)
-
-        # if rom_drawing_data:
-        #     self._save_rom_drawing(instance, rom_drawing_data)
 
         return instance
 
@@ -565,6 +551,23 @@ class AssessmentSection4Serializer(serializers.ModelSerializer):
         ]
 
 
+class AssessmentAttachmentSerializer(serializers.ModelSerializer):
+    uploaded_by_name = serializers.CharField(
+        source="uploaded_by.official_name",
+        read_only=True
+    )
+
+    class Meta:
+        model = AssessmentAttachment
+        fields = [
+            "id",
+            "file",
+            "label",
+            "uploaded_by_name",
+            "uploaded_at",
+        ]
+
+        
 class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
     treatment_plan_signed_by_name = serializers.CharField(
         source="treatment_plan_signed_by.official_name", read_only=True
@@ -929,8 +932,8 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
     section_1_2 = serializers.SerializerMethodField()
     section_3 = serializers.SerializerMethodField()
     section_4 = serializers.SerializerMethodField()
+    attachments = serializers.SerializerMethodField()
     treatment_plan = serializers.SerializerMethodField()
-
     soaps = SoapSerializer(many=True, read_only=True)
     reevaluations = serializers.SerializerMethodField()
     new_complaints = serializers.SerializerMethodField()
@@ -942,6 +945,7 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
             "section_1_2",
             "section_3",
             "section_4",
+            "attachments",
             "treatment_plan",
             "soaps",
             "reevaluations",
@@ -956,6 +960,10 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
 
     def get_section_4(self, obj):
         return AssessmentSection4Serializer(obj).data
+
+    def get_attachments(self, obj):
+        qs = obj.attachments.all().order_by("-uploaded_at")
+        return AssessmentAttachmentSerializer(qs, many=True, context=self.context).data
 
     def get_treatment_plan(self, obj):
         return AssessmentTreatmentPlanSerializer(obj).data

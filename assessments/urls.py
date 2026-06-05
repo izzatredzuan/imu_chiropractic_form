@@ -96,6 +96,11 @@ urlpatterns = [
         name="assessment_section4_api",
     ),
     path(
+        "api/assessment-attachments/",
+        api.AssessmentAttachmentAPIView.as_view(),
+        name="assessment_attachment_api",
+    ),
+    path(
         "api/assessments/treatment-plan/",
         api.AssessmentTreatmentPlanAPIView.as_view(),
         name="assessment_treatment_plan_api",

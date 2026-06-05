@@ -385,10 +385,18 @@
                     let icon = "bi-box-arrow-right";
                     let iconColor = "text-danger";
                     let tooltip = "Discharge Patient";
+                    let readyForSignOffHtml = "";
                     
                     if (row.is_discharge_complete) {
                         iconColor = "text-warning";
                         tooltip = "Discharge Complete - Ready for Sign-Off";
+
+                        readyForSignOffHtml = `
+                            <div class="text-muted fw-semibold"
+                                style="font-size:0.75rem;">
+                                Ready for Sign-Off
+                            </div>
+                        `;
                     }
                     // If already discharged, show disabled icon
                     if (row.is_discharged) {
@@ -423,10 +431,16 @@
 
                     // Otherwise show clickable discharge icon
                     return `
-                        <i class="bi ${icon} ${iconColor} discharge-btn"
-                        role="button"
-                        title="${tooltip}"
-                        data-id="${row.id}"></i>
+                        <div class="d-flex flex-column align-items-center small text-center">
+                            <i class="bi ${icon} ${iconColor} discharge-btn"
+                            role="button"
+                            title="${tooltip}"
+                            data-id="${row.id}"
+                            style="font-size:1.2rem; cursor:pointer;">
+                            </i>
+
+                            ${readyForSignOffHtml}
+                        </div>
                     `;
                 }
             }
