@@ -5,7 +5,6 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
     - Add delete function for modalities if it is not sign off yet
 
 28/04/2026
-- Add File uploading field in Treatment Plan [In Progress]
 - User creation, student need a field for cohorts
 
 Priority:
@@ -15,13 +14,11 @@ Note:
 
 
 Enhancement Suggestion:
+- Login need to check if user is_locked or not
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
-
-28/05/2026
-- Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue [DONE]
-- Fix outdated Constant
+- Might what to add AI to do a summary for the whole assessment when convert to pdf
 
 Bugs:
 - Datatable sorting is incorrect
@@ -85,6 +82,9 @@ Minor:
 
 - Several fields need to be added alter but need to wait for Chiro team to provides the fields information [DONE]
 
+28/04/2026
+- Add File uploading field in Treatment Plan [DONE]
+
 Priority:
 21/05/2026
 Section 1 :
@@ -103,6 +103,10 @@ Note:
 
 Discharge:
 - Need signoff section [DONE]
+
+28/05/2026
+- Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue [DONE]
+- Fix outdated Constant [DONE]
 
 ======================================================= CANCELLED =======================================================
 Bugs:
