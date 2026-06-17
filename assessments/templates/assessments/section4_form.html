@@ -184,14 +184,13 @@
 
     document.getElementById("section4Form").addEventListener("submit", function (e) {
         e.preventDefault();
+
         let confirmMessage =
             "Are you sure you want to save changes? Existing sign-off may be reset.";
-
         if (clickedAction === "sign_off_section_4") {
             confirmMessage =
                 "Are you sure you want to UPDATE and SIGN OFF Section 4?";
         }
-
         if (!confirm(confirmMessage)) {
             return;
         }

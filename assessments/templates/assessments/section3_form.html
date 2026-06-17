@@ -185,7 +185,9 @@
         <div id="romPreviewContainer" class="mb-3 text-center">
           <img src="{{ assessment.rom_drawing.url }}" class="img-fluid border rounded" style="max-height:400px;">
           <div class="mt-2">
-            <button type="button" class="btn btn-sm {% if is_readonly or assessment.is_section_3_signed %}btn-secondary disabled{% else %}btn-primary{% endif %} btn-mobile" id="btnRedraw">
+            <button type="button"
+              class="btn btn-sm {% if is_readonly or assessment.is_section_3_signed %}btn-secondary disabled{% else %}btn-primary{% endif %} btn-mobile"
+              id="btnRedraw">
               Redraw
             </button>
           </div>
@@ -271,9 +273,9 @@
       <div class="card-body">
 
         <div class="mb-3">
-          <label class="form-label required">Orthopedic Assessment</label>
-          <textarea name="orthopedic_assessment" class="form-control" rows="3" required
-            {% if is_readonly or assessment.is_section_3_signed %}disabled{% endif %}>{{ assessment.orthopedic_assessment }}</textarea>
+          <label class="form-label required">Orthopaedic Assessment</label>
+          <textarea name="orthopaedic_assessment" class="form-control" rows="3" required
+            {% if is_readonly or assessment.is_section_3_signed %}disabled{% endif %}>{{ assessment.orthopaedic_assessment }}</textarea>
         </div>
 
         <div class="mb-3">
@@ -404,7 +406,7 @@
 
       romCtx.restore();
     }
-    
+
     /* ========================= REDRAW CANVAS ========================= */
     const redraw = () => {
       romCtx.clearRect(0, 0, romCanvas.width, romCanvas.height);
@@ -544,6 +546,14 @@
   document.getElementById("section3Form").addEventListener("submit", function (e) {
     e.preventDefault();
 
+    let confirmMessage = "Are you sure you want to save changes? Existing sign-off may be reset.";
+    if (clickedAction === "sign_off_section_3") {
+        confirmMessage = "Are you sure you want to UPDATE and SIGN OFF Section 3?";
+    }
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
     const formData = new FormData(this);
     formData.set("action", clickedAction);
 
@@ -553,35 +563,35 @@
       payload[key] = value;
     });
     payload["assessment_id"] = "{{ assessment.id }}";
-    
+
     // ONLY SEND IF CHANGED
     if (romCanvas && romHasChanged) {
       payload["rom_drawing_data"] = romCanvas.toDataURL("image/png");
     }
 
     fetch("{% url 'assessment_section3_api' %}", {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": CSRFTOKEN
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(async res => {
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.detail || "Request failed");
-      }
-      return data;
-    })
-    .then(data => {
-      alert(data.message || "Updated successfully");
-      window.location.href = "{% url 'assessments_list' %}";
-    })
-    .catch(err => {
-      console.error("FULL ERROR:", err);
-      alert("ERROR: " + err.message);
-    });
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": CSRFTOKEN
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Request failed");
+        }
+        return data;
+      })
+      .then(data => {
+        alert(data.message || "Updated successfully");
+        window.location.href = "{% url 'assessments_list' %}";
+      })
+      .catch(err => {
+        console.error("FULL ERROR:", err);
+        alert("ERROR: " + err.message);
+      });
   });
 </script>
 

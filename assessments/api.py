@@ -11,7 +11,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-from .models import Assessments, AssessmentAttachment, PatientNewComplaint, SoapModality, Soaps, PatientReevaluation
+from .models import (
+    Assessments,
+    AssessmentAttachment,
+    PatientNewComplaint,
+    SoapModality,
+    Soaps,
+    PatientReevaluation,
+)
 from .serializers import (
     AssessmentsListSerializer,
     AssessmentSection1And2CreateSerializer,
@@ -75,7 +82,7 @@ class AssessmentSection1And2APIView(APIView):
     def get(self, request):
         profile = request.user.profile
         assessment_id = request.GET.get("assessment_id")
-        
+
         if not assessment_id:
             return Response(
                 {"assessment_id": "Assessment ID is required"},
@@ -102,7 +109,7 @@ class AssessmentSection1And2APIView(APIView):
                     )
                 },
                 status=status.HTTP_403_FORBIDDEN,
-    )
+            )
 
         # -----------------------------
         # Permission rules
@@ -145,7 +152,7 @@ class AssessmentSection1And2APIView(APIView):
         attending_signature_data = request.data.get("attending_signature_data")
         witness_signature_data = request.data.get("witness_signature_data")
         pdpa_signature_data = request.data.get("pdpa_signature_data")
-        
+
         # --------------------------------
         # Create assessment
         # --------------------------------
@@ -160,12 +167,14 @@ class AssessmentSection1And2APIView(APIView):
                 f"created_by={request.user.username} - {request.user.profile.official_name}"
             )
 
-            if any([
-                signature_data,
-                attending_signature_data,
-                witness_signature_data,
-                pdpa_signature_data
-            ]):
+            if any(
+                [
+                    signature_data,
+                    attending_signature_data,
+                    witness_signature_data,
+                    pdpa_signature_data,
+                ]
+            ):
                 logger.info(
                     f"SIGNATURE_SAVED - Signatures processed for assessment {assessment.id} | "
                     f"initial={bool(signature_data)}, "
@@ -229,12 +238,14 @@ class AssessmentSection1And2APIView(APIView):
             witness_signature_data = request.data.get("witness_signature_data")
             pdpa_signature_data = request.data.get("pdpa_signature_data")
 
-            if any([
-                signature_data,
-                attending_signature_data,
-                witness_signature_data,
-                pdpa_signature_data
-            ]):
+            if any(
+                [
+                    signature_data,
+                    attending_signature_data,
+                    witness_signature_data,
+                    pdpa_signature_data,
+                ]
+            ):
                 logger.info(
                     f"SIGNATURE_UPDATE - assessment_id={assessment.id} | "
                     f"initial={bool(signature_data)}, "
@@ -409,9 +420,7 @@ class AssessmentSection1And2APIView(APIView):
                 )
 
             elif action == "save_discharge":
-                message = (
-                    "Discharge updated successfully. "
-                )
+                message = "Discharge updated successfully. "
 
             elif action == "sign_off_discharge":
                 message = "Patient discharged successfully"
@@ -552,13 +561,11 @@ class AssessmentSection3APIView(APIView):
         # =========================
         if action == "save_section_3":
             instance.is_section_3_signed = False
-            instance.section_3_signed_by = None
-            instance.section_3_signed_at = None
-            instance.save(update_fields=[
-                "is_section_3_signed",
-                "section_3_signed_by",
-                "section_3_signed_at",
-            ])
+            instance.save(
+                update_fields=[
+                    "is_section_3_signed",
+                ]
+            )
 
             return Response(
                 {"message": "Section 3 updated successfully"},
@@ -576,11 +583,20 @@ class AssessmentSection3APIView(APIView):
             instance.is_section_3_signed = True
             instance.section_3_signed_by = profile
             instance.section_3_signed_at = timezone.now()
-            instance.save(update_fields=[
-                "is_section_3_signed",
-                "section_3_signed_by",
-                "section_3_signed_at",
-            ])
+            instance.save(
+                update_fields=[
+                    "is_section_3_signed",
+                    "section_3_signed_by",
+                    "section_3_signed_at",
+                ]
+            )
+
+            logger.info(
+                f"UPDATE - Section 3 | assessment_id={assessment.id}, "
+                f"student={assessment.student.official_name}, "
+                f"updated_by={profile.official_name} ({profile.role}), "
+                f"action={action}"
+            )
 
             return Response(
                 {"message": "Section 3 signed off successfully"},
@@ -695,6 +711,7 @@ class AssessmentSection4APIView(APIView):
 
 class AssessmentAttachmentAPIView(APIView):
     permission_classes = [IsAuthenticated]
+
     # =========================
     # GET
     # =========================
@@ -705,13 +722,10 @@ class AssessmentAttachmentAPIView(APIView):
         if not assessment_id:
             return Response(
                 {"detail": "Assessment ID is required"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assessment = get_object_or_404(
-            Assessments,
-            id=assessment_id
-        )
+        assessment = get_object_or_404(Assessments, id=assessment_id)
 
         logger.info(
             f"VIEW - Attachments | "
@@ -720,14 +734,10 @@ class AssessmentAttachmentAPIView(APIView):
         )
 
         serializer = AssessmentAttachmentSerializer(
-            assessment.attachments.all().order_by("-created_at"),
-            many=True
+            assessment.attachments.all().order_by("-created_at"), many=True
         )
 
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # =========================
     # POST (UPLOAD)
@@ -739,20 +749,16 @@ class AssessmentAttachmentAPIView(APIView):
         if not assessment_id:
             return Response(
                 {"detail": "Assessment ID is required"},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assessment = get_object_or_404(
-            Assessments,
-            id=assessment_id
-        )
+        assessment = get_object_or_404(Assessments, id=assessment_id)
 
         files = request.FILES.getlist("files")
 
         if not files:
             return Response(
-                {"detail": "No files uploaded"},
-                status=status.HTTP_400_BAD_REQUEST
+                {"detail": "No files uploaded"}, status=status.HTTP_400_BAD_REQUEST
             )
         uploaded_count = 0
         failed_files = []
@@ -760,22 +766,15 @@ class AssessmentAttachmentAPIView(APIView):
         for file in files:
             ext = os.path.splitext(file.name)[1].lower()
             if ext not in ALLOWED_EXTENSIONS:
-                failed_files.append(
-                    f"{file.name} (invalid type)"
-                )
+                failed_files.append(f"{file.name} (invalid type)")
                 continue
 
             if file.size > MAX_FILE_SIZE:
-                failed_files.append(
-                    f"{file.name} (too large)"
-                )
+                failed_files.append(f"{file.name} (too large)")
                 continue
 
             AssessmentAttachment.objects.create(
-                assessment=assessment,
-                file=file,
-                uploaded_by=profile,
-                label=file.name
+                assessment=assessment, file=file, uploaded_by=profile, label=file.name
             )
             uploaded_count += 1
 
@@ -791,9 +790,9 @@ class AssessmentAttachmentAPIView(APIView):
             {
                 "message": "Files uploaded successfully",
                 "uploaded": uploaded_count,
-                "failed": failed_files
+                "failed": failed_files,
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
 
     # =========================
@@ -1368,9 +1367,7 @@ class PatientReevaluationAPIView(APIView):
         # =========================
         # GET ALL
         # =========================
-        reevaluations = PatientReevaluation.objects.filter(
-            assessment=assessment
-        )
+        reevaluations = PatientReevaluation.objects.filter(assessment=assessment)
 
         serializer = PatientReevaluationSerializer(
             reevaluations,
@@ -1408,8 +1405,7 @@ class PatientReevaluationAPIView(APIView):
                 return Response(
                     {
                         "detail": (
-                            "You cannot create reevaluation "
-                            "for this assessment"
+                            "You cannot create reevaluation " "for this assessment"
                         )
                     },
                     status=status.HTTP_403_FORBIDDEN,
@@ -1515,10 +1511,7 @@ class PatientReevaluationAPIView(APIView):
         # -----------------------------
         # Permission check
         # -----------------------------
-        if (
-            profile.role == "student"
-            and reevaluation.assessment.student != profile
-        ):
+        if profile.role == "student" and reevaluation.assessment.student != profile:
             return Response(
                 {"detail": "You cannot edit this reevaluation"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -1539,10 +1532,7 @@ class PatientReevaluationAPIView(APIView):
         if profile.role == "student":
             validated_data["student"] = profile
         elif profile.role in ["admin", "clinician"]:
-            if (
-                "student" in validated_data
-                and not validated_data.get("student")
-            ):
+            if "student" in validated_data and not validated_data.get("student"):
                 return Response(
                     {"student": "This field cannot be null"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -1690,12 +1680,7 @@ class PatientNewComplaintAPIView(APIView):
         # -----------------------------
         if profile.role == "student" and assessment.student != profile:
             return Response(
-                {
-                    "detail": (
-                        "You cannot view new complaints "
-                        "for this assessment"
-                    )
-                },
+                {"detail": ("You cannot view new complaints " "for this assessment")},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
@@ -1723,9 +1708,7 @@ class PatientNewComplaintAPIView(APIView):
         # =========================
         # GET ALL
         # =========================
-        new_complaints = PatientNewComplaint.objects.filter(
-            assessment=assessment
-        )
+        new_complaints = PatientNewComplaint.objects.filter(assessment=assessment)
 
         serializer = PatientNewComplaintSerializer(
             new_complaints,
@@ -1766,8 +1749,7 @@ class PatientNewComplaintAPIView(APIView):
                 return Response(
                     {
                         "detail": (
-                            "You cannot create new complaint "
-                            "for this assessment"
+                            "You cannot create new complaint " "for this assessment"
                         )
                     },
                     status=status.HTTP_403_FORBIDDEN,
@@ -1833,9 +1815,7 @@ class PatientNewComplaintAPIView(APIView):
             return Response(
                 {
                     "id": new_complaint.id,
-                    "message": (
-                        "Patient new complaint created successfully"
-                    ),
+                    "message": ("Patient new complaint created successfully"),
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -1869,11 +1849,7 @@ class PatientNewComplaintAPIView(APIView):
 
         if not new_complaint_id:
             return Response(
-                {
-                    "new_complaint_id": (
-                        "New complaint ID is required"
-                    )
-                },
+                {"new_complaint_id": ("New complaint ID is required")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1885,10 +1861,7 @@ class PatientNewComplaintAPIView(APIView):
         # -----------------------------
         # Permission check
         # -----------------------------
-        if (
-            profile.role == "student"
-            and new_complaint.assessment.student != profile
-        ):
+        if profile.role == "student" and new_complaint.assessment.student != profile:
             return Response(
                 {"detail": "You cannot edit this new complaint"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -1912,10 +1885,7 @@ class PatientNewComplaintAPIView(APIView):
 
         elif profile.role in ["admin", "clinician"]:
 
-            if (
-                "student" in validated_data
-                and not validated_data.get("student")
-            ):
+            if "student" in validated_data and not validated_data.get("student"):
                 return Response(
                     {"student": "This field cannot be null"},
                     status=status.HTTP_400_BAD_REQUEST,
@@ -2003,9 +1973,7 @@ class PatientNewComplaintAPIView(APIView):
             message = "Patient new complaint updated successfully"
 
             if action == "sign_off":
-                message = (
-                    "Patient new complaint signed off successfully"
-                )
+                message = "Patient new complaint signed off successfully"
 
             elif action == "save":
                 message = (
@@ -2042,7 +2010,7 @@ class PatientNewComplaintAPIView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        
+
 
 class AssessmentNotesAPIView(APIView):
     permission_classes = [IsAuthenticated]

@@ -232,7 +232,7 @@ class Assessments(models.Model):
     peripheral = models.TextField(blank=True, default="")
     pathological = models.TextField(blank=True, default="")
 
-    orthopedic_assessment = models.TextField(blank=True, default="")
+    orthopaedic_assessment = models.TextField(blank=True, default="")
     second_chiropractic = models.TextField(blank=True, default="")
     imaging = models.TextField(blank=True, default="")
     lab = models.TextField(blank=True, default="")

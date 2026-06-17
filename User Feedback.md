@@ -2,7 +2,7 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 
 09/04/2026
 - SOAP:
-    - Add delete function for modalities if it is not sign off yet
+  - Add delete function for modalities if it is not sign off yet
 
 28/04/2026
 - User creation, student need a field for cohorts
@@ -12,8 +12,21 @@ Priority:
 Note:
 - Add Convert to pdf function
 
+12/6/2026
+Assessment:
+- Fix Section 4 button lock again on Section 3 sign off [DONE]
+Section 1:
+- Update Consent section with the four checkbox, explaination and the initial consent section
+- PDPA and Patient consent need name field
+Section 3:
+- Add confirmation message on save and sign off [DONE]
+Treatment Plan:
+- Phase 1, 2, 3 change it to be optional and not mandatory [DONE]
+  General:
+- Change all orthopedic words to orthopaedic [DONE]
 
 Enhancement Suggestion:
+
 - Login need to check if user is_locked or not
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
@@ -21,31 +34,33 @@ Enhancement Suggestion:
 - Might what to add AI to do a summary for the whole assessment when convert to pdf
 
 Bugs:
+
 - Datatable sorting is incorrect
 
 QUESTION to ask in the future to Chiro team:
 
-
-
 ======================================================= COMPLETED =======================================================
 Major:
+
 - Original Section 1 will be split into 2 section and original section 2 and 3 will be combine into 1 section [DONE]
 - Add PDPA consent section on section 1 [DONE]
-Major
-- 3 New column need to be added in Section 2  [DONE]
- . Red flags
- . Yellow flags 
- . Contraindications
-06/03/2026
+  Major
+- 3 New column need to be added in Section 2 [DONE]
+  . Red flags
+  . Yellow flags
+  . Contraindications
+  06/03/2026
 - Discharge only need discharge reason and remark, only clinician and admin can discharge patient [DONE]
 - Treatment log is just a list of SOAP done, can click to open the designated SOAP [DONE]
 - SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment [DONE]
 
 09/04/2026
+
 - SOAP:
-    - Next appoinment and modalities is not mandatory [DONE]
+  - Next appoinment and modalities is not mandatory [DONE]
 
 Minor:
+
 - Clinician can view all assessments [DONE]
 - Clinician can assign any clinician [DONE]
 - Add confirmation alert box if user really want to save the assessment [DONE]
@@ -71,48 +86,59 @@ Minor:
 - Fix UI on the undo and clear button in section 1 signature [DONE]
 
 06/03/2026
+
 - Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P [DONE]
 
 09/04/2026
+
 - Section 3:
-    - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM [DONE]
+  - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM [DONE]
 
 - Anatomy Marking
-    - For SOAP need to able to add notes in the marking but Section 1 dont requires note [DONE]
+  - For SOAP need to able to add notes in the marking but Section 1 dont requires note [DONE]
 
 - Several fields need to be added alter but need to wait for Chiro team to provides the fields information [DONE]
 
 28/04/2026
+
 - Add File uploading field in Treatment Plan [DONE]
 
 Priority:
 21/05/2026
 Section 1 :
+
 - Add new consent section [DONE]
 - Change phase 1 is complete logic, special direction is not mandatory. [DONE]
 - Note on anatomy marker, remover "Left-click a marker to add/edit a note. Right-click to delete." instructions [DONE]
- 
+
 Section 4:
+
 - Add "intervention approved" field [DONE]
- 
+
 S.O.A.P
+
 - Fail to create because assessment id not passed [DONE]
- 
+
 Note:
+
 - For soap anatomy On hold click doest show marker details [DONE]
 
 Discharge:
+
 - Need signoff section [DONE]
 
 28/05/2026
+
 - Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue [DONE]
 - Fix outdated Constant [DONE]
 
 ======================================================= CANCELLED =======================================================
 Bugs:
+
 - SOAP unable to unsign off on update soap button [DONE]
 
 - Patient will need to provide consent signature before assessment creation and during final phase of the assessment [CANCELLED]
 
 Minor existing Changes To do:
+
 - Evaluator need to be able multi select [CANCELLED]

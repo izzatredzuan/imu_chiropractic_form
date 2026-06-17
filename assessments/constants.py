@@ -2,26 +2,21 @@ SECTION_1_FIELDS = [
     # Assignment
     "student",
     "evaluator",
-
     # Patient Details
     "patient_name",
     "file_number",
     "gender",
     "date_of_birth",
-
     # Vitals
     "pulse",
     "respiratory",
     "systolic_bp",
     "diastolic_bp",
-
     # Consent checkboxes
     "education_consent",
     "research_consent",
-
     # Attending consent
     "attending_consent_signed_by",
-
     # Witness consent
     "witness_consent_signed_by",
 ]
@@ -30,31 +25,25 @@ SECTION_2_FIELDS = [
     # Assignment
     "student",
     "evaluator",
-
     # Presenting Complaint
     "chief_complaint",
     "history_of_condition",
-
     # Pain & Symptom Details
     "pain",
     "aggravating_factors",
     "relieving_factors",
     "associated_symptoms",
-
     # Medical History
     "health_hx_review",
     "past_illnesses",
     "family_hx",
-
     # Lifestyle & Social History
     "psycho_social_hx",
     "occupational",
     "diet",
-
     # Clinical Assessment
     "system_review",
     "differential_diagnosis",
-
     # Risk Screening
     "red_flags",
     "yellow_flags",
@@ -65,25 +54,20 @@ SECTION_3_FIELDS = [
     # Assignment
     "student",
     "evaluator",
-
     # Inspection
     "inspection_posture",
     "inspection_gait",
     "inspection_regional",
-
     # Palpation / Percussion
     "palpation",
     "percussion",
     "instrumentation",
-
     # ROM
     "rom_active",
     "rom_passive",
     "rom_resisted",
-
     # Additional Notes & Diagnostic Procedures
     "first_chiropractic",
-
     # Neurological Examination
     "cranial_nerves",
     "cerebellar",
@@ -91,9 +75,8 @@ SECTION_3_FIELDS = [
     "nerve_root",
     "peripheral",
     "pathological",
-
     # Diagnosis
-    "orthopedic_assessment",
+    "orthopaedic_assessment",
     "second_chiropractic",
     "imaging",
     "lab",
@@ -104,7 +87,6 @@ SECTION_4_FIELDS = [
     # Assignment
     "student",
     "evaluator",
-
     # Diagnosis
     "diagnosis",
     "intervention_approved",
@@ -114,9 +96,6 @@ SECTION_4_FIELDS = [
 TREATMENT_PLAN_FIELDS = [
     "student",
     "evaluator",
-    "phase_1",
-    "phase_2",
-    "phase_3",
 ]
 
 DISCHARGE_FIELDS = [

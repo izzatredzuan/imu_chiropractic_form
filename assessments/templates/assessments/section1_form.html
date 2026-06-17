@@ -914,13 +914,14 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
       {% else %}
         "Are you sure you want to save the changes?";
       {% endif %}
-
     if (clickedAction === "sign_off_section_1") {
       confirmMessage =
         "Are you sure you want to UPDATE and SIGN OFF Section 1?";
     }
+    if (!confirm(confirmMessage)) {
+        return;
+    }
 
-    if (!confirm(confirmMessage)) return;
     {% if not assessment %}
     if (
       !document.querySelector('input[name="education_consent"]').checked ||

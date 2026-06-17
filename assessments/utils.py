@@ -19,5 +19,4 @@ def is_section_complete(obj, fields):
 
         if isinstance(value, str) and value.strip() == "":
             return False
-
     return True

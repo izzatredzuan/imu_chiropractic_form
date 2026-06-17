@@ -290,7 +290,9 @@
     if (clickedAction === "sign_off_section_2") {
       confirmMessage = "Are you sure you want to UPDATE and SIGN OFF Section 2?";
     }
-    if (!confirm(confirmMessage)) return;
+    if (!confirm(confirmMessage)) {
+        return;
+    }
 
     const formData = new FormData(this);
     formData.set("action", clickedAction);

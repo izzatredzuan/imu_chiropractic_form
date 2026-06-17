@@ -2,7 +2,15 @@ import json
 
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Assessments, AssessmentAttachment, PatientNewComplaint, PatientReevaluation, SoapModality, Soaps
+from .models import (
+    Assessments,
+    AssessmentAttachment,
+    PatientNewComplaint,
+    PatientReevaluation,
+    SoapModality,
+    Soaps,
+)
+
 
 @admin.register(Assessments)
 class AssessmentsAdmin(admin.ModelAdmin):
@@ -174,7 +182,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "nerve_root",
                     "peripheral",
                     "pathological",
-                    "orthopedic_assessment",
+                    "orthopaedic_assessment",
                     "second_chiropractic",
                     "imaging",
                     "lab",
@@ -339,6 +347,7 @@ class AssessmentAttachmentAdmin(admin.ModelAdmin):
         if obj.file:
             return obj.file.name.split("/")[-1]
         return "-"
+
     file_name.short_description = "File Name"
 
     def file_preview(self, obj):
@@ -350,15 +359,11 @@ class AssessmentAttachmentAdmin(admin.ModelAdmin):
         # image preview
         if obj.file.name.lower().endswith(("png", "jpg", "jpeg")):
             return format_html(
-                "<img src='{}' style='max-height:200px;border-radius:6px;' />",
-                url
+                "<img src='{}' style='max-height:200px;border-radius:6px;' />", url
             )
 
         # generic file link
-        return format_html(
-            "<a href='{}' target='_blank'>Open File</a>",
-            url
-        )
+        return format_html("<a href='{}' target='_blank'>Open File</a>", url)
 
     file_preview.short_description = "Preview"
 
