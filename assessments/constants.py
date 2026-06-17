@@ -12,13 +12,16 @@ SECTION_1_FIELDS = [
     "respiratory",
     "systolic_bp",
     "diastolic_bp",
-    # Consent checkboxes
-    "education_consent",
-    "research_consent",
+    # Patient checkboxes
+    "initial_patient_consent_signed_by",
     # Attending consent
     "attending_consent_signed_by",
     # Witness consent
     "witness_consent_signed_by",
+    # PDPA checkboxes
+    "pdpa_consent_signed_by",
+    "education_consent",
+    "research_consent",
 ]
 
 SECTION_2_FIELDS = [

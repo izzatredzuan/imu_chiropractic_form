@@ -95,20 +95,43 @@ class AssessmentsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "is_initial_patient_consent_signed",
+                    "initial_patient_consent_signed_by",
                     "initial_patient_consent_signature",
                     "initial_patient_consent_signed_at",
+                )
+            },
+        ),
+        (
+            "Attending Consent",
+            {
+                "fields": (
                     "is_attending_consent_signed",
                     "attending_consent_signed_by",
                     "attending_consent_signature",
                     "attending_consent_signed_at",
+                )
+            },
+        ),
+        (
+            "Witness Consent",
+            {
+                "fields": (
                     "is_witness_consent_signed",
                     "witness_consent_signed_by",
                     "witness_consent_signature",
                     "witness_consent_signed_at",
+                )
+            },
+        ),
+        (
+            "PDPA Consent",
+            {
+                "fields": (
                     "is_pdpa_consent_signed",
-                    "marketing_consent",
                     "education_consent",
                     "research_consent",
+                    "marketing_consent",
+                    "pdpa_consent_signed_by",
                     "pdpa_consent_signature",
                     "pdpa_consent_signed_at",
                 )

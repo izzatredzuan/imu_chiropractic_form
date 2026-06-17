@@ -253,7 +253,7 @@
 
             <small class="text-muted d-block">
               Signed by:
-              {{ assessment.patient_name }}
+              {{ assessment.initial_patient_consent_signed_by }}
             </small>
 
             <small class="text-muted">
@@ -288,6 +288,15 @@
                     data-target="patient">
               Clear
             </button>
+          </div>
+
+          <div class="mt-2">
+            <label class="form-label required">Patient Consent Name</label>
+            <input type="text"
+                  name="initial_patient_consent_signed_by"
+                  id="patientName"
+                  class="form-control"
+                  placeholder="Enter Patient Consent name">
           </div>
 
           <input type="hidden"
@@ -509,9 +518,9 @@
 
             <small class="text-muted d-block">
               Signed by:
-              {{ assessment.patient_name }}
+              {{ assessment.pdpa_consent_signed_by }}
             </small>
-
+            
             <small class="text-muted">
               Signed at:
               {{ assessment.pdpa_consent_signed_at|date:"d M Y, h:i A" }}
@@ -544,6 +553,15 @@
                     data-target="pdpa">
               Clear
             </button>
+          </div>
+
+          <div class="mt-2">
+            <label class="form-label required">PDPA Consent Name</label>
+            <input type="text"
+                  name="pdpa_consent_signed_by"
+                  id="pdpaName"
+                  class="form-control"
+                  placeholder="Enter PDPA consent name">
           </div>
 
           <input type="hidden"
@@ -956,6 +974,14 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
        SAVE SIGNATURES
     ====================================================== */
 
+    const patientPad = signaturePads["patient"];
+    const patientName = document.getElementById("patientName")?.value?.trim();
+
+    if (patientPad?.strokes.length > 0 && !patientName) {
+      alert("Patient consent name is required.");
+      return;
+    }
+
     if (signaturePads["patient"]?.strokes.length > 0) {
       formData.set(
         "signature_data",
@@ -983,6 +1009,14 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
         "witness_signature_data",
         signaturePads["witness"].canvas.toDataURL("image/png")
       );
+    }
+
+    const pdpaPad = signaturePads["pdpa"];
+    const pdpaName = document.getElementById("pdpaName")?.value?.trim();
+
+    if (pdpaPad?.strokes.length > 0 && !pdpaName) {
+      alert("PDPA consent name is required.");
+      return;
     }
 
     if (signaturePads["pdpa"]?.strokes.length > 0) {

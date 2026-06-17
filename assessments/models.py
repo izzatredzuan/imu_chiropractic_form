@@ -69,10 +69,8 @@ class Assessments(models.Model):
     # =====================
     # Initial Patient Consent
     # =====================
-    marketing_consent = models.BooleanField(default=False)
-    education_consent = models.BooleanField(default=False)
-    research_consent = models.BooleanField(default=False)
     is_initial_patient_consent_signed = models.BooleanField(default=False)
+    initial_patient_consent_signed_by = models.CharField(max_length=150)
     initial_patient_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("patient_signatures"), null=True, blank=True
     )
@@ -80,6 +78,9 @@ class Assessments(models.Model):
         null=True, blank=True, default=None
     )
 
+    # =====================
+    # Attending Consent
+    # =====================
     is_attending_consent_signed = models.BooleanField(default=False)
     attending_consent_signed_by = models.ForeignKey(
         Profile,
@@ -97,6 +98,9 @@ class Assessments(models.Model):
         null=True, blank=True, default=None
     )
 
+    # =====================
+    # Witness Consent
+    # =====================
     is_witness_consent_signed = models.BooleanField(default=False)
     witness_consent_signed_by = models.CharField(max_length=150)
     witness_consent_signature = models.ImageField(
@@ -106,7 +110,14 @@ class Assessments(models.Model):
         null=True, blank=True, default=None
     )
 
+    # =====================
+    # PDPA Consent
+    # =====================
+    marketing_consent = models.BooleanField(default=False)
+    education_consent = models.BooleanField(default=False)
+    research_consent = models.BooleanField(default=False)
     is_pdpa_consent_signed = models.BooleanField(default=False)
+    pdpa_consent_signed_by = models.CharField(max_length=150)
     pdpa_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("pdpa_signatures"), null=True, blank=True
     )
