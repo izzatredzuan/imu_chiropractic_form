@@ -22,6 +22,7 @@ SECTION_1_FIELDS = [
     "attending_consent_signed_by",
     # Witness consent
     "witness_consent_signed_by",
+    "witness_relationship",
     # PDPA checkboxes
     "pdpa_consent_signed_by",
     "education_consent",

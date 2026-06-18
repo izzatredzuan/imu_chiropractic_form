@@ -122,6 +122,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                 "fields": (
                     "is_witness_consent_signed",
                     "witness_consent_signed_by",
+                    "witness_relationship",
                     "witness_consent_signature",
                     "witness_consent_signed_at",
                 )
@@ -146,8 +147,10 @@ class AssessmentsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "patient_name",
+                    "file_number",
                     "gender",
                     "date_of_birth",
+                    "interpreter_name",
                     "pulse",
                     "respiratory",
                     "systolic_bp",

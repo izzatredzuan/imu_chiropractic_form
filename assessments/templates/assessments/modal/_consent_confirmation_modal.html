@@ -1,0 +1,54 @@
+<!-- ========================= CONSENT CONFIRMATION MODAL ========================= -->
+<div class="modal fade" id="consentConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Consent & Submission Confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body consent-modal-body">
+                <p class="consent-block">
+                    I,
+                    <strong class="consent-underline" id="m_witness_name"></strong>,
+                    (Name of patient/parent/guardian), hereby consent for myself/
+                    <strong class="consent-underline" id="m_patient_name"></strong>
+                    (Name of patient), who is my
+                    <strong class="consent-underline" id="m_relationship"></strong>,
+                    to undergo the following treatment where the nature of which, benefits/ risks/ alternatives have been explained to me by
+                    <strong class="consent-underline" id="m_attending_name"></strong>
+                    (Attending Chiropractor/ Intern) personally/ through interpretation of
+                    <strong class="consent-underline" id="m_interpreter_name"></strong>
+                    (Interpreter) in the appropriate language/dialect.
+                </p>
+
+                <hr>
+
+                <p class="text-muted small text-center mb-0">
+                    Please confirm before proceeding.
+                </p>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+
+                <!-- Hide button if user is only able to readonly -->
+                {% if not is_readonly %}
+                <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary">
+                    {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
+                </button>
+
+                {% if assessment and can_signoff %}
+                <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1"
+                    class="btn btn-success">
+                    Update & Sign Off Section 1
+                </button>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>

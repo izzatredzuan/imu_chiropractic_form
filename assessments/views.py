@@ -12,6 +12,7 @@ from .models import (
     SoapModality,
     PatientReevaluation,
 )
+from .choices import WITNESS_RELATIONSHIP_CHOICES
 from .utils import (
     clinician_is_readonly,
 )
@@ -19,7 +20,6 @@ from .utils import (
 
 class AssessmentListView(View):
     template_name = "assessments/assessments.html"
-
     def get(self, request):
         profile = request.user.profile  # Debugging line
         context = {"profile": profile, "can_signoff": profile.role in ["clinician", "admin"]}
@@ -29,6 +29,9 @@ class AssessmentListView(View):
 class BaseAssessmentFormView(View):
     template_name = None
 
+    def get_extra_context(self):
+        return {}
+    
     def get_assessment(self, request, assessment_id):
         """
         Hook to get assessment. Can be overridden by child.
@@ -75,6 +78,7 @@ class BaseAssessmentFormView(View):
             ),
             "can_signoff": profile.role in ["clinician", "admin"],
         }
+        context.update(self.get_extra_context())
 
         return render(request, self.template_name, context)
 
@@ -89,12 +93,17 @@ class BaseAssessmentFormView(View):
 
 class AssessmentSection1FormView(BaseAssessmentFormView):
     template_name = "assessments/section1_form.html"
-
+    
     def get_create_readonly(self, profile):
         """
         Allow students to create a new Section 1 assessment for themselves.
         """
         return False
+    
+    def get_extra_context(self):
+        return {
+            "witness_relationship_choices": WITNESS_RELATIONSHIP_CHOICES
+        }
 
 
 class AssessmentSection2FormView(BaseAssessmentFormView):

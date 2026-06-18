@@ -4,34 +4,9 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 from django.utils.deconstruct import deconstructible
+
+from . import choices
 from accounts.models import Profile
-
-GENDER_CHOICES = (
-    ("male", "Male"),
-    ("female", "Female"),
-)
-
-DISCHARGE_CHOICES = (
-    ("discharged_full_recovery", "Discharged - Full Recovery"),
-    ("patient_discharged_against_advice", "Patient Discharged Against Advice"),
-    ("lost_to_follow_up", "Lost to Follow-up"),
-    ("referred_to_physician", "Referred to Physician"),
-    ("transferred_to_another_Intern", "Transferred to Another Intern"),
-    ("transferred_to_community_chiropractor", "Transferred to Community Chiropractor"),
-    ("moved_away", "Moved Away"),
-    ("deceased", "Deceased"),
-)
-
-MODALITIES_CHOICES = (
-    ("ifc", "IFC"),
-    ("pre_mod", "Pre Mod"),
-    ("tens", "TENS"),
-    ("micro_russ_us_combo", "Micro Russ US Combo"),
-    ("laser", "Laser"),
-    ("traction", "Traction"),
-    ("fd", "FD"),
-    ("shockwave", "Shockwave"),
-)
 
 
 @deconstructible
@@ -107,6 +82,7 @@ class Assessments(models.Model):
     # =====================
     is_witness_consent_signed = models.BooleanField(default=False)
     witness_consent_signed_by = models.CharField(max_length=150)
+    witness_relationship = models.CharField(max_length=30, choices=choices.WITNESS_RELATIONSHIP_CHOICES)
     witness_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("witness_signatures"), null=True, blank=True
     )
@@ -157,8 +133,9 @@ class Assessments(models.Model):
     # =====================
     patient_name = models.CharField(max_length=150)
     file_number = models.CharField(max_length=50)
-    gender = models.CharField(max_length=30, choices=GENDER_CHOICES)
+    gender = models.CharField(max_length=30, choices=choices.GENDER_CHOICES)
     date_of_birth = models.DateField()
+    interpreter_name = models.CharField(max_length=150, blank=True, default="")
 
     pulse = models.PositiveSmallIntegerField()
     respiratory = models.PositiveSmallIntegerField()
@@ -308,7 +285,7 @@ class Assessments(models.Model):
     # Discharge
     # =====================
     reason_for_discharge = models.CharField(
-        max_length=100, choices=DISCHARGE_CHOICES, blank=True, default=""
+        max_length=100, choices=choices.DISCHARGE_CHOICES, blank=True, default=""
     )
     discharge_remarks = models.TextField(blank=True, default="")
     is_discharged = models.BooleanField(default=False)
@@ -499,7 +476,7 @@ class SoapModality(models.Model):
         Soaps, on_delete=models.CASCADE, related_name="soap_modalities"
     )
 
-    modality = models.CharField(max_length=50, choices=MODALITIES_CHOICES)
+    modality = models.CharField(max_length=50, choices=choices.MODALITIES_CHOICES)
 
     location = models.TextField(blank=True, default="")
     settings = models.TextField(blank=True, default="")

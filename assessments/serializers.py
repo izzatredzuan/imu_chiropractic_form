@@ -109,7 +109,7 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
         return is_section_complete(obj, DISCHARGE_FIELDS)
 
 
-class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
+class AssessmentSection1And2Serializer(serializers.ModelSerializer):
     evaluator = serializers.PrimaryKeyRelatedField(
         queryset=Profile.objects.filter(role="clinician"), required=True
     )
@@ -122,7 +122,9 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
     )
 
     signature_data = serializers.CharField(write_only=True, required=False)
-    initial_patient_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
+    initial_patient_consent_signed_by = serializers.CharField(
+        required=True, allow_blank=False
+    )
 
     attending_signature_data = serializers.CharField(write_only=True, required=False)
     attending_consent_signed_by_name = serializers.CharField(
@@ -137,6 +139,12 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
 
     witness_signature_data = serializers.CharField(write_only=True, required=False)
     witness_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
+    witness_relationship_text = serializers.CharField(
+        source="get_witness_relationship_display", read_only=True
+    )
+    section_1_anatomy_markers = serializers.ListField(
+        child=serializers.DictField(), required=False
+    )
 
     pdpa_signature_data = serializers.CharField(write_only=True, required=False)
     pdpa_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
@@ -175,6 +183,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "gender",
             "gender_text",
             "date_of_birth",
+            "interpreter_name",
             "pulse",
             "respiratory",
             "systolic_bp",
@@ -201,6 +210,8 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             "is_witness_consent_signed",
             "witness_signature_data",
             "witness_consent_signed_by",
+            "witness_relationship",
+            "witness_relationship_text",
             "witness_consent_signature",
             "witness_consent_signed_at",
             "is_pdpa_consent_signed",
@@ -250,6 +261,7 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "gender_text",
+            "witness_relationship_text",
             "is_section_1_signed",
             "section_1_signed_by_name",
             "section_1_signed_by_role",
@@ -295,7 +307,12 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         instance = super().create(validated_data)
 
         if initial_signature:
-            self._save_signature(instance, initial_signature, "initial_patient_consent", extra_data={"initial_patient_consent_signed_by": patient_name})
+            self._save_signature(
+                instance,
+                initial_signature,
+                "initial_patient_consent",
+                extra_data={"initial_patient_consent_signed_by": patient_name},
+            )
 
         if attending_signature:
             self._save_signature(
@@ -318,7 +335,12 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             )
 
         if pdpa_signature:
-            self._save_signature(instance, pdpa_signature, "pdpa_consent", extra_data={"pdpa_consent_signed_by": pdpa_name})
+            self._save_signature(
+                instance,
+                pdpa_signature,
+                "pdpa_consent",
+                extra_data={"pdpa_consent_signed_by": pdpa_name},
+            )
 
         return instance
 
@@ -338,7 +360,12 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
 
         if initial_signature:
-            self._save_signature(instance, initial_signature, "initial_patient_consent", extra_data={"initial_patient_consent_signed_by": patient_name})
+            self._save_signature(
+                instance,
+                initial_signature,
+                "initial_patient_consent",
+                extra_data={"initial_patient_consent_signed_by": patient_name},
+            )
 
         if attending_signature:
             self._save_signature(
@@ -361,7 +388,12 @@ class AssessmentSection1And2CreateSerializer(serializers.ModelSerializer):
             )
 
         if pdpa_signature:
-            self._save_signature(instance, pdpa_signature, "pdpa_consent", extra_data={"pdpa_consent_signed_by": pdpa_name})
+            self._save_signature(
+                instance,
+                pdpa_signature,
+                "pdpa_consent",
+                extra_data={"pdpa_consent_signed_by": pdpa_name},
+            )
 
         return instance
 
@@ -978,7 +1010,7 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
         ]
 
     def get_section_1_2(self, obj):
-        return AssessmentSection1And2CreateSerializer(obj).data
+        return AssessmentSection1And2Serializer(obj).data
 
     def get_section_3(self, obj):
         return AssessmentSection3Serializer(obj).data

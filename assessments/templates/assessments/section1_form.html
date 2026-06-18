@@ -58,6 +58,48 @@
   #signaturePad {
     touch-action: none;
   }
+
+  /* =========================
+     Consent Reader
+  ========================= */
+  .consent-reader-scrollbox {
+    height: 320px;
+    overflow-y: auto;
+    background: #fff;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: justify;
+    white-space: normal;
+  }
+
+  /* =========================
+     Consent Modal
+  ========================= */
+  .consent-modal-body {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    text-align: justify;
+    padding: 1.25rem;
+  }
+
+  .consent-block {
+    margin-bottom: 0;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .consent-modal-body p {
+    margin-bottom: 1rem;
+  }
+
+  .consent-underline {
+    font-weight: 600;
+    border-bottom: 1px solid #000;
+    padding: 0 4px;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+  }
 </style>
 
 <div class="container-fluid mt-4 mb-4 px-4">
@@ -166,6 +208,12 @@
                   value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
                   {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
               </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label">Interpreter Name</label>
+                <input type="text" name="interpreter_name" class="form-control"
+                  value="{{ assessment.interpreter_name|default_if_none:'' }}"
+                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+              </div>
             </div>
           </div>
         </div>
@@ -247,6 +295,37 @@
       </div>
 
       <div class="card-body">
+        <!-- ========================= CONSENT TEXT (SCROLLABLE CLEAN VERSION) ========================= -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            Chiropractic Treatment Consent Information
+          </label>
+
+          <div class="consent-reader-scrollbox border rounded p-3">
+
+            <p><strong>The nature of Chiropractic treatment:</strong><br>
+            The Chiropractor will use his/ her hands or a mechanical device to manipulate the area treated. You may feel movement or hear a “click” or “pop” sound from the joint. Chiropractic treatment also includes activity advice, exercise, hot or cold packs, electric stimulation, ultrasound, and other modalities. Your chiropractor will recommend treatment he/ she determines is most appropriate for your condition.</p>
+
+            <p><strong>Possible risks:</strong><br>
+            Chiropractic treatment is considered to be safe and the majority of patients experience decreased pain and improved mobility. Approximately 22%-50% of patients experience slight increased pain in the treated area which typically occurs within the first few days of treatment. The increased pain is brief and returns to baseline or improves over the next few days. Increased pain may also occur with exercise, heat, cold, and electrical stimulation. Possible skin irritation or burns may occur with thermal or electrical therapy.</p>
+
+            <p>
+            Many factors can adversely affect one’s health, including previous injury, medications, osteoporosis, cancer and other illness or disease or condition. When these complicating factors are present, chiropractic treatment may be associated with serious adverse events, such as fracture, dislocation, or aggravation of previous injury to ligaments, intervertebral discs, nerves, or spinal cord. Serious bodily harm is extremely rare and not an inherent risk of chiropractic treatment. Stroke following neck manipulation has been reported, but it is extremely rare and usually not thought to be caused by the treatment. Please inform your Chiropractor of all medications you are taking, including blood thinners, any surgeries you have had, and any other medical condition you have.
+            </p>
+
+            <p><strong>Other options for the treatment of pain:</strong><br>
+            Other treatments include medical care, over the counter medications, physical therapy, injections, or surgery. You are encouraged to ask questions regarding your chiropractic treatment plan.</p>
+
+            <p><strong>References:</strong><br>
+            1. Blanchette MA et al. PLOS ONE. 2016.<br>
+            2. World Health Organization guidelines.<br>
+            3. Hays RD et al. Journal of Patient Experience. 2019.<br>
+            4. Swait G, Finch R. Chiropractic & Manual Therapies. 2017.<br>
+            5. Cassidy JD et al. Journal of Stroke and Cerebrovascular Diseases. 2017.
+            </p>
+
+          </div>
+        </div>
 
         <!-- ========================= CHECKBOXES (ALWAYS SHOWN) ========================= -->
 
@@ -467,13 +546,12 @@
       </div>
 
       <div class="card-body">
-
         {% if assessment and assessment.is_witness_consent_signed %}
           <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
             <small class="text-muted d-block">
               Signed by:
-              {{ assessment.witness_consent_signed_by }}
+              {{ assessment.witness_consent_signed_by }} ({{ assessment.witness_relationship|title }})
             </small>
 
             <small class="text-muted">
@@ -519,6 +597,22 @@
                   placeholder="Enter witness name">
           </div>
 
+          <div class="mt-2">
+            <label class="form-label required">Witness Relationship</label>
+            <select name="witness_relationship"
+                    class="form-control"
+                    required
+                    {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                <option value="">-- Select --</option>
+
+                {% for value, label in witness_relationship_choices %}
+                    <option value="{{ value }}"
+                            {% if assessment.witness_relationship == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+          </div>
           <input type="hidden"
                 name="witness_signature_data"
                 id="witnessSignatureData">
@@ -655,21 +749,18 @@
 
     <!-- Submit buttons -->
     <div class="mt-4 d-flex justify-content-end gap-2">
-      <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">Cancel</a>
-      <!-- Hide button if user is only able to readonly -->
-      {% if not is_readonly %}
-      <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary btn-mobile">
-        {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
-      </button>
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
+        Cancel
+      </a>
 
-      {% if assessment and can_signoff %}
-      <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success btn-mobile">
-        Update & Sign Off Section 1
+      <button type="button"
+              id="btnProceedConfirm"
+              class="btn btn-primary btn-mobile">
+        Proceed to Confirmation
       </button>
-      {% endif %}
-      {% endif %}
     </div>
 
+    {% include 'assessments/modal/_consent_confirmation_modal.html' %}
   </form>
 </div>
 
@@ -990,6 +1081,43 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
   }
 
   loadMarkersFromAPI();
+
+  /* ======================================================
+     CONSENT MODAL
+  ====================================================== */
+  let consentModal;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    consentModal = new bootstrap.Modal(
+      document.getElementById("consentConfirmModal")
+    );
+  });
+
+  document.getElementById("btnProceedConfirm")?.addEventListener("click", function(e) {
+    e.preventDefault();
+    // fill modal values
+    document.getElementById("m_witness_name").innerText =
+    document.getElementById("witnessName")?.value
+    || "{{ assessment.witness_consent_signed_by|default:'-' }}";
+
+    document.getElementById("m_patient_name").innerText =
+    document.querySelector("[name='patient_name']")?.value
+    || "{{ assessment.patient_name|default:'-' }}";
+
+    document.getElementById("m_relationship").innerText =
+    document.querySelector("[name='witness_relationship']")?.value
+    || "{{ assessment.witness_relationship|default:'-' }}";
+
+    document.getElementById("m_attending_name").innerText =
+    document.querySelector("[name='attending_consent_signed_by'] option:checked")?.textContent
+    || "{{ assessment.attending_consent_signed_by.official_name|default:'-' }}";
+
+    document.getElementById("m_interpreter_name").innerText =
+    document.querySelector("[name='interpreter_name']")?.value
+    || "{{ assessment.interpreter_name|default:'-' }}";
+
+    consentModal.show();
+  });
 
   /* ======================================================
      FORM SUBMIT

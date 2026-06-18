@@ -630,6 +630,10 @@
           <span class="medical-label">Date of Birth</span>
           <div class="value">${formatDate(s12.date_of_birth)}</div>
         </div>
+        <div class="info-item">
+          <span class="medical-label">Interpreter Name</span>
+          <div class="value">${safe(s12.interpreter_name)}</div>
+        </div>
       </div>
 
       <div class="subsection-title">Vitals</div>
@@ -817,7 +821,7 @@
                           src="${s12.witness_consent_signature}">
 
                       <div class="mt-2 small text-muted">
-                        <strong>${safe(s12.witness_consent_signed_by)}</strong>
+                        <strong>${safe(s12.witness_consent_signed_by)} (${safe(s12.witness_relationship_text)})</strong>
                       </div>
 
                       <div class="small text-muted">

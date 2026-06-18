@@ -21,7 +21,7 @@ from .models import (
 )
 from .serializers import (
     AssessmentsListSerializer,
-    AssessmentSection1And2CreateSerializer,
+    AssessmentSection1And2Serializer,
     AssessmentSection3Serializer,
     AssessmentSection4Serializer,
     AssessmentAttachmentSerializer,
@@ -120,7 +120,7 @@ class AssessmentSection1And2APIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = AssessmentSection1And2CreateSerializer(assessment)
+        serializer = AssessmentSection1And2Serializer(assessment)
         logger.info(
             f"VIEW - Section 1 | assessment_id={assessment.id}, "
             f"user={profile.official_name} ({profile.role})"
@@ -143,7 +143,7 @@ class AssessmentSection1And2APIView(APIView):
             f"patient name={request.data.get('patient_name', 'N/A')}"
         )
 
-        serializer = AssessmentSection1And2CreateSerializer(
+        serializer = AssessmentSection1And2Serializer(
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
@@ -221,7 +221,7 @@ class AssessmentSection1And2APIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = AssessmentSection1And2CreateSerializer(
+        serializer = AssessmentSection1And2Serializer(
             assessment, data=request.data, partial=True, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)

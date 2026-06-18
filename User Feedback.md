@@ -1,30 +1,19 @@
 This are the minute and change request requested by user Chow Kit Yee and Nashereena Kaur Dhillon
 
 09/04/2026
+
 - SOAP:
   - Add delete function for modalities if it is not sign off yet
 
 28/04/2026
+
 - User creation, student need a field for cohorts
 
 Priority:
 21/05/2026
 Note:
-- Add Convert to pdf function
 
-12/6/2026
-Assessment:
-- Fix Section 4 button lock again on Section 3 sign off [DONE]
-Section 1:
-- Update Consent section with the four checkbox, explaination and the initial consent section
-- Add Patient Relationship and Intepreter field
-- PDPA and Patient consent need name field [DONE]
-Section 3:
-- Add confirmation message on save and sign off [DONE]
-Treatment Plan:
-- Phase 1, 2, 3 change it to be optional and not mandatory [DONE]
-  General:
-- Change all orthopedic words to orthopaedic [DONE]
+- Add Convert to pdf function
 
 Enhancement Suggestion:
 
@@ -132,6 +121,21 @@ Discharge:
 
 - Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue [DONE]
 - Fix outdated Constant [DONE]
+
+12/6/2026
+Assessment:
+
+- Fix Section 4 button lock again on Section 3 sign off [DONE]
+  Section 1:
+- Update Consent section with the four checkbox, explaination and the initial consent section [DONE]
+- Add Patient Relationship and Intepreter field [DONE]
+- PDPA and Patient consent need name field [DONE]
+  Section 3:
+- Add confirmation message on save and sign off [DONE]
+  Treatment Plan:
+- Phase 1, 2, 3 change it to be optional and not mandatory [DONE]
+  General:
+- Change all orthopedic words to orthopaedic [DONE]
 
 ======================================================= CANCELLED =======================================================
 Bugs:
