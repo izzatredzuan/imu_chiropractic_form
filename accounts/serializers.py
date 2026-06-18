@@ -19,6 +19,7 @@ PROFILE_FIELDS = [
     "address_1",
     "address_2",
     "address_3",
+    "address_4",
     "postal_code",
     "city",
     "state",
@@ -154,6 +155,7 @@ class UserProfileReadSerializer(serializers.ModelSerializer):
     address_1 = serializers.CharField(source="profile.address_1", allow_null=True)
     address_2 = serializers.CharField(source="profile.address_2", allow_null=True)
     address_3 = serializers.CharField(source="profile.address_3", allow_null=True)
+    address_4 = serializers.CharField(source="profile.address_4", allow_null=True)
     postal_code = serializers.CharField(source="profile.postal_code", allow_null=True)
     city = serializers.CharField(source="profile.city", allow_null=True)
     state = serializers.CharField(source="profile.state", allow_null=True)
@@ -196,6 +198,7 @@ class UserProfileReadSerializer(serializers.ModelSerializer):
             "address_1",
             "address_2",
             "address_3",
+            "address_4",
             "postal_code",
             "city",
             "state",

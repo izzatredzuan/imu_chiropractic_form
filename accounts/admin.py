@@ -102,6 +102,7 @@ class ProfileAdmin(admin.ModelAdmin):
                     "address_1",
                     "address_2",
                     "address_3",
+                    "address_4",
                     "postal_code",
                     "city",
                     "state",

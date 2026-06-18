@@ -95,6 +95,10 @@ class AssessmentsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "is_initial_patient_consent_signed",
+                    "patient_record_review_consent",
+                    "treatment_discontinuation_policy_consent",
+                    "student_observation_consent",
+                    "chiropractic_intern_treatment_consent",
                     "initial_patient_consent_signed_by",
                     "initial_patient_consent_signature",
                     "initial_patient_consent_signed_at",

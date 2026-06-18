@@ -17,6 +17,7 @@ Assessment:
 - Fix Section 4 button lock again on Section 3 sign off [DONE]
 Section 1:
 - Update Consent section with the four checkbox, explaination and the initial consent section
+- Add Patient Relationship and Intepreter field
 - PDPA and Patient consent need name field [DONE]
 Section 3:
 - Add confirmation message on save and sign off [DONE]

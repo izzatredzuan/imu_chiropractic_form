@@ -42,6 +42,7 @@ class Profile(models.Model):
     address_1 = models.CharField(max_length=255, blank=True, null=True)
     address_2 = models.CharField(max_length=255, blank=True, null=True)
     address_3 = models.CharField(max_length=255, blank=True, null=True)
+    address_4 = models.CharField(max_length=255, blank=True, null=True)
     postal_code = models.CharField(max_length=15, blank=True, null=True)
     city = models.CharField(max_length=50, blank=True, null=True)
     state = models.CharField(max_length=50, blank=True, null=True)

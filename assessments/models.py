@@ -69,6 +69,10 @@ class Assessments(models.Model):
     # =====================
     # Initial Patient Consent
     # =====================
+    patient_record_review_consent = models.BooleanField(default=False)
+    treatment_discontinuation_policy_consent = models.BooleanField(default=False)
+    student_observation_consent = models.BooleanField(default=False)
+    chiropractic_intern_treatment_consent = models.BooleanField(default=False)
     is_initial_patient_consent_signed = models.BooleanField(default=False)
     initial_patient_consent_signed_by = models.CharField(max_length=150)
     initial_patient_consent_signature = models.ImageField(

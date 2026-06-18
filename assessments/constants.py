@@ -14,6 +14,10 @@ SECTION_1_FIELDS = [
     "diastolic_bp",
     # Patient checkboxes
     "initial_patient_consent_signed_by",
+    "patient_record_review_consent",
+    "treatment_discontinuation_policy_consent",
+    "student_observation_consent",
+    "chiropractic_intern_treatment_consent",
     # Attending consent
     "attending_consent_signed_by",
     # Witness consent

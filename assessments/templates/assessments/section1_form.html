@@ -247,18 +247,77 @@
       </div>
 
       <div class="card-body">
+
+        <!-- ========================= CHECKBOXES (ALWAYS SHOWN) ========================= -->
+
+        <div class="form-check mb-2">
+          <input class="form-check-input"
+                type="checkbox"
+                name="patient_record_review_consent"
+                {% if assessment.patient_record_review_consent %}checked{% endif %}
+                {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %}
+                required>
+
+          <label class="form-check-label required">
+            I understand that the Chiropractor may review my patient records, lab and X-Ray reports to understand my complete health condition.
+          </label>
+        </div>
+
+        <div class="form-check mb-2">
+          <input class="form-check-input"
+                type="checkbox"
+                name="treatment_discontinuation_policy_consent"
+                {% if assessment.treatment_discontinuation_policy_consent %}checked{% endif %}
+                {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %}
+                required>
+
+          <label class="form-check-label required">
+            I understand that the IMU Chiropractic Centre reserves the right to refuse or discontinue treatment for reasons of appropriateness, frequency, safety, or at the discretion of the IMU Chiropractic Centre.
+          </label>
+        </div>
+
+        <div class="form-check mb-2">
+          <input class="form-check-input"
+                type="checkbox"
+                name="student_observation_consent"
+                {% if assessment.student_observation_consent %}checked{% endif %}
+                {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %}
+                required>
+
+          <label class="form-check-label required">
+            I understand that IMU is a teaching facility and as such the students are required to observe patient treatments in order to better prepare them for their clinical assignments.
+            I consent to having students (or other IMU personnel) observe my treatments. I reserve the right to decline observation on any given day I do not feel comfortable.
+          </label>
+        </div>
+
+        <div class="form-check mb-3">
+          <input class="form-check-input"
+                type="checkbox"
+                name="chiropractic_intern_treatment_consent"
+                {% if assessment.chiropractic_intern_treatment_consent %}checked{% endif %}
+                {% if assessment and assessment.is_initial_patient_consent_signed %}disabled{% endif %}
+                required>
+
+          <label class="form-check-label required">
+            I consent to a treatment approved by clinic supervisor and conducted by senior year Chiropractic Intern.
+          </label>
+        </div>
+
+        <hr>
+
+        <!-- ========================= SIGNED STATE ========================= -->
+
         {% if assessment and assessment.is_initial_patient_consent_signed %}
+
           <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
 
             <small class="text-muted d-block">
-              Signed by:
-              {{ assessment.initial_patient_consent_signed_by }}
+              Signed by: {{ assessment.initial_patient_consent_signed_by }}
             </small>
 
             <small class="text-muted">
-              Signed at:
-              {{ assessment.initial_patient_consent_signed_at|date:"d M Y, h:i A" }}
+              Signed at: {{ assessment.initial_patient_consent_signed_at|date:"d M Y, h:i A" }}
             </small>
           </div>
 
@@ -267,7 +326,10 @@
                 class="img-fluid border rounded"
                 style="max-height:150px;">
           </div>
+
         {% else %}
+
+          <!-- ========================= SIGNATURE PAD ========================= -->
 
           <div class="signature-wrapper mx-auto">
             <canvas id="patientSignaturePad"
@@ -315,6 +377,14 @@
       </div>
 
       <div class="card-body">
+        <div class="alert alert-light border mb-3">
+          <small>
+            I confirm that I have obtained consent from the patient/ parent/ legal guardian
+            after having explained the nature and effect of this treatment and risks of
+            both the proposed and alternative course of action.
+          </small>
+        </div>
+
         {% if assessment and assessment.is_attending_consent_signed %}
           <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
@@ -465,8 +535,7 @@
       </div>
 
       <div class="card-body">
-
-        <!-- ========================= CONSENT CHECKBOXES ========================= -->
+        <!-- ========================= PDPA CONSENT CHECKBOXES ========================= -->
         <div class="form-check mb-2">
           <input class="form-check-input"
                 type="checkbox"
@@ -574,6 +643,11 @@
     </div>
 
     {% if assessment and assessment.is_initial_patient_consent_signed %}
+    <input type="hidden" name="patient_record_review_consent" value="{{ assessment.patient_record_review_consent }}">
+    <input type="hidden" name="treatment_discontinuation_policy_consent" value="{{ assessment.treatment_discontinuation_policy_consent }}">
+    <input type="hidden" name="student_observation_consent" value="{{ assessment.student_observation_consent }}">
+    <input type="hidden" name="chiropractic_intern_treatment_consent" value="{{ assessment.chiropractic_intern_treatment_consent }}">
+
     <input type="hidden" name="marketing_consent" value="{{ assessment.marketing_consent }}">
     <input type="hidden" name="education_consent" value="{{ assessment.education_consent }}">
     <input type="hidden" name="research_consent" value="{{ assessment.research_consent }}">
@@ -939,16 +1013,6 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     if (!confirm(confirmMessage)) {
         return;
     }
-
-    {% if not assessment %}
-    if (
-      !document.querySelector('input[name="education_consent"]').checked ||
-      !document.querySelector('input[name="research_consent"]').checked
-    ) {
-      alert("Education and Research consent are required.");
-      return;
-    }
-    {% endif %}
 
     const requiredPads = [
       { key: "patient", label: "Patient signature is required." },
