@@ -49,6 +49,19 @@ Major:
 - SOAP:
   - Next appoinment and modalities is not mandatory [DONE]
 
+
+19/06/2026:
+Section 1 to New Consent section (After section 4 & Before treatment plan)
+- PDPA consent section will be removed from the application
+- Move all consent section other than PDPA to the new page
+- Witness consent is actually witness for the attending staff NOT patient so need to change the relationship list
+
+Consent & Submission Confirmation section:
+- For the , the first name after "I, ____" sentence is the Patient Consent name not witness consent name
+- Add IC field with encryption to the Assessment model and display it in the consent confirmation text
+General:
+Fix logo image in login page
+
 Minor:
 
 - Clinician can view all assessments [DONE]
@@ -136,7 +149,6 @@ Assessment:
 - Phase 1, 2, 3 change it to be optional and not mandatory [DONE]
   General:
 - Change all orthopedic words to orthopaedic [DONE]
-
 ======================================================= CANCELLED =======================================================
 Bugs:
 

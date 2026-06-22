@@ -435,7 +435,7 @@
             <label class="form-label required">Patient Consent Name</label>
             <input type="text"
                   name="initial_patient_consent_signed_by"
-                  id="patientName"
+                  id="patientConsentName"
                   class="form-control"
                   placeholder="Enter Patient Consent name">
           </div>
@@ -1096,8 +1096,8 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
   document.getElementById("btnProceedConfirm")?.addEventListener("click", function(e) {
     e.preventDefault();
     // fill modal values
-    document.getElementById("m_witness_name").innerText =
-    document.getElementById("witnessName")?.value
+    document.getElementById("m_patient_consent_name").innerText =
+    document.getElementById("patientConsentName")?.value
     || "{{ assessment.witness_consent_signed_by|default:'-' }}";
 
     document.getElementById("m_patient_name").innerText =
@@ -1167,9 +1167,9 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     ====================================================== */
 
     const patientPad = signaturePads["patient"];
-    const patientName = document.getElementById("patientName")?.value?.trim();
+    const patientConsentName = document.getElementById("patientConsentName")?.value?.trim();
 
-    if (patientPad?.strokes.length > 0 && !patientName) {
+    if (patientPad?.strokes.length > 0 && !patientConsentName) {
       alert("Patient consent name is required.");
       return;
     }
