@@ -12,8 +12,20 @@ This are the minute and change request requested by user Chow Kit Yee and Nasher
 Priority:
 21/05/2026
 Note:
-
 - Add Convert to pdf function
+
+19/06/2026:
+Section 1 to New Consent section (After section 4 & Before treatment plan)
+- PDPA consent section will be removed from the application [DONE]
+- Move all consent section other than PDPA to the new page
+- Witness consent is actually witness for the attending staff NOT patient so need to change the relationship list [DONE]
+
+Consent & Submission Confirmation section:
+- For the , the first name after "I, ____" sentence is the Patient Consent name not witness consent name [DONE]
+- Add IC field with encryption to the Assessment model and display it in the consent confirmation text
+General:
+Fix logo image in login page [DONE]
+
 
 Enhancement Suggestion:
 
@@ -48,19 +60,6 @@ Major:
 
 - SOAP:
   - Next appoinment and modalities is not mandatory [DONE]
-
-
-19/06/2026:
-Section 1 to New Consent section (After section 4 & Before treatment plan)
-- PDPA consent section will be removed from the application
-- Move all consent section other than PDPA to the new page
-- Witness consent is actually witness for the attending staff NOT patient so need to change the relationship list
-
-Consent & Submission Confirmation section:
-- For the , the first name after "I, ____" sentence is the Patient Consent name not witness consent name
-- Add IC field with encryption to the Assessment model and display it in the consent confirmation text
-General:
-Fix logo image in login page
 
 Minor:
 

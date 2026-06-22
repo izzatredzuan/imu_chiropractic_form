@@ -93,11 +93,11 @@ class Assessments(models.Model):
     # =====================
     # PDPA Consent
     # =====================
-    marketing_consent = models.BooleanField(default=False)
-    education_consent = models.BooleanField(default=False)
-    research_consent = models.BooleanField(default=False)
-    is_pdpa_consent_signed = models.BooleanField(default=False)
-    pdpa_consent_signed_by = models.CharField(max_length=150)
+    marketing_consent = models.BooleanField(default=False, null=True, blank=True)
+    education_consent = models.BooleanField(default=False, null=True, blank=True)
+    research_consent = models.BooleanField(default=False, null=True, blank=True)
+    is_pdpa_consent_signed = models.BooleanField(default=False, null=True, blank=True)
+    pdpa_consent_signed_by = models.CharField(max_length=150, null=True, blank=True, default="")
     pdpa_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("pdpa_signatures"), null=True, blank=True
     )

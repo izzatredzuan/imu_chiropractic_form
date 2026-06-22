@@ -713,7 +713,7 @@
             </div>
 
             <!-- CONSENTS -->
-            <div class="card shadow-sm">
+            <!-- <div class="card shadow-sm">
               <div class="card-header fw-semibold">Consents</div>
 
               <div class="card-body">
@@ -744,7 +744,7 @@
                   </label>
                 </div>
               </div>
-            </div>
+            </div> -->
           </div>
         </div>
 
@@ -832,23 +832,23 @@
                 ` : ""}
 
                 <!-- PDPA -->
-                ${s12.pdpa_consent_signature ? `
-                  <div class="col-md-3">
-                    <div class="mini-card">
-                      <div class="medical-label">PDPA</div>
-                      <img class="signature-img d-block mx-auto"
-                          src="${s12.pdpa_consent_signature}">
+                // ${s12.pdpa_consent_signature ? `
+                //   <div class="col-md-3">
+                //     <div class="mini-card">
+                //       <div class="medical-label">PDPA</div>
+                //       <img class="signature-img d-block mx-auto"
+                //           src="${s12.pdpa_consent_signature}">
 
-                      <div class="mt-2 small text-muted">
-                        <strong>${safe(s12.pdpa_consent_signed_by)}</strong>
-                      </div>
+                //       <div class="mt-2 small text-muted">
+                //         <strong>${safe(s12.pdpa_consent_signed_by)}</strong>
+                //       </div>
 
-                      <div class="small text-muted">
-                        ${formatDate(s12.pdpa_consent_signed_at)}
-                      </div>
-                    </div>
-                  </div>
-                ` : ""}
+                //       <div class="small text-muted">
+                //         ${formatDate(s12.pdpa_consent_signed_at)}
+                //       </div>
+                //     </div>
+                //   </div>
+                // ` : ""}
 
               </div>
             </div>

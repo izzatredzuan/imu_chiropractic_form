@@ -32,26 +32,15 @@ MODALITIES_CHOICES = (
 )
 
 WITNESS_RELATIONSHIP_CHOICES = (
-    ("self", "Self"),
-    ("spouse", "Spouse"),
-    ("parent", "Parent"),
-    ("child", "Child"),
-    ("sibling", "Sibling"),
+    ("supervising_clinician", "Supervising Clinician"),
 
-    ("guardian", "Legal Guardian"),
-    ("caregiver", "Caregiver"),
-    ("next_of_kin", "Next of Kin"),
+    ("staff_nurse", "Staff Nurse"),
+    ("healthcare_professional", "Healthcare Professional"),
 
-    ("relative", "Other Relative"),
-    ("friend", "Friend"),
-
-    ("employer", "Employer"),
     ("colleague", "Colleague"),
+    ("student_peer", "Student Peer"),
 
-    ("legal_representative", "Legal Representative"),
-    ("power_of_attorney", "Power of Attorney"),
-    ("healthcare_proxy", "Healthcare Proxy"),
+    ("administrative_staff", "Administrative Staff"),
 
     ("other", "Other"),
-    ("unknown", "Unknown"),
 )

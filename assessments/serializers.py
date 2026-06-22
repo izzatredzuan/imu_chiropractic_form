@@ -146,8 +146,8 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         child=serializers.DictField(), required=False
     )
 
-    pdpa_signature_data = serializers.CharField(write_only=True, required=False)
-    pdpa_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
+    # pdpa_signature_data = serializers.CharField(write_only=True, required=False)
+    # pdpa_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
     section_1_signed_by_name = serializers.CharField(
         source="section_1_signed_by.official_name", read_only=True
     )
@@ -214,14 +214,14 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
             "witness_relationship_text",
             "witness_consent_signature",
             "witness_consent_signed_at",
-            "is_pdpa_consent_signed",
-            "education_consent",
-            "research_consent",
-            "marketing_consent",
-            "pdpa_signature_data",
-            "pdpa_consent_signed_by",
-            "pdpa_consent_signature",
-            "pdpa_consent_signed_at",
+            # "is_pdpa_consent_signed",
+            # "education_consent",
+            # "research_consent",
+            # "marketing_consent",
+            # "pdpa_signature_data",
+            # "pdpa_consent_signed_by",
+            # "pdpa_consent_signature",
+            # "pdpa_consent_signed_at",
             # Section 2 – Presenting Complaint
             "chief_complaint",
             "history_of_condition",
@@ -301,8 +301,8 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         attending_signature = validated_data.pop("attending_signature_data", None)
         witness_signature = validated_data.pop("witness_signature_data", None)
         witness_name = validated_data.pop("witness_consent_signed_by", None)
-        pdpa_signature = validated_data.pop("pdpa_signature_data", None)
-        pdpa_name = validated_data.pop("pdpa_consent_signed_by", None)
+        # pdpa_signature = validated_data.pop("pdpa_signature_data", None)
+        # pdpa_name = validated_data.pop("pdpa_consent_signed_by", None)
 
         instance = super().create(validated_data)
 
@@ -334,13 +334,13 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
                 extra_data={"witness_consent_signed_by": witness_name},
             )
 
-        if pdpa_signature:
-            self._save_signature(
-                instance,
-                pdpa_signature,
-                "pdpa_consent",
-                extra_data={"pdpa_consent_signed_by": pdpa_name},
-            )
+        # if pdpa_signature:
+        #     self._save_signature(
+        #         instance,
+        #         pdpa_signature,
+        #         "pdpa_consent",
+        #         extra_data={"pdpa_consent_signed_by": pdpa_name},
+        #     )
 
         return instance
 
@@ -354,8 +354,8 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         attending_signature = validated_data.pop("attending_signature_data", None)
         witness_signature = validated_data.pop("witness_signature_data", None)
         witness_name = validated_data.pop("witness_consent_signed_by", None)
-        pdpa_signature = validated_data.pop("pdpa_signature_data", None)
-        pdpa_name = validated_data.pop("pdpa_consent_signed_by", None)
+        # pdpa_signature = validated_data.pop("pdpa_signature_data", None)
+        # pdpa_name = validated_data.pop("pdpa_consent_signed_by", None)
 
         instance = super().update(instance, validated_data)
 
@@ -387,13 +387,13 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
                 extra_data={"witness_consent_signed_by": witness_name},
             )
 
-        if pdpa_signature:
-            self._save_signature(
-                instance,
-                pdpa_signature,
-                "pdpa_consent",
-                extra_data={"pdpa_consent_signed_by": pdpa_name},
-            )
+        # if pdpa_signature:
+        #     self._save_signature(
+        #         instance,
+        #         pdpa_signature,
+        #         "pdpa_consent",
+        #         extra_data={"pdpa_consent_signed_by": pdpa_name},
+        #     )
 
         return instance
 
@@ -475,15 +475,15 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
                     if name:
                         instance.witness_consent_signed_by = name
 
-            elif field_prefix == "pdpa_consent":
-                instance.pdpa_consent_signature = file
-                instance.is_pdpa_consent_signed = True
-                instance.pdpa_consent_signed_at = timezone.now()
+            # elif field_prefix == "pdpa_consent":
+            #     instance.pdpa_consent_signature = file
+            #     instance.is_pdpa_consent_signed = True
+            #     instance.pdpa_consent_signed_at = timezone.now()
 
-                if extra_data:
-                    name = extra_data.get("pdpa_consent_signed_by")
-                    if name:
-                        instance.pdpa_consent_signed_by = name
+            #     if extra_data:
+            #         name = extra_data.get("pdpa_consent_signed_by")
+            #         if name:
+            #             instance.pdpa_consent_signed_by = name
 
             instance.save()
 

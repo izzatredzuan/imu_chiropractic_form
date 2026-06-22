@@ -151,7 +151,7 @@ class AssessmentSection1And2APIView(APIView):
         signature_data = request.data.get("signature_data")
         attending_signature_data = request.data.get("attending_signature_data")
         witness_signature_data = request.data.get("witness_signature_data")
-        pdpa_signature_data = request.data.get("pdpa_signature_data")
+        # pdpa_signature_data = request.data.get("pdpa_signature_data")
 
         # --------------------------------
         # Create assessment
@@ -172,7 +172,7 @@ class AssessmentSection1And2APIView(APIView):
                     signature_data,
                     attending_signature_data,
                     witness_signature_data,
-                    pdpa_signature_data,
+                    # pdpa_signature_data,
                 ]
             ):
                 logger.info(
@@ -180,7 +180,7 @@ class AssessmentSection1And2APIView(APIView):
                     f"initial={bool(signature_data)}, "
                     f"attending={bool(attending_signature_data)}, "
                     f"witness={bool(witness_signature_data)}, "
-                    f"pdpa={bool(pdpa_signature_data)}"
+                    # f"pdpa={bool(pdpa_signature_data)}"
                 )
 
             return Response(
@@ -236,14 +236,14 @@ class AssessmentSection1And2APIView(APIView):
             signature_data = request.data.get("signature_data")
             attending_signature_data = request.data.get("attending_signature_data")
             witness_signature_data = request.data.get("witness_signature_data")
-            pdpa_signature_data = request.data.get("pdpa_signature_data")
+            # pdpa_signature_data = request.data.get("pdpa_signature_data")
 
             if any(
                 [
                     signature_data,
                     attending_signature_data,
                     witness_signature_data,
-                    pdpa_signature_data,
+                    # pdpa_signature_data,
                 ]
             ):
                 logger.info(
@@ -251,7 +251,7 @@ class AssessmentSection1And2APIView(APIView):
                     f"initial={bool(signature_data)}, "
                     f"attending={bool(attending_signature_data)}, "
                     f"witness={bool(witness_signature_data)}, "
-                    f"pdpa={bool(pdpa_signature_data)}"
+                    # f"pdpa={bool(pdpa_signature_data)}"
                 )
         except Exception as e:
             logger.error(

@@ -551,7 +551,7 @@
             <strong>Signed Successfully</strong><br>
             <small class="text-muted d-block">
               Signed by:
-              {{ assessment.witness_consent_signed_by }} ({{ assessment.witness_relationship|title }})
+              {{ assessment.witness_consent_signed_by }} ({{ assessment.get_witness_relationship_display }})
             </small>
 
             <small class="text-muted">
@@ -623,14 +623,14 @@
     </div>
 
     <!-- ========================= PDPA + Consent Card ========================= -->
-    <div class="card mb-4 shadow-sm">
+    <!-- <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">
         PDPA & Consent Declaration
-      </div>
+      </div> -->
 
       <div class="card-body">
         <!-- ========================= PDPA CONSENT CHECKBOXES ========================= -->
-        <div class="form-check mb-2">
+        <!-- <div class="form-check mb-2">
           <input class="form-check-input"
                 type="checkbox"
                 name="education_consent"
@@ -668,15 +668,15 @@
           </label>
         </div>
 
-        <hr>
+        <hr> -->
 
         <!-- ========================= PDPA CONSENT ========================= -->
-        <label class="form-label fw-semibold">
+        <!-- <label class="form-label fw-semibold">
           PDPA Consent
-        </label>
+        </label> -->
 
         {% if assessment and assessment.is_pdpa_consent_signed %}
-          <div class="alert alert-success">
+          <!-- <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
 
             <small class="text-muted d-block">
@@ -694,10 +694,10 @@
             <img src="{{ assessment.pdpa_consent_signature.url }}"
                 class="img-fluid border rounded"
                 style="max-height:150px;">
-          </div>
+          </div> -->
         {% else %}
 
-          <div class="signature-wrapper mx-auto">
+          <!-- <div class="signature-wrapper mx-auto">
             <canvas id="pdpaSignaturePad"
                     class="border rounded signature-canvas"
                     style="width:100%; height:200px;">
@@ -729,7 +729,7 @@
 
           <input type="hidden"
                 name="pdpa_signature_data"
-                id="pdpaSignatureData">
+                id="pdpaSignatureData"> -->
 
         {% endif %}
 
@@ -938,10 +938,10 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     key: "witness"
   });
 
-  setupSignaturePad({
-    canvasId: "pdpaSignaturePad",
-    key: "pdpa"
-  });
+  // setupSignaturePad({
+  //   canvasId: "pdpaSignaturePad",
+  //   key: "pdpa"
+  // });
 
   /* ======================================================
      UNDO BUTTONS
@@ -1146,7 +1146,7 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
       { key: "patient", label: "Patient signature is required." },
       { key: "attending", label: "Attending signature is required." },
       { key: "witness", label: "Witness signature is required." },
-      { key: "pdpa", label: "PDPA signature is required." }
+      // { key: "pdpa", label: "PDPA signature is required." }
     ];
 
     for (const pad of requiredPads) {
@@ -1203,20 +1203,20 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
       );
     }
 
-    const pdpaPad = signaturePads["pdpa"];
-    const pdpaName = document.getElementById("pdpaName")?.value?.trim();
+    // const pdpaPad = signaturePads["pdpa"];
+    // const pdpaName = document.getElementById("pdpaName")?.value?.trim();
 
-    if (pdpaPad?.strokes.length > 0 && !pdpaName) {
-      alert("PDPA consent name is required.");
-      return;
-    }
+    // if (pdpaPad?.strokes.length > 0 && !pdpaName) {
+    //   alert("PDPA consent name is required.");
+    //   return;
+    // }
 
-    if (signaturePads["pdpa"]?.strokes.length > 0) {
-      formData.set(
-        "pdpa_signature_data",
-        signaturePads["pdpa"].canvas.toDataURL("image/png")
-      );
-    }
+    // if (signaturePads["pdpa"]?.strokes.length > 0) {
+    //   formData.set(
+    //     "pdpa_signature_data",
+    //     signaturePads["pdpa"].canvas.toDataURL("image/png")
+    //   );
+    // }
 
     const payload = Object.fromEntries(formData.entries());
     payload["section_1_anatomy_markers"] = markers;
