@@ -19,6 +19,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
     # =====================
     list_display = (
         "patient_name",
+        "ic_passport_number",
         "student",
         "evaluator",
         "is_initial_patient_consent_signed",
@@ -55,6 +56,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
 
     search_fields = (
         "patient_name",
+        "ic_passport_number",
         "student__user__username",
         "evaluator__user__username",
     )
@@ -147,7 +149,8 @@ class AssessmentsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "patient_name",
-                    "file_number",
+                    "ic_passport_number",
+                    "mrn_number",
                     "gender",
                     "date_of_birth",
                     "interpreter_name",
@@ -334,7 +337,8 @@ class AssessmentAttachmentAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__file_number",
+        "assessment__ic_passport_number",
+        "assessment__mrn_number",
         "label",
         "file",
         "uploaded_by__user__username",
@@ -441,7 +445,8 @@ class SoapsAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__file_number",
+        "assessment__ic_passport_number",
+        "assessment__mrn_number",
         "student__user__username",
         "evaluator__user__username",
     )
@@ -624,7 +629,8 @@ class PatientReevaluationAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__file_number",
+        "assessment__ic_passport_number",
+        "assessment__mrn_number",
         "student__user__username",
         "evaluator__user__username",
     )
@@ -733,7 +739,8 @@ class PatientNewComplaintAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__file_number",
+        "assessment__ic_passport_number",
+        "assessment__mrn_number",
         "student__user__username",
         "evaluator__user__username",
     )

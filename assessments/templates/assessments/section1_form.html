@@ -188,9 +188,18 @@
                   {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
               </div>
               <div class="col-md-4 mb-3">
-                <label class="form-label required">File Number</label>
-                <input type="text" name="file_number" class="form-control" required
-                  value="{{ assessment.file_number|default_if_none:'' }}"
+                <label class="form-label required">IC / Passport Number</label>
+                <input type="text"
+                      name="ic_passport_number"
+                      class="form-control"
+                      required
+                      value="{{ assessment.ic_passport_number|default_if_none:'' }}"
+                      {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label required">MRN Number</label>
+                <input type="text" name="mrn_number" class="form-control" required
+                  value="{{ assessment.mrn_number|default_if_none:'' }}"
                   {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
               </div>
               <div class="col-md-2 mb-3">

@@ -4,7 +4,8 @@ SECTION_1_FIELDS = [
     "evaluator",
     # Patient Details
     "patient_name",
-    "file_number",
+    "ic_passport_number",
+    "mrn_number",
     "gender",
     "date_of_birth",
     # Vitals

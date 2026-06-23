@@ -22,7 +22,7 @@ Section 1 to New Consent section (After section 4 & Before treatment plan)
 
 Consent & Submission Confirmation section:
 - For the , the first name after "I, ____" sentence is the Patient Consent name not witness consent name [DONE]
-- Add IC field with encryption to the Assessment model and display it in the consent confirmation text
+- Add IC field with encryption to the Assessment model and display it in the consent confirmation text [DONE]
 General:
 Fix logo image in login page [DONE]
 

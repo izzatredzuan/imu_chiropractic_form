@@ -63,8 +63,8 @@
                 className: "text-left align-middle"
             },
             {
-                title: "File Number",
-                data: "file_number",
+                title: "MRN Number",
+                data: "mrn_number",
                 className: "text-center align-middle"
             },
             {
@@ -539,7 +539,7 @@
         $('#assessmentsTable').on('click', '.discharge-btn', function () {
             const rowData = table.row($(this).closest('tr')).data();
             setModalValue('modalPatientName', rowData.patient_name);
-            setModalValue('modalFileNumber', rowData.file_number);
+            setModalValue('modalMRNNumber', rowData.mrn_number);
             setModalValue('modalClinician', rowData.clinician);
             setModalValue('modalStudent', rowData.student);
             $('#dischargeAssessmentId').val(rowData.id);
@@ -638,7 +638,7 @@
 
             // Set header
             $('#modalSoapPatientName').text(rowData.patient_name);
-            $('#modalSoapFileNumber').text(rowData.file_number);
+            $('#modalSoapFileNumber').text(rowData.mrn_number);
 
             // Update Create S.O.A.P. button state
             const section4Signed = rowData.section_4_signed_at || rowData.is_section_4_signed;
@@ -846,7 +846,7 @@
                 $('#modalReevaluationPatientName')
                     .text(rowData.patient_name);
                 $('#modalReevaluationFileNumber')
-                    .text(rowData.file_number);
+                    .text(rowData.mrn_number);
 
                 // BUTTON ACCESS
                 const section4Signed =
@@ -1140,7 +1140,7 @@
                     .text(rowData.patient_name);
 
                 $('#modalNewComplaintFileNumber')
-                    .text(rowData.file_number);
+                    .text(rowData.mrn_number);
 
                 // BUTTON ACCESS
                 const section4Signed =

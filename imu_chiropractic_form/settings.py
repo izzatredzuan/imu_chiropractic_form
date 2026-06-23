@@ -26,6 +26,7 @@ APP_VERSION = "0.0.1"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-ue5kfsphg74$he6fwzt*7f-cni0%woc^q%&(%)xn(78oet9o1c"
+SALT_KEY = "texG1K1qVSwYDr7lKW89koMNbGwAxLEp--XcNeTi8F0"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

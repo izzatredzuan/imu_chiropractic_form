@@ -59,7 +59,8 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "patient_name",
-            "file_number",
+            "ic_passport_number",
+            "mrn_number",
             "student",
             "clinician",
             "is_section_1_signed",
@@ -179,7 +180,8 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
             "evaluator",
             # Section 1 – Initial Assessment
             "patient_name",
-            "file_number",
+            "ic_passport_number",
+            "mrn_number",
             "gender",
             "gender_text",
             "date_of_birth",

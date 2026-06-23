@@ -1,9 +1,11 @@
+import hashlib
 import os
 import uuid
 
 from django.db import models
 from django.utils.text import slugify
 from django.utils.deconstruct import deconstructible
+from encrypted_fields.fields import EncryptedCharField
 
 from . import choices
 from accounts.models import Profile
@@ -32,79 +34,10 @@ class AssessmentUploadPath:
         # Handle unsaved instance safely
         assessment_id = instance.pk or "temp"
 
-        return (
-            f"assessments/"
-            f"{assessment_id}/"
-            f"{self.category}/"
-            f"{unique_name}"
-        )
-    
+        return f"assessments/" f"{assessment_id}/" f"{self.category}/" f"{unique_name}"
+
 
 class Assessments(models.Model):
-    # =====================
-    # Initial Patient Consent
-    # =====================
-    patient_record_review_consent = models.BooleanField(default=False)
-    treatment_discontinuation_policy_consent = models.BooleanField(default=False)
-    student_observation_consent = models.BooleanField(default=False)
-    chiropractic_intern_treatment_consent = models.BooleanField(default=False)
-    is_initial_patient_consent_signed = models.BooleanField(default=False)
-    initial_patient_consent_signed_by = models.CharField(max_length=150)
-    initial_patient_consent_signature = models.ImageField(
-        upload_to=AssessmentUploadPath("patient_signatures"), null=True, blank=True
-    )
-    initial_patient_consent_signed_at = models.DateTimeField(
-        null=True, blank=True, default=None
-    )
-
-    # =====================
-    # Attending Consent
-    # =====================
-    is_attending_consent_signed = models.BooleanField(default=False)
-    attending_consent_signed_by = models.ForeignKey(
-        Profile,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="attending_consent_signed_assessments",
-        limit_choices_to={"role__in": ["clinician", "student"]},
-        default=None,
-    )
-    attending_consent_signature = models.ImageField(
-        upload_to=AssessmentUploadPath("attending_signatures"), null=True, blank=True
-    )
-    attending_consent_signed_at = models.DateTimeField(
-        null=True, blank=True, default=None
-    )
-
-    # =====================
-    # Witness Consent
-    # =====================
-    is_witness_consent_signed = models.BooleanField(default=False)
-    witness_consent_signed_by = models.CharField(max_length=150)
-    witness_relationship = models.CharField(max_length=30, choices=choices.WITNESS_RELATIONSHIP_CHOICES)
-    witness_consent_signature = models.ImageField(
-        upload_to=AssessmentUploadPath("witness_signatures"), null=True, blank=True
-    )
-    witness_consent_signed_at = models.DateTimeField(
-        null=True, blank=True, default=None
-    )
-
-    # =====================
-    # PDPA Consent
-    # =====================
-    marketing_consent = models.BooleanField(default=False, null=True, blank=True)
-    education_consent = models.BooleanField(default=False, null=True, blank=True)
-    research_consent = models.BooleanField(default=False, null=True, blank=True)
-    is_pdpa_consent_signed = models.BooleanField(default=False, null=True, blank=True)
-    pdpa_consent_signed_by = models.CharField(max_length=150, null=True, blank=True, default="")
-    pdpa_consent_signature = models.ImageField(
-        upload_to=AssessmentUploadPath("pdpa_signatures"), null=True, blank=True
-    )
-    pdpa_consent_signed_at = models.DateTimeField(
-        null=True, blank=True, default=None
-    )
-
     # =====================
     # Assignment
     # =====================
@@ -132,7 +65,16 @@ class Assessments(models.Model):
     # Section 1 – Initial Assessment
     # =====================
     patient_name = models.CharField(max_length=150)
-    file_number = models.CharField(max_length=50)
+    ic_passport_number = EncryptedCharField(max_length=255)
+    # Store the hash of IC/Passport for indexing and lookup without exposing the actual value
+    # for query reference: 
+    # Assessments.objects.get(ic_passport_hash=hashlib.sha256("123456".strip().upper().encode()).hexdigest())
+    ic_passport_hash = models.CharField(
+        max_length=64,
+        db_index=True,
+        editable=False
+    )
+    mrn_number = models.CharField(max_length=50)
     gender = models.CharField(max_length=30, choices=choices.GENDER_CHOICES)
     date_of_birth = models.DateField()
     interpreter_name = models.CharField(max_length=150, blank=True, default="")
@@ -262,6 +204,72 @@ class Assessments(models.Model):
     section_4_signed_at = models.DateTimeField(null=True, blank=True, default=None)
 
     # =====================
+    # Initial Patient Consent
+    # =====================
+    patient_record_review_consent = models.BooleanField(default=False)
+    treatment_discontinuation_policy_consent = models.BooleanField(default=False)
+    student_observation_consent = models.BooleanField(default=False)
+    chiropractic_intern_treatment_consent = models.BooleanField(default=False)
+    is_initial_patient_consent_signed = models.BooleanField(default=False)
+    initial_patient_consent_signed_by = models.CharField(max_length=150)
+    initial_patient_consent_signature = models.ImageField(
+        upload_to=AssessmentUploadPath("patient_signatures"), null=True, blank=True
+    )
+    initial_patient_consent_signed_at = models.DateTimeField(
+        null=True, blank=True, default=None
+    )
+
+    # =====================
+    # Attending Consent
+    # =====================
+    is_attending_consent_signed = models.BooleanField(default=False)
+    attending_consent_signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="attending_consent_signed_assessments",
+        limit_choices_to={"role__in": ["clinician", "student"]},
+        default=None,
+    )
+    attending_consent_signature = models.ImageField(
+        upload_to=AssessmentUploadPath("attending_signatures"), null=True, blank=True
+    )
+    attending_consent_signed_at = models.DateTimeField(
+        null=True, blank=True, default=None
+    )
+
+    # =====================
+    # Witness Consent
+    # =====================
+    is_witness_consent_signed = models.BooleanField(default=False)
+    witness_consent_signed_by = models.CharField(max_length=150)
+    witness_relationship = models.CharField(
+        max_length=30, choices=choices.WITNESS_RELATIONSHIP_CHOICES
+    )
+    witness_consent_signature = models.ImageField(
+        upload_to=AssessmentUploadPath("witness_signatures"), null=True, blank=True
+    )
+    witness_consent_signed_at = models.DateTimeField(
+        null=True, blank=True, default=None
+    )
+
+    # =====================
+    # PDPA Consent
+    # =====================
+    marketing_consent = models.BooleanField(default=False, null=True, blank=True)
+    education_consent = models.BooleanField(default=False, null=True, blank=True)
+    research_consent = models.BooleanField(default=False, null=True, blank=True)
+    is_pdpa_consent_signed = models.BooleanField(default=False, null=True, blank=True)
+    pdpa_consent_signed_by = models.CharField(
+        max_length=150, null=True, blank=True, default=""
+    )
+    pdpa_consent_signature = models.ImageField(
+        upload_to=AssessmentUploadPath("pdpa_signatures"), null=True, blank=True
+    )
+    pdpa_consent_signed_at = models.DateTimeField(null=True, blank=True, default=None)
+
+    # =====================
     # Treatment Plan
     # =====================
     phase_1 = models.TextField(blank=True, default="")
@@ -320,15 +328,23 @@ class Assessments(models.Model):
         related_name="updated_assessments",
     )
 
+    def save(self, *args, **kwargs):
+        if self.ic_passport_number:
+            self.ic_passport_hash = hashlib.sha256(
+                self.ic_passport_number.strip().upper().encode()
+            ).hexdigest()
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return f"[{self.file_number}] {self.patient_name} (ID: {self.id})"
+        return f"[{self.mrn_number}] {self.patient_name} (ID: {self.id})"
 
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Assessment"
         verbose_name_plural = "Assessments"
         indexes = [
-            models.Index(fields=["file_number"]),
+            models.Index(fields=["mrn_number"]),
             models.Index(fields=["patient_name"]),
             models.Index(fields=["created_at"]),
         ]
@@ -336,32 +352,21 @@ class Assessments(models.Model):
 
 class AssessmentAttachment(models.Model):
     assessment = models.ForeignKey(
-        Assessments,
-        on_delete=models.CASCADE,
-        related_name="attachments"
+        Assessments, on_delete=models.CASCADE, related_name="attachments"
     )
 
-    file = models.FileField(
-        upload_to=AssessmentUploadPath("attachments")
-    )
+    file = models.FileField(upload_to=AssessmentUploadPath("attachments"))
 
     uploaded_by = models.ForeignKey(
-        Profile,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+        Profile, on_delete=models.SET_NULL, null=True, blank=True
     )
 
-    label = models.CharField(
-        max_length=100,
-        blank=True,
-        default=""
-    )
+    label = models.CharField(max_length=100, blank=True, default="")
 
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.assessment.file_number} - {self.file.name}"
+        return f"{self.assessment.mrn_number} - {self.file.name}"
 
 
 class Soaps(models.Model):
@@ -442,18 +447,15 @@ class Soaps(models.Model):
         else:
             cleaned = []
             for m in self.markers:
-                if (
-                    isinstance(m, dict)
-                    and "x" in m
-                    and "y" in m
-                    and "note" in m
-                ):
-                    cleaned.append({
-                        "id": m.get("id"),
-                        "x": float(m["x"]),
-                        "y": float(m["y"]),
-                        "note": str(m["note"]),
-                    })
+                if isinstance(m, dict) and "x" in m and "y" in m and "note" in m:
+                    cleaned.append(
+                        {
+                            "id": m.get("id"),
+                            "x": float(m["x"]),
+                            "y": float(m["y"]),
+                            "note": str(m["note"]),
+                        }
+                    )
             self.markers = cleaned
         super().save(*args, **kwargs)
 
@@ -494,6 +496,7 @@ class SoapModality(models.Model):
             models.Index(fields=["modality"]),
         ]
 
+
 class PatientReevaluation(models.Model):
     assessment = models.ForeignKey(
         Assessments, on_delete=models.CASCADE, related_name="patient_reevaluations"
@@ -512,7 +515,7 @@ class PatientReevaluation(models.Model):
         related_name="evaluator_patient_reevaluations",
         limit_choices_to={"role": "clinician"},
     )
-    
+
     date_of_reevaluation = models.DateField(null=True, blank=True, default=None)
     current_status = models.TextField(blank=True, default="")
     physical_examination = models.TextField(blank=True, default="")
@@ -553,7 +556,7 @@ class PatientReevaluation(models.Model):
 
     def __str__(self):
         return f"Patient Reevaluation #{self.id} - {self.assessment.patient_name}"
-    
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Patient Reevaluation"
@@ -625,7 +628,7 @@ class PatientNewComplaint(models.Model):
 
     def __str__(self):
         return f"Patient New Complaint #{self.id} - {self.assessment.patient_name}"
-    
+
     class Meta:
         ordering = ["-created_at"]
         verbose_name = "Patient New Complaint"
