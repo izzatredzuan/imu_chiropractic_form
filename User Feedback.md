@@ -17,7 +17,7 @@ Note:
 19/06/2026:
 Section 1 to New Consent section (After section 4 & Before treatment plan)
 - PDPA consent section will be removed from the application [DONE]
-- Move all consent section other than PDPA to the new page
+- Move all consent section other than PDPA to the new page [DONE]
 - Witness consent is actually witness for the attending staff NOT patient so need to change the relationship list [DONE]
 
 Consent & Submission Confirmation section:
@@ -26,6 +26,10 @@ Consent & Submission Confirmation section:
 General:
 Fix logo image in login page [DONE]
 
+24/06/2026:
+Consent:
+- Repurpose Witness Relationship to Patient Consent Relationship instead
+- Add Patient Consent IC section but in 
 
 Enhancement Suggestion:
 

@@ -145,6 +145,52 @@
                 },
             },
             {
+                title: "Consent",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+                render: function (row) {
+                    const urlTemplate = "{% url 'assessment_consent_form' 0 %}";
+                    const url = urlTemplate.replace("0", row.id);
+                    let icon = "bi-file-check";
+                    let iconColor = "text-primary";
+                    let tooltip = "Edit Treatment Plan";
+
+                    if (row.is_discharged) {
+                        return lock_if_discharged()
+                    }
+
+                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
+                    if (!section4Signed) {
+                        return lock_column(icon, "Consents locked until Section 4 is signed off");
+                    }
+                    
+                    if (row.is_consent_section_signed) {
+                        iconColor = "text-success";
+                        tooltip = "View Consents (Signed)";
+                    }
+                    else if (row.is_consents_complete) {
+                        iconColor = "text-warning";
+                        tooltip = "Consents Complete - Ready for Sign-Off";
+                    }
+                    else {
+                        iconColor = "text-primary";
+                        tooltip = "Consents In Progress";
+                    }
+
+                    // Otherwise clickable
+                    return `
+                        <a href="${url}">
+                            <i class="bi ${icon} ${iconColor}"
+                            title="${tooltip}"
+                            style="font-size:1.25rem; cursor:pointer;">
+                            </i>
+                        </a>
+                    `;
+                }
+            },
+            {
                 title: "Treatment Plan",
                 data: null,
                 orderable: false,
@@ -161,9 +207,9 @@
                         return lock_if_discharged()
                     }
 
-                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
-                    if (!section4Signed) {
-                        return lock_column(icon, "Treatment Plan locked until Section 4 is signed off");
+                    const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
+                    if (!consentsSigned) {
+                        return lock_column(icon, "Treatment Plan locked until Consents is signed off");
                     }
                     
                     if (row.is_treatment_plan_signed) {
@@ -205,9 +251,9 @@
                         return lock_if_discharged()
                     }
 
-                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
-                    if (!section4Signed) {
-                        return lock_column(icon, "S.O.A.P. locked until Section 4 is signed off");
+                    const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
+                    if (!consentsSigned) {
+                        return lock_column(icon, "S.O.A.P. locked until Consents is signed off");
                     }
 
                     return `
@@ -237,12 +283,11 @@
                         return lock_if_discharged();
                     }
 
-                    const section4Signed =
-                        row.section_4_signed_at || row.is_section_4_signed;
-                    if (!section4Signed) {
+                    const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
+                    if (!consentsSigned) {
                         return lock_column(
                             icon,
-                            "Patient Re-Evaluation locked until Section 4 is signed off"
+                            "Patient Re-Evaluation locked until Consents is signed off"
                         );
                     }
 
@@ -275,13 +320,12 @@
                         return lock_if_discharged();
                     }
 
-                    const section4Signed =
-                        row.section_4_signed_at || row.is_section_4_signed;
+                    const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
 
-                    if (!section4Signed) {
+                    if (!consentsSigned) {
                         return lock_column(
                             icon,
-                            "Patient New Complaint locked until Section 4 is signed off"
+                            "Patient New Complaint locked until Consents is signed off"
                         );
                     }
 

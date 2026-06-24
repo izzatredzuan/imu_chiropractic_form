@@ -13,21 +13,6 @@ SECTION_1_FIELDS = [
     "respiratory",
     "systolic_bp",
     "diastolic_bp",
-    # Patient checkboxes
-    "initial_patient_consent_signed_by",
-    "patient_record_review_consent",
-    "treatment_discontinuation_policy_consent",
-    "student_observation_consent",
-    "chiropractic_intern_treatment_consent",
-    # Attending consent
-    "attending_consent_signed_by",
-    # Witness consent
-    "witness_consent_signed_by",
-    "witness_relationship",
-    # PDPA checkboxes
-    # "pdpa_consent_signed_by",
-    # "education_consent",
-    # "research_consent",
 ]
 
 SECTION_2_FIELDS = [
@@ -100,6 +85,26 @@ SECTION_4_FIELDS = [
     "diagnosis",
     "intervention_approved",
     "diagnosis_date",
+]
+
+CONSENTS_FIELDS = [
+    "student",
+    "evaluator",
+    # Patient checkboxes
+    "initial_patient_consent_signed_by",
+    "patient_record_review_consent",
+    "treatment_discontinuation_policy_consent",
+    "student_observation_consent",
+    "chiropractic_intern_treatment_consent",
+    # Attending consent
+    "attending_consent_signed_by",
+    # Witness consent
+    "witness_consent_signed_by",
+    "witness_relationship",
+    # PDPA checkboxes
+    # "pdpa_consent_signed_by",
+    # "education_consent",
+    # "research_consent",
 ]
 
 TREATMENT_PLAN_FIELDS = [

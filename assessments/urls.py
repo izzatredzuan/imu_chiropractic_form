@@ -34,6 +34,11 @@ urlpatterns = [
         name="assessment_section4_form",
     ),
     path(
+        "<int:assessment_id>/consent/",
+        views.AssessmentConsentsFormView.as_view(),
+        name="assessment_consent_form",
+    ),
+    path(
         "<int:assessment_id>/treatment-plan/",
         views.AssessmentTreatmentPlanFormView.as_view(),
         name="assessment_treatment_plan_form",
@@ -99,6 +104,11 @@ urlpatterns = [
         "api/assessment-attachments/",
         api.AssessmentAttachmentAPIView.as_view(),
         name="assessment_attachment_api",
+    ),
+    path(
+        "api/assessments/consent/",
+        api.AssessmentConsentAPIView.as_view(),
+        name="assessment_consent_api",
     ),
     path(
         "api/assessments/treatment-plan/",

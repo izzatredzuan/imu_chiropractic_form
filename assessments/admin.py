@@ -18,6 +18,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
     # List view
     # =====================
     list_display = (
+        "id",
         "patient_name",
         "ic_passport_number",
         "student",
@@ -39,6 +40,9 @@ class AssessmentsAdmin(admin.ModelAdmin):
 
     list_filter = (
         "gender",
+        "is_consent_section_signed",
+        "consent_section_signed_by",
+        "consent_section_signed_at",
         "is_initial_patient_consent_signed",
         "is_attending_consent_signed",
         "is_witness_consent_signed",
@@ -55,6 +59,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
+        "id",
         "patient_name",
         "ic_passport_number",
         "student__user__username",
@@ -141,6 +146,16 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "pdpa_consent_signed_by",
                     "pdpa_consent_signature",
                     "pdpa_consent_signed_at",
+                )
+            },
+        ),
+        (
+            "Consent Sign Off",
+            {
+                "fields": (
+                    "is_consent_section_signed",
+                    "consent_section_signed_by",
+                    "consent_section_signed_at",
                 )
             },
         ),

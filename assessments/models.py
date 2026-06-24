@@ -211,7 +211,7 @@ class Assessments(models.Model):
     student_observation_consent = models.BooleanField(default=False)
     chiropractic_intern_treatment_consent = models.BooleanField(default=False)
     is_initial_patient_consent_signed = models.BooleanField(default=False)
-    initial_patient_consent_signed_by = models.CharField(max_length=150)
+    initial_patient_consent_signed_by = models.CharField(max_length=150, null=True, blank=True)
     initial_patient_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("patient_signatures"), null=True, blank=True
     )
@@ -243,9 +243,9 @@ class Assessments(models.Model):
     # Witness Consent
     # =====================
     is_witness_consent_signed = models.BooleanField(default=False)
-    witness_consent_signed_by = models.CharField(max_length=150)
+    witness_consent_signed_by = models.CharField(max_length=150, null=True, blank=True)
     witness_relationship = models.CharField(
-        max_length=30, choices=choices.WITNESS_RELATIONSHIP_CHOICES
+        max_length=30, choices=choices.WITNESS_RELATIONSHIP_CHOICES, null=True, blank=True
     )
     witness_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("witness_signatures"), null=True, blank=True
@@ -269,6 +269,21 @@ class Assessments(models.Model):
     )
     pdpa_consent_signed_at = models.DateTimeField(null=True, blank=True, default=None)
 
+    # =====================
+    # Consent SIGN OFF
+    # =====================
+    is_consent_section_signed = models.BooleanField(default=False)
+    consent_section_signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="consent_signed_assessments",
+        limit_choices_to={"role": "clinician"},
+        default=None,
+    )
+    consent_section_signed_at = models.DateTimeField(null=True, blank=True, default=None)
+    
     # =====================
     # Treatment Plan
     # =====================

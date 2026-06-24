@@ -18,6 +18,7 @@ from .constants import (
     SECTION_2_FIELDS,
     SECTION_3_FIELDS,
     SECTION_4_FIELDS,
+    CONSENTS_FIELDS,
     TREATMENT_PLAN_FIELDS,
     DISCHARGE_FIELDS,
 )
@@ -49,6 +50,7 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
     is_section_2_complete = serializers.SerializerMethodField()
     is_section_3_complete = serializers.SerializerMethodField()
     is_section_4_complete = serializers.SerializerMethodField()
+    is_consents_complete = serializers.SerializerMethodField()
     is_treatment_plan_complete = serializers.SerializerMethodField()
     is_discharge_complete = serializers.SerializerMethodField()
     created_at = serializers.DateTimeField(format="%Y-%m-%dT%H:%M:%S")
@@ -75,6 +77,9 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "is_section_4_signed",
             "section_4_signed_at",
             "is_section_4_complete",
+            "is_consent_section_signed",
+            "consent_section_signed_at",
+            "is_consents_complete",
             "is_treatment_plan_signed",
             "is_treatment_plan_complete",
             "is_discharged",
@@ -99,10 +104,13 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
 
     def get_is_section_3_complete(self, obj):
         return is_section_complete(obj, SECTION_3_FIELDS)
-
+    
     def get_is_section_4_complete(self, obj):
         return is_section_complete(obj, SECTION_4_FIELDS)
 
+    def get_is_consents_complete(self, obj):
+        return is_section_complete(obj, CONSENTS_FIELDS)
+    
     def get_is_treatment_plan_complete(self, obj):
         return is_section_complete(obj, TREATMENT_PLAN_FIELDS)
 
@@ -122,27 +130,27 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         child=serializers.DictField(), required=False
     )
 
-    signature_data = serializers.CharField(write_only=True, required=False)
-    initial_patient_consent_signed_by = serializers.CharField(
-        required=True, allow_blank=False
-    )
+    # signature_data = serializers.CharField(write_only=True, required=False)
+    # initial_patient_consent_signed_by = serializers.CharField(
+    #     required=True, allow_blank=False
+    # )
 
-    attending_signature_data = serializers.CharField(write_only=True, required=False)
-    attending_consent_signed_by_name = serializers.CharField(
-        source="attending_consent_signed_by.official_name",
-        read_only=True,
-    )
+    # attending_signature_data = serializers.CharField(write_only=True, required=False)
+    # attending_consent_signed_by_name = serializers.CharField(
+    #     source="attending_consent_signed_by.official_name",
+    #     read_only=True,
+    # )
 
-    attending_consent_signed_by_role = serializers.CharField(
-        source="attending_consent_signed_by.role",
-        read_only=True,
-    )
+    # attending_consent_signed_by_role = serializers.CharField(
+    #     source="attending_consent_signed_by.role",
+    #     read_only=True,
+    # )
 
-    witness_signature_data = serializers.CharField(write_only=True, required=False)
-    witness_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
-    witness_relationship_text = serializers.CharField(
-        source="get_witness_relationship_display", read_only=True
-    )
+    # witness_signature_data = serializers.CharField(write_only=True, required=False)
+    # witness_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
+    # witness_relationship_text = serializers.CharField(
+    #     source="get_witness_relationship_display", read_only=True
+    # )
     section_1_anatomy_markers = serializers.ListField(
         child=serializers.DictField(), required=False
     )
@@ -193,29 +201,29 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
             "summary",
             "special_direction",
             "section_1_anatomy_markers",
-            "is_initial_patient_consent_signed",
-            "patient_record_review_consent",
-            "treatment_discontinuation_policy_consent",
-            "student_observation_consent",
-            "chiropractic_intern_treatment_consent",
-            "initial_patient_consent_signature",
-            "signature_data",
-            "initial_patient_consent_signed_by",
-            "initial_patient_consent_signed_at",
-            "is_attending_consent_signed",
-            "attending_signature_data",
-            "attending_consent_signed_by",
-            "attending_consent_signature",
-            "attending_consent_signed_at",
-            "attending_consent_signed_by_name",
-            "attending_consent_signed_by_role",
-            "is_witness_consent_signed",
-            "witness_signature_data",
-            "witness_consent_signed_by",
-            "witness_relationship",
-            "witness_relationship_text",
-            "witness_consent_signature",
-            "witness_consent_signed_at",
+            # "is_initial_patient_consent_signed",
+            # "patient_record_review_consent",
+            # "treatment_discontinuation_policy_consent",
+            # "student_observation_consent",
+            # "chiropractic_intern_treatment_consent",
+            # "initial_patient_consent_signature",
+            # "signature_data",
+            # "initial_patient_consent_signed_by",
+            # "initial_patient_consent_signed_at",
+            # "is_attending_consent_signed",
+            # "attending_signature_data",
+            # "attending_consent_signed_by",
+            # "attending_consent_signature",
+            # "attending_consent_signed_at",
+            # "attending_consent_signed_by_name",
+            # "attending_consent_signed_by_role",
+            # "is_witness_consent_signed",
+            # "witness_signature_data",
+            # "witness_consent_signed_by",
+            # "witness_relationship",
+            # "witness_relationship_text",
+            # "witness_consent_signature",
+            # "witness_consent_signed_at",
             # "is_pdpa_consent_signed",
             # "education_consent",
             # "research_consent",
@@ -611,6 +619,268 @@ class AssessmentSection4Serializer(serializers.ModelSerializer):
         ]
 
 
+class AssessmentConsentSerializer(serializers.ModelSerializer):
+    """
+    Consent-only serializer:
+    - Patient consent
+    - Attending consent
+    - Witness consent
+    - PDPA (reserved for future use)
+    """
+
+    # =========================================================
+    # WRITE-ONLY SIGNATURE INPUTS
+    # =========================================================
+    signature_data = serializers.CharField(write_only=True, required=False)
+    attending_signature_data = serializers.CharField(write_only=True, required=False)
+    witness_signature_data = serializers.CharField(write_only=True, required=False)
+    # pdpa_signature_data = serializers.CharField(write_only=True, required=False)
+
+    # =========================================================
+    # DISPLAY FIELDS
+    # =========================================================
+    consent_section_signed_by_name = serializers.CharField(
+        source="consent_section_signed_by.official_name", read_only=True
+    )
+    consent_section_signed_by_role = serializers.CharField(
+        source="consent_section_signed_by.role", read_only=True
+    )
+
+    initial_patient_consent_signed_by = serializers.CharField(
+        required=True, allow_blank=False
+    )
+
+    attending_consent_signed_by_name = serializers.CharField(
+        source="attending_consent_signed_by.official_name",
+        read_only=True,
+    )
+
+    attending_consent_signed_by_role = serializers.CharField(
+        source="attending_consent_signed_by.role",
+        read_only=True,
+    )
+
+    witness_relationship_text = serializers.CharField(
+        source="get_witness_relationship_display",
+        read_only=True,
+    )
+
+    # pdpa_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
+
+    class Meta:
+        model = Assessments
+        fields = [
+            # =====================================================
+            # CONSENT CHECKBOXES
+            # =====================================================
+            "patient_record_review_consent",
+            "treatment_discontinuation_policy_consent",
+            "student_observation_consent",
+            "chiropractic_intern_treatment_consent",
+            # =====================================================
+            # INITIAL PATIENT CONSENT
+            # =====================================================
+            "is_initial_patient_consent_signed",
+            "initial_patient_consent_signed_by",
+            "initial_patient_consent_signed_at",
+            "initial_patient_consent_signature",
+            "signature_data",
+            # =====================================================
+            # ATTENDING CONSENT
+            # =====================================================
+            "is_attending_consent_signed",
+            "attending_consent_signed_by",
+            "attending_consent_signed_at",
+            "attending_consent_signature",
+            "attending_signature_data",
+            "attending_consent_signed_by_name",
+            "attending_consent_signed_by_role",
+            # =====================================================
+            # WITNESS CONSENT
+            # =====================================================
+            "is_witness_consent_signed",
+            "witness_consent_signed_by",
+            "witness_relationship",
+            "witness_relationship_text",
+            "witness_consent_signed_at",
+            "witness_consent_signature",
+            "witness_signature_data",
+            # =====================================================
+            # PDPA (FUTURE USE - COMMENTED LOGIC)
+            # =====================================================
+            # "is_pdpa_consent_signed",
+            # "education_consent",
+            # "research_consent",
+            # "marketing_consent",
+            # "pdpa_signature_data",
+            # "pdpa_consent_signed_by",
+            # "pdpa_consent_signature",
+            # "pdpa_consent_signed_at",
+
+            # =====================================================
+            # CONSENT SIGNED OFF
+            # =====================================================
+            "is_consent_section_signed",
+            "consent_section_signed_by_name",
+            "consent_section_signed_by_role",
+            "consent_section_signed_at",
+        ]
+
+        read_only_fields = [
+            "attending_consent_signed_by_name",
+            "attending_consent_signed_by_role",
+            "witness_relationship_text",
+            # "is_pdpa_consent_signed",
+            # "pdpa_consent_signed_at",
+            "is_consent_section_signed",
+            "consent_section_signed_by_name",
+            "consent_section_signed_by_role",
+            "consent_section_signed_at",
+        ]
+
+    # =========================================================
+    # UPDATE
+    # =========================================================
+    def update(self, instance, validated_data):
+        request = self.context.get("request")
+        instance.updated_by = request.user.profile
+
+        initial_signature = validated_data.pop("signature_data", None)
+        attending_signature = validated_data.pop("attending_signature_data", None)
+        witness_signature = validated_data.pop("witness_signature_data", None)
+
+        # pdpa_signature = validated_data.pop("pdpa_signature_data", None)
+        # pdpa_name = validated_data.pop("pdpa_consent_signed_by", None)
+
+        instance = super().update(instance, validated_data)
+
+        if initial_signature:
+            self._save_signature(
+                instance,
+                initial_signature,
+                "initial_patient_consent",
+                extra_data={
+                    "initial_patient_consent_signed_by": validated_data.get(
+                        "initial_patient_consent_signed_by"
+                    )
+                },
+            )
+
+        if attending_signature:
+            self._save_signature(
+                instance,
+                attending_signature,
+                "attending_consent",
+                extra_data={
+                    "attending_consent_signed_by": validated_data.get(
+                        "attending_consent_signed_by"
+                    )
+                },
+            )
+
+        if witness_signature:
+            self._save_signature(
+                instance,
+                witness_signature,
+                "witness_consent",
+                extra_data={
+                    "witness_consent_signed_by": validated_data.get(
+                        "witness_consent_signed_by"
+                    )
+                },
+            )
+
+        # -------------------------
+        # PDPA (FUTURE USE)
+        # -------------------------
+        # if pdpa_signature:
+        #     self._save_signature(
+        #         instance,
+        #         pdpa_signature,
+        #         "pdpa_consent",
+        #         extra_data={
+        #             "pdpa_consent_signed_by": pdpa_name
+        #         },
+        #     )
+
+        return instance
+
+    # =========================================================
+    # SIGNATURE HANDLER
+    # =========================================================
+    def _save_signature(self, instance, signature_data, field_prefix, extra_data=None):
+        if not signature_data:
+            return
+
+        try:
+            format, imgstr = signature_data.split(";base64,")
+            ext = format.split("/")[-1]
+
+            file = ContentFile(
+                base64.b64decode(imgstr),
+                name=f"{uuid.uuid4()}.{ext}",
+            )
+
+            # =========================
+            # INITIAL PATIENT
+            # =========================
+            if field_prefix == "initial_patient_consent":
+                instance.initial_patient_consent_signature = file
+                instance.is_initial_patient_consent_signed = True
+                instance.initial_patient_consent_signed_at = timezone.now()
+
+                if extra_data:
+                    name = extra_data.get("initial_patient_consent_signed_by")
+                    if name:
+                        instance.initial_patient_consent_signed_by = name
+
+            # =========================
+            # ATTENDING
+            # =========================
+            elif field_prefix == "attending_consent":
+                instance.attending_consent_signature = file
+                instance.is_attending_consent_signed = True
+                instance.attending_consent_signed_at = timezone.now()
+
+                if extra_data:
+                    instance.attending_consent_signed_by = extra_data.get(
+                        "attending_consent_signed_by"
+                    )
+
+            # =========================
+            # WITNESS
+            # =========================
+            elif field_prefix == "witness_consent":
+                instance.witness_consent_signature = file
+                instance.is_witness_consent_signed = True
+                instance.witness_consent_signed_at = timezone.now()
+
+                if extra_data:
+                    name = extra_data.get("witness_consent_signed_by")
+                    if name:
+                        instance.witness_consent_signed_by = name
+
+            # =========================
+            # PDPA (FUTURE USE)
+            # =========================
+            # elif field_prefix == "pdpa_consent":
+            #     instance.pdpa_consent_signature = file
+            #     instance.is_pdpa_consent_signed = True
+            #     instance.pdpa_consent_signed_at = timezone.now()
+            #
+            #     if extra_data:
+            #         name = extra_data.get("pdpa_consent_signed_by")
+            #         if name:
+            #             instance.pdpa_consent_signed_by = name
+
+            instance.save()
+
+        except Exception as e:
+            raise serializers.ValidationError(
+                {"signature_data": f"Invalid image data: {str(e)}"}
+            )
+
+
 class AssessmentAttachmentSerializer(serializers.ModelSerializer):
     uploaded_by_name = serializers.CharField(
         source="uploaded_by.official_name", read_only=True
@@ -992,6 +1262,7 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
     section_3 = serializers.SerializerMethodField()
     section_4 = serializers.SerializerMethodField()
     attachments = serializers.SerializerMethodField()
+    consents = serializers.SerializerMethodField()
     treatment_plan = serializers.SerializerMethodField()
     soaps = SoapSerializer(many=True, read_only=True)
     reevaluations = serializers.SerializerMethodField()
@@ -1005,6 +1276,7 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
             "section_3",
             "section_4",
             "attachments",
+            "consents",
             "treatment_plan",
             "soaps",
             "reevaluations",
@@ -1024,6 +1296,9 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
         qs = obj.attachments.all().order_by("-uploaded_at")
         return AssessmentAttachmentSerializer(qs, many=True, context=self.context).data
 
+    def get_consents(self, obj):
+        return AssessmentConsentSerializer(obj).data
+    
     def get_treatment_plan(self, obj):
         return AssessmentTreatmentPlanSerializer(obj).data
 

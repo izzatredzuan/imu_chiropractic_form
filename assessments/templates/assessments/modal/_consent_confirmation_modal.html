@@ -12,6 +12,7 @@
                 <p class="consent-block">
                     I,
                     <strong class="consent-underline" id="m_patient_consent_name"></strong>,
+                    NRIC/ Passport No <strong class="consent-underline" id="m_ic_passport_number"></strong>,
                     (Name of patient/parent/guardian), hereby consent for myself/
                     <strong class="consent-underline" id="m_patient_name"></strong>
                     (Name of patient), who is my
@@ -39,13 +40,13 @@
 
                 <!-- Hide button if user is only able to readonly -->
                 {% if not is_readonly %}
-                <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary">
-                    {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
+                <button type="submit" id="btnSave" name="action" class="btn btn-primary">
+                    Update Consents
                 </button>
 
                 {% if assessment and can_signoff %}
-                <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
-                    Update & Sign Off Section 1
+                <button type="submit" id="btnSignOff" name="action" class="btn btn-success">
+                    Update & Sign Off Consents
                 </button>
                 {% endif %}
                 {% endif %}

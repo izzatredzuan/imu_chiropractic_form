@@ -598,9 +598,9 @@
       // =====================================
       // SECTION 1 & 2
       // =====================================
-
       const s12 = data.section_1_2;
-
+      const consents = data.consents;
+      
       document.getElementById("patientOverview").innerHTML = `
       ${renderSignedOff(
         s12.is_section_1_signed,
@@ -725,7 +725,7 @@
                 <div class="mini-card mb-2">
                   <label>
                     <input type="checkbox"
-                          ${s12.education_consent ? "checked" : ""}
+                          ${consents.education_consent ? "checked" : ""}
                           disabled>
                     Education Consent
                   </label>
@@ -734,7 +734,7 @@
                 <div class="mini-card mb-2">
                   <label>
                     <input type="checkbox"
-                          ${s12.research_consent ? "checked" : ""}
+                          ${consents.research_consent ? "checked" : ""}
                           disabled>
                     Research Consent
                   </label>
@@ -743,7 +743,7 @@
                 <div class="mini-card">
                   <label>
                     <input type="checkbox"
-                          ${s12.marketing_consent ? "checked" : ""}
+                          ${consents.marketing_consent ? "checked" : ""}
                           disabled>
                     Marketing Consent
                   </label>
@@ -770,90 +770,184 @@
         </div>
       </div>
 
-      <!-- SIGNATURES -->
+      <!-- CONSENTS -->
       <div class="row mt-4">
         <div class="col-12">
           <div class="card shadow-sm">
             <div class="card-header fw-semibold">
-              Signatures
+              Consents
             </div>
 
             <div class="card-body">
+              ${renderSignedOff(
+                consents.is_consent_section_signed,
+                consents.consent_section_signed_by_name,
+                consents.consent_section_signed_by_role,
+                consents.consent_section_signed_at
+              )}
+              
+              <div class="mb-4">
+                <div class="mini-card mb-2">
+                  <label>
+                    <input type="checkbox"
+                          ${consents.patient_record_review_consent ? "checked" : ""}
+                          disabled>
+                    I understand that the Chiropractor may review my patient records, lab and X-Ray reports to understand my complete health condition.
+                  </label>
+                </div>
+
+                <div class="mini-card mb-2">
+                  <label>
+                    <input type="checkbox"
+                          ${consents.treatment_discontinuation_policy_consent ? "checked" : ""}
+                          disabled>
+                    I understand that the IMU Chiropractic Centre reserves the right to refuse or discontinue treatment for reasons of appropriateness, frequency, safety, or at the discretion of the IMU Chiropractic Centre.
+                  </label>
+                </div>
+
+                <div class="mini-card mb-2">
+                  <label>
+                    <input type="checkbox"
+                          ${consents.student_observation_consent ? "checked" : ""}
+                          disabled>
+                    I understand that IMU is a teaching facility and students may observe patient treatments for educational purposes.
+                  </label>
+                </div>
+
+                <div class="mini-card mb-3">
+                  <label>
+                    <input type="checkbox"
+                          ${consents.chiropractic_intern_treatment_consent ? "checked" : ""}
+                          disabled>
+                    I consent to a treatment approved by clinic supervisor and conducted by senior year Chiropractic Intern.
+                  </label>
+                </div>
+              </div>
+
+              <div class="card border-0 bg-light mb-4">
+                <div class="card-body">
+
+                  <div class="medical-label mb-3">
+                    Consent Declaration
+                  </div>
+
+                  <p class="mb-0" style="line-height: 2; text-align: justify;">
+
+                    I,
+                    <span class="fw-bold text-primary">
+                      ${safe(consents.initial_patient_consent_signed_by)}
+                    </span>
+                    (patient / parent / legal guardian),
+
+                    hereby consent for
+                    <span class="fw-bold text-primary">
+                      ${safe(s12.patient_name)}
+                    </span>
+
+                    (NRIC / Passport No.
+                    <span class="fw-bold text-primary">
+                      ${safe(s12.ic_passport_number)}
+                    </span>),
+
+                    who is my
+                    <span class="fw-bold text-primary">
+                      ${safe(consents.witness_relationship_text)}
+                    </span>,
+
+                    to undergo chiropractic treatment. The nature of the treatment,
+                    its benefits, risks, and available alternatives have been explained
+                    to me by
+
+                    <span class="fw-bold text-primary">
+                      ${safe(consents.attending_consent_signed_by_name)}
+                    </span>
+
+                    (Attending Chiropractor / Intern),
+                    personally or through interpretation by
+                    <span class="fw-bold text-primary">
+                      ${safe(s12.interpreter_name || "Not Applicable")}
+                    </span>,
+                    in an appropriate language or dialect that I understand.
+                  </p>
+
+                </div>
+              </div>
+
               <div class="row g-4 justify-content-center text-center">
                 <!-- Patient -->
-                ${s12.initial_patient_consent_signature ? `
+                ${consents.initial_patient_consent_signature ? `
                   <div class="col-md-3">
                     <div class="mini-card">
                       <div class="medical-label">Patient</div>
                       <img class="signature-img d-block mx-auto"
-                          src="${s12.initial_patient_consent_signature}">
+                          src="${consents.initial_patient_consent_signature}">
                       <div class="mt-2 small text-muted">
-                        <strong>${safe(s12.initial_patient_consent_signed_by)}</strong>
+                        <strong>${safe(consents.initial_patient_consent_signed_by)}</strong>
                       </div>
 
                       <div class="small text-muted">
-                        ${formatDate(s12.initial_patient_consent_signed_at)}
+                        ${formatDate(consents.initial_patient_consent_signed_at)}
                       </div>
                     </div>
                   </div>
                 ` : ""}
 
                 <!-- Attending -->
-                ${s12.attending_consent_signature ? `
+                ${consents.attending_consent_signature ? `
                   <div class="col-md-3">
                     <div class="mini-card">
                       <div class="medical-label">Attending</div>
                       <img class="signature-img d-block mx-auto"
-                          src="${s12.attending_consent_signature}">
+                          src="${consents.attending_consent_signature}">
 
                       <div class="mt-2 small text-muted">
-                        <strong>${safe(s12.attending_consent_signed_by_name)} (${safe(s12.attending_consent_signed_by_role)})<br></strong>
+                        <strong>${safe(consents.attending_consent_signed_by_name)} (${safe(consents.attending_consent_signed_by_role)})<br></strong>
                       </div>
 
                       <div class="small text-muted">
-                        ${formatDate(s12.attending_consent_signed_at)}
+                        ${formatDate(consents.attending_consent_signed_at)}
                       </div>
                     </div>
                   </div>
                 ` : ""}
 
                 <!-- Witness -->
-                ${s12.witness_consent_signature ? `
+                ${consents.witness_consent_signature ? `
                   <div class="col-md-3">
                     <div class="mini-card">
                       <div class="medical-label">Witness</div>
                       <img class="signature-img d-block mx-auto"
-                          src="${s12.witness_consent_signature}">
+                          src="${consents.witness_consent_signature}">
 
                       <div class="mt-2 small text-muted">
-                        <strong>${safe(s12.witness_consent_signed_by)} (${safe(s12.witness_relationship_text)})</strong>
+                        <strong>${safe(consents.witness_consent_signed_by)} (${safe(consents.witness_relationship_text)})</strong>
                       </div>
 
                       <div class="small text-muted">
-                        ${formatDate(s12.witness_consent_signed_at)}
+                        ${formatDate(consents.witness_consent_signed_at)}
                       </div>
                     </div>
                   </div>
                 ` : ""}
 
                 <!-- PDPA -->
-                // ${s12.pdpa_consent_signature ? `
-                //   <div class="col-md-3">
-                //     <div class="mini-card">
-                //       <div class="medical-label">PDPA</div>
-                //       <img class="signature-img d-block mx-auto"
-                //           src="${s12.pdpa_consent_signature}">
+                ${consents.pdpa_consent_signature ? `
+                   <div class="col-md-3">
+                     <div class="mini-card">
+                       <div class="medical-label">PDPA</div>
+                       <img class="signature-img d-block mx-auto"
+                           src="${consents.pdpa_consent_signature}">
 
-                //       <div class="mt-2 small text-muted">
-                //         <strong>${safe(s12.pdpa_consent_signed_by)}</strong>
-                //       </div>
+                       <div class="mt-2 small text-muted">
+                         <strong>${safe(consents.pdpa_consent_signed_by)}</strong>
+                       </div>
 
-                //       <div class="small text-muted">
-                //         ${formatDate(s12.pdpa_consent_signed_at)}
-                //       </div>
-                //     </div>
-                //   </div>
-                // ` : ""}
+                       <div class="small text-muted">
+                         ${formatDate(consents.pdpa_consent_signed_at)}
+                       </div>
+                     </div>
+                   </div>
+                 ` : ""}
 
               </div>
             </div>

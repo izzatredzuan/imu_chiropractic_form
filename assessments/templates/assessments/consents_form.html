@@ -5,50 +5,10 @@
 
 <style>
   /* =========================
-     Anatomy Marker System
-  ========================= */
-
-  #anatomyWrapper {
-    position: relative;
-    display: inline-block;
-    width: fit-content;
-    touch-action: manipulation;
-    z-index: 1;
-  }
-
-  #anatomyImage {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  #markerLayer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  .anatomy-marker {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    background-color: #c0392b;
-    border-radius: 50%;
-    transform: translate(-50%, -50%);
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
-    cursor: pointer;
-    pointer-events: auto;
-  }
-
-  /* =========================
      Signature safety layering
   ========================= */
 
-  /* .signature-wrapper {
+  .signature-wrapper {
     width: 100%;
     max-width: 480px;
     position: relative;
@@ -57,12 +17,12 @@
 
   #signaturePad {
     touch-action: none;
-  } */
+  }
 
   /* =========================
      Consent Reader
   ========================= */
-  /* .consent-reader-scrollbox {
+  .consent-reader-scrollbox {
     height: 320px;
     overflow-y: auto;
     background: #fff;
@@ -70,12 +30,12 @@
     line-height: 1.5;
     text-align: justify;
     white-space: normal;
-  } */
+  }
 
   /* =========================
      Consent Modal
   ========================= */
-  /* .consent-modal-body {
+  .consent-modal-body {
     font-size: 0.95rem;
     line-height: 1.7;
     text-align: justify;
@@ -99,18 +59,18 @@
     display: inline-block;
     min-width: 80px;
     text-align: center;
-  } */
+  }
 </style>
 
 <div class="container-fluid mt-4 mb-4 px-4">
   <!-- ========================= Page Title ========================== -->
   <div class="mb-4">
     <h2 class="fw-semibold mobile-fonts">
-      {% if assessment %}Edit Assessment{% else %}Create Assessment{% endif %}
+      Consents
     </h2>
   </div>
 
-  <form id="section1Form">
+  <form id="consentsForm">
     <!-- ========================= Assignment ========================== -->
     <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">Assignment</div>
@@ -121,11 +81,11 @@
         </div>
         {% endif %}
 
-        {% if assessment.is_section_1_signed %}
+        {% if assessment.is_consent_section_signed %}
         <div class="alert alert-success">
           <strong>Signed-off by:</strong>
-          {{ assessment.section_1_signed_by.official_name }} ({{ assessment.section_1_signed_by.role|title }})<br>
-          <small class="text-muted">Signed at: {{ assessment.section_1_signed_at|date:"d M Y, h:i A" }}</small>
+          {{ assessment.consent_section_signed_by.official_name }} ({{ assessment.consent_section_signed_by.role|title }})<br>
+          <small class="text-muted">Signed at: {{ assessment.consent_section_signed_at|date:"d M Y, h:i A" }}</small>
         </div>
         {% endif %}
 
@@ -169,12 +129,10 @@
       </div>
     </div>
 
-    <!-- ========================= Section 1 ========================== -->
-    <h4 class="fw-semibold mb-3 mobile-fonts">Section 1 – Initial Assessment</h4>
+    <!-- ========================= Patient Details ========================== -->
     <div class="row">
-
       <!-- Left column -->
-      <div class="col-lg-7">
+      <div class="col-lg-12">
         <!-- Patient Details Card -->
         <div class="card mb-4 shadow-sm">
           <div class="card-header fw-semibold">Patient Details</div>
@@ -184,7 +142,7 @@
                 <label class="form-label required">Patient Name</label>
                 <input type="text" name="patient_name" class="form-control" required
                   value="{{ assessment.patient_name|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                  {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label required">IC / Passport Number</label>
@@ -193,18 +151,18 @@
                       class="form-control"
                       required
                       value="{{ assessment.ic_passport_number|default_if_none:'' }}"
-                      {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                      {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label required">MRN Number</label>
                 <input type="text" name="mrn_number" class="form-control" required
                   value="{{ assessment.mrn_number|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                  {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
               </div>
               <div class="col-md-2 mb-3">
                 <label class="form-label required">Gender</label>
                 <select name="gender" class="form-control" required
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                  {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
                   <option value="">-- Select --</option>
                   <option value="male" {% if assessment.gender == 'male' %}selected{% endif %}>Male</option>
                   <option value="female" {% if assessment.gender == 'female' %}selected{% endif %}>Female</option>
@@ -214,97 +172,29 @@
                 <label class="form-label required">Date of Birth</label>
                 <input type="date" name="date_of_birth" class="form-control" required
                   value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                  {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
               </div>
               <div class="col-md-4 mb-3">
                 <label class="form-label">Interpreter Name</label>
                 <input type="text" name="interpreter_name" class="form-control"
                   value="{{ assessment.interpreter_name|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                  {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
               </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Vitals Card -->
-        <div class="card mb-4 shadow-sm">
-          <div class="card-header fw-semibold">Vitals</div>
-          <div class="card-body">
-            <div class="row">
-              <div class="col-md-3 mb-3">
-                <label class="form-label required">Pulse</label>
-                <input type="number" name="pulse" class="form-control" required
-                  value="{{ assessment.pulse|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label required">Respiratory</label>
-                <input type="number" name="respiratory" class="form-control" required
-                  value="{{ assessment.respiratory|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label required">Systolic BP</label>
-                <input type="number" name="systolic_bp" class="form-control" required
-                  value="{{ assessment.systolic_bp|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
-              </div>
-              <div class="col-md-3 mb-3">
-                <label class="form-label required">Diastolic BP</label>
-                <input type="number" name="diastolic_bp" class="form-control" required
-                  value="{{ assessment.diastolic_bp|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Summary & Special Direction -->
-        <div class="card mb-4 shadow-sm">
-          <div class="card-header fw-semibold">Summary</div>
-          <div class="card-body">
-            <div class="mb-3">
-              <label class="form-label">Summary</label>
-              <textarea name="summary" class="form-control" rows="4"
-                {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>{{ assessment.summary|default_if_none:'' }}</textarea>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Special Direction</label>
-              <textarea name="special_direction" class="form-control" rows="4"
-                {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>{{ assessment.special_direction|default_if_none:'' }}</textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right column: Anatomy Marking -->
-      <div class="col-lg-5">
-        <div class="card shadow-sm mb-4">
-          <div class="card-header fw-semibold">Anatomy Marking</div>
-          <div id="anatomySection" class="card-body text-center">
-            <div class="mb-3 text-muted small">
-              <strong>Instructions:</strong> Click on the body to mark pain or tenderness. Click on the marker again to delete it.
-            </div>
-            <div id="anatomyWrapper" class="position-relative d-inline-block">
-              <img src="/media/assessments/anatomy/Muscles_front_and_back.svg" id="anatomyImage"
-                style="display:block; height:auto; width:100%;">
-              <div id="markerLayer" class="position-absolute top-0 start-0 w-100 h-100"></div>
             </div>
           </div>
         </div>
       </div>
     </div>
-
     <!-- ========================= CONSENT SECTION ========================= -->
     <!-- ========================= Patient Consent ========================= -->
-    <!-- <div class="card mb-4 shadow-sm">
+    <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">
         Patient Consent
       </div>
 
-      <div class="card-body"> -->
+      <div class="card-body">
         <!-- ========================= CONSENT TEXT (SCROLLABLE CLEAN VERSION) ========================= -->
-        <!-- <div class="mb-3">
+        <div class="mb-3">
           <label class="form-label fw-semibold">
             Chiropractic Treatment Consent Information
           </label>
@@ -333,11 +223,11 @@
             </p>
 
           </div>
-        </div> -->
+        </div>
 
         <!-- ========================= CHECKBOXES (ALWAYS SHOWN) ========================= -->
 
-        <!-- <div class="form-check mb-2">
+        <div class="form-check mb-2">
           <input class="form-check-input"
                 type="checkbox"
                 name="patient_record_review_consent"
@@ -390,13 +280,13 @@
           </label>
         </div>
 
-        <hr> -->
+        <hr>
 
         <!-- ========================= SIGNED STATE ========================= -->
 
         {% if assessment and assessment.is_initial_patient_consent_signed %}
 
-          <!-- <div class="alert alert-success">
+          <div class="alert alert-success">
             <strong>Signed Successfully</strong><br>
 
             <small class="text-muted d-block">
@@ -412,13 +302,13 @@
             <img src="{{ assessment.initial_patient_consent_signature.url }}"
                 class="img-fluid border rounded"
                 style="max-height:150px;">
-          </div> -->
+          </div>
 
         {% else %}
 
           <!-- ========================= SIGNATURE PAD ========================= -->
 
-          <!-- <div class="signature-wrapper mx-auto">
+          <div class="signature-wrapper mx-auto">
             <canvas id="patientSignaturePad"
                     class="border rounded signature-canvas"
                     style="width:100%; height:200px;">
@@ -450,15 +340,15 @@
 
           <input type="hidden"
                 name="signature_data"
-                id="patientSignatureData"> -->
+                id="patientSignatureData">
 
         {% endif %}
 
-      <!-- </div>
-    </div> -->
+      </div>
+    </div>
 
     <!-- ========================= Attending Consent ========================= -->
-    <!-- <div class="card mb-4 shadow-sm">
+    <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">
         Attending Consent
       </div>
@@ -545,10 +435,10 @@
         {% endif %}
 
       </div>
-    </div> -->
+    </div>
 
     <!-- ========================= Witness Consent ========================= -->
-    <!-- <div class="card mb-4 shadow-sm">
+    <div class="card mb-4 shadow-sm">
       <div class="card-header fw-semibold">
         Witness Consent
       </div>
@@ -610,7 +500,7 @@
             <select name="witness_relationship"
                     class="form-control"
                     required
-                    {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                    {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
                 <option value="">-- Select --</option>
 
                 {% for value, label in witness_relationship_choices %}
@@ -628,7 +518,7 @@
         {% endif %}
 
       </div>
-    </div> -->
+    </div>
 
     <!-- ========================= PDPA + Consent Card ========================= -->
     <!-- <div class="card mb-4 shadow-sm">
@@ -745,48 +635,43 @@
     </div> -->
 
     {% if assessment and assessment.is_initial_patient_consent_signed %}
-    <!-- <input type="hidden" name="patient_record_review_consent" value="{{ assessment.patient_record_review_consent }}">
+    <input type="hidden" name="patient_record_review_consent" value="{{ assessment.patient_record_review_consent }}">
     <input type="hidden" name="treatment_discontinuation_policy_consent" value="{{ assessment.treatment_discontinuation_policy_consent }}">
     <input type="hidden" name="student_observation_consent" value="{{ assessment.student_observation_consent }}">
     <input type="hidden" name="chiropractic_intern_treatment_consent" value="{{ assessment.chiropractic_intern_treatment_consent }}">
 
     <input type="hidden" name="marketing_consent" value="{{ assessment.marketing_consent }}">
     <input type="hidden" name="education_consent" value="{{ assessment.education_consent }}">
-    <input type="hidden" name="research_consent" value="{{ assessment.research_consent }}"> -->
+    <input type="hidden" name="research_consent" value="{{ assessment.research_consent }}">
     {% endif %}
 
     <!-- Submit buttons -->
     <div class="mt-4 d-flex justify-content-end gap-2">
-        <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
+      <a href="{% url 'assessments_list' %}" class="btn btn-secondary btn-mobile">
         Cancel
       </a>
 
-      <!-- Hide button if user is only able to readonly -->
-      {% if not is_readonly %}
-      <button type="submit" id="btnSave" name="action" value="save_section_1" class="btn btn-primary">
-          {% if assessment %}Update Assessment{% else %}Create Assessment{% endif %}
+      <button type="button"
+              id="btnProceedConfirm"
+              class="btn btn-primary btn-mobile">
+        Proceed to Confirmation
       </button>
-
-      {% if assessment and can_signoff %}
-      <button type="submit" id="btnSignOff" name="action" value="sign_off_section_1" class="btn btn-success">
-          Update & Sign Off Section 1
-      </button>
-      {% endif %}
-      {% endif %}
     </div>
+
+    {% include 'assessments/modal/_consent_confirmation_modal.html' %}
   </form>
 </div>
 
 <script>
-let clickedAction = "save_section_1";
+let clickedAction = "save_consent";
 
 document.getElementById("btnSave")?.addEventListener("click", () => {
-  clickedAction = "save_section_1";
+  clickedAction = "save_consent";
 });
 
 {% if assessment and can_signoff %}
 document.getElementById("btnSignOff")?.addEventListener("click", () => {
-  clickedAction = "sign_off_section_1";
+  clickedAction = "sign_off_consent";
 });
 {% endif %}
 
@@ -796,160 +681,160 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
      MULTI SIGNATURE SYSTEM
   ====================================================== */
 
-  // let isSigning = false;
+  let isSigning = false;
 
-  // const signaturePads = {};
+  const signaturePads = {};
 
-  // function setupSignaturePad({
-  //   canvasId,
-  //   key
-  // }) {
+  function setupSignaturePad({
+    canvasId,
+    key
+  }) {
 
-  //   const canvas = document.getElementById(canvasId);
+    const canvas = document.getElementById(canvasId);
 
-  //   if (!canvas) return;
+    if (!canvas) return;
 
-  //   const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d");
 
-  //   let strokes = [];
-  //   let currentStroke = [];
-  //   let isDrawing = false;
+    let strokes = [];
+    let currentStroke = [];
+    let isDrawing = false;
 
-  //   const wrapper = canvas.parentElement;
+    const wrapper = canvas.parentElement;
 
-  //   const getPos = (e) => {
-  //     const rect = canvas.getBoundingClientRect();
-  //     const point = e.touches ? e.touches[0] : e;
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const point = e.touches ? e.touches[0] : e;
 
-  //     return {
-  //       x: point.clientX - rect.left,
-  //       y: point.clientY - rect.top
-  //     };
-  //   };
+      return {
+        x: point.clientX - rect.left,
+        y: point.clientY - rect.top
+      };
+    };
 
-  //   const redraw = () => {
+    const redraw = () => {
 
-  //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  //     if (strokes.length === 0) {
+      if (strokes.length === 0) {
 
-  //       ctx.save();
+        ctx.save();
 
-  //       ctx.font = "16px Arial";
-  //       ctx.fillStyle = "#aaa";
-  //       ctx.textAlign = "center";
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "#aaa";
+        ctx.textAlign = "center";
 
-  //       ctx.fillText(
-  //         "Sign inside the box",
-  //         canvas.width / 2,
-  //         canvas.height / 2
-  //       );
+        ctx.fillText(
+          "Sign inside the box",
+          canvas.width / 2,
+          canvas.height / 2
+        );
 
-  //       ctx.restore();
+        ctx.restore();
 
-  //       wrapper?.classList.remove("border-danger");
+        wrapper?.classList.remove("border-danger");
 
-  //       return;
-  //     }
+        return;
+      }
 
-  //     ctx.beginPath();
+      ctx.beginPath();
 
-  //     strokes.forEach(stroke => {
+      strokes.forEach(stroke => {
 
-  //       if (!stroke.length) return;
+        if (!stroke.length) return;
 
-  //       ctx.moveTo(stroke[0].x, stroke[0].y);
+        ctx.moveTo(stroke[0].x, stroke[0].y);
 
-  //       stroke.forEach(p => {
-  //         ctx.lineTo(p.x, p.y);
-  //       });
-  //     });
+        stroke.forEach(p => {
+          ctx.lineTo(p.x, p.y);
+        });
+      });
 
-  //     ctx.stroke();
-  //   };
+      ctx.stroke();
+    };
 
-  //   const resizeCanvas = () => {
+    const resizeCanvas = () => {
 
-  //     canvas.width = canvas.offsetWidth;
-  //     canvas.height = canvas.offsetHeight;
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
 
-  //     ctx.lineWidth = 2;
-  //     ctx.lineCap = "round";
-  //     ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.strokeStyle = "#000";
 
-  //     redraw();
-  //   };
+      redraw();
+    };
 
-  //   window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("resize", resizeCanvas);
 
-  //   resizeCanvas();
+    resizeCanvas();
 
-  //   const startDraw = (e) => {
+    const startDraw = (e) => {
 
-  //     e.preventDefault();
+      e.preventDefault();
 
-  //     isSigning = true;
-  //     isDrawing = true;
+      isSigning = true;
+      isDrawing = true;
 
-  //     currentStroke = [];
+      currentStroke = [];
 
-  //     strokes.push(currentStroke);
+      strokes.push(currentStroke);
 
-  //     currentStroke.push(getPos(e));
-  //   };
+      currentStroke.push(getPos(e));
+    };
 
-  //   const draw = (e) => {
+    const draw = (e) => {
 
-  //     if (!isDrawing) return;
+      if (!isDrawing) return;
 
-  //     e.preventDefault();
+      e.preventDefault();
 
-  //     currentStroke.push(getPos(e));
+      currentStroke.push(getPos(e));
 
-  //     redraw();
-  //   };
+      redraw();
+    };
 
-  //   const stopDraw = () => {
+    const stopDraw = () => {
 
-  //     isDrawing = false;
-  //     isSigning = false;
-  //   };
+      isDrawing = false;
+      isSigning = false;
+    };
 
-  //   canvas.addEventListener("mousedown", startDraw);
-  //   canvas.addEventListener("mousemove", draw);
-  //   canvas.addEventListener("mouseup", stopDraw);
-  //   canvas.addEventListener("mouseleave", stopDraw);
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDraw);
+    canvas.addEventListener("mouseleave", stopDraw);
 
-  //   canvas.addEventListener("touchstart", startDraw);
-  //   canvas.addEventListener("touchmove", draw);
-  //   canvas.addEventListener("touchend", stopDraw);
+    canvas.addEventListener("touchstart", startDraw);
+    canvas.addEventListener("touchmove", draw);
+    canvas.addEventListener("touchend", stopDraw);
 
-  //   signaturePads[key] = {
-  //     canvas,
-  //     strokes,
-  //     redraw,
-  //     wrapper
-  //   };
-  // }
+    signaturePads[key] = {
+      canvas,
+      strokes,
+      redraw,
+      wrapper
+    };
+  }
 
   /* ======================================================
      INITIALIZE SIGNATURE PADS
   ====================================================== */
 
-  // setupSignaturePad({
-  //   canvasId: "patientSignaturePad",
-  //   key: "patient"
-  // });
+  setupSignaturePad({
+    canvasId: "patientSignaturePad",
+    key: "patient"
+  });
 
-  // setupSignaturePad({
-  //   canvasId: "attendingSignaturePad",
-  //   key: "attending"
-  // });
+  setupSignaturePad({
+    canvasId: "attendingSignaturePad",
+    key: "attending"
+  });
 
-  // setupSignaturePad({
-  //   canvasId: "witnessSignaturePad",
-  //   key: "witness"
-  // });
+  setupSignaturePad({
+    canvasId: "witnessSignaturePad",
+    key: "witness"
+  });
 
   // setupSignaturePad({
   //   canvasId: "pdpaSignaturePad",
@@ -997,146 +882,51 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
   });
 
   /* ======================================================
-     ANATOMY MARKING
-  ====================================================== */
-
-  let anatomyImage = document.getElementById("anatomyImage");
-  let markerLayer = document.getElementById("markerLayer");
-
-  let markers = [];
-  let markerCounter = 0;
-
-  function renderMarkers() {
-
-    if (!markerLayer) return;
-
-    markerLayer.innerHTML = "";
-
-    markers.forEach(m => {
-
-      const el = document.createElement("div");
-
-      el.className = "anatomy-marker";
-
-      el.style.left = (m.x * 100) + "%";
-      el.style.top = (m.y * 100) + "%";
-
-      el.addEventListener("click", (e) => {
-
-        e.stopPropagation();
-
-        if (confirm("Delete this marker?")) {
-
-          markers = markers.filter(x => x.id !== m.id);
-
-          renderMarkers();
-        }
-      });
-
-      markerLayer.appendChild(el);
-    });
-  }
-
-  anatomyImage?.addEventListener("click", function (e) {
-
-    // if (isSigning) return;
-
-    const rect = anatomyImage.getBoundingClientRect();
-
-    const x = (e.clientX - rect.left) / rect.width;
-    const y = (e.clientY - rect.top) / rect.height;
-
-    markers.push({
-      id: markerCounter++,
-      x,
-      y
-    });
-
-    renderMarkers();
-  });
-
-  anatomyImage?.addEventListener("touchstart", function (e) {
-    // if (isSigning) return;
-  });
-
-  function loadMarkersFromAPI() {
-
-    const assessmentId = "{{ assessment.id }}";
-
-    if (!assessmentId) return;
-
-    fetch(
-      "{% url 'assessment_section1_and_2_api' %}?assessment_id=" + assessmentId,
-      {
-        credentials: "include"
-      }
-    )
-    .then(res => res.json())
-    .then(data => {
-
-      console.log("API DATA:", data);
-
-      if (
-        data.section_1_anatomy_markers &&
-        Array.isArray(data.section_1_anatomy_markers)
-      ) {
-
-        markers = data.section_1_anatomy_markers;
-
-        markerCounter = markers.length
-          ? Math.max(...markers.map(m => m.id || 0)) + 1
-          : 0;
-
-        renderMarkers();
-      }
-    })
-    .catch(err => console.error("Failed to load markers:", err));
-  }
-
-  loadMarkersFromAPI();
-
-  /* ======================================================
      CONSENT MODAL
   ====================================================== */
-  // let consentModal;
+  let consentModal;
 
-  // document.addEventListener("DOMContentLoaded", () => {
-  //   consentModal = new bootstrap.Modal(
-  //     document.getElementById("consentConfirmModal")
-  //   );
-  // });
+  document.addEventListener("DOMContentLoaded", () => {
+    consentModal = new bootstrap.Modal(
+      document.getElementById("consentConfirmModal")
+    );
+  });
 
-  // document.getElementById("btnProceedConfirm")?.addEventListener("click", function(e) {
-  //   e.preventDefault();
-  //   // fill modal values
-  //   document.getElementById("m_patient_consent_name").innerText =
-  //   document.getElementById("patientConsentName")?.value
-  //   || "{{ assessment.witness_consent_signed_by|default:'-' }}";
+  document.getElementById("btnProceedConfirm")?.addEventListener("click", function(e) {
+    e.preventDefault();
+    // fill modal values
+    document.getElementById("m_patient_consent_name").innerText =
+    document.getElementById("patientConsentName")?.value
+    || "{{ assessment.witness_consent_signed_by|default:'-' }}";
+    
+    document.getElementById("m_patient_name").innerText =
+    document.querySelector("[name='patient_name']")?.value
+    || "{{ assessment.patient_name|default:'-' }}";
 
-  //   document.getElementById("m_patient_name").innerText =
-  //   document.querySelector("[name='patient_name']")?.value
-  //   || "{{ assessment.patient_name|default:'-' }}";
+    document.getElementById("m_ic_passport_number").innerText =
+    document.querySelector("[name='ic_passport_number']")?.value
+    || "{{ assessment.ic_passport_number|default:'-' }}";
 
-  //   document.getElementById("m_relationship").innerText =
-  //   document.querySelector("[name='witness_relationship']")?.value
-  //   || "{{ assessment.witness_relationship|default:'-' }}";
+    document.getElementById("m_relationship").innerText =
+    document.querySelector("[name='witness_relationship']")?.value
+    || "{{ assessment.witness_relationship|default:'-' }}";
 
-  //   document.getElementById("m_attending_name").innerText =
-  //   document.querySelector("[name='attending_consent_signed_by'] option:checked")?.textContent
-  //   || "{{ assessment.attending_consent_signed_by.official_name|default:'-' }}";
+    document.getElementById("m_attending_name").innerText =
+    document.querySelector("[name='attending_consent_signed_by'] option:checked")?.textContent
+    || "{{ assessment.attending_consent_signed_by.official_name|default:'-' }}";
 
-  //   document.getElementById("m_interpreter_name").innerText =
-  //   document.querySelector("[name='interpreter_name']")?.value
-  //   || "{{ assessment.interpreter_name|default:'-' }}";
+    document.getElementById("m_interpreter_name").innerText =
+    document.querySelector("[name='interpreter_name']")?.value
+    || "{{ assessment.interpreter_name|default:'Not Applicable' }}";
 
-  //   consentModal.show();
-  // });
+    consentModal.show();
+  });
 
   /* ======================================================
      FORM SUBMIT
   ====================================================== */
 
-  document.getElementById("section1Form")
+  document.getElementById("consentsForm")
     ?.addEventListener("submit", function (e) {
 
     e.preventDefault();
@@ -1147,30 +937,30 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
       {% else %}
         "Are you sure you want to save the changes?";
       {% endif %}
-    if (clickedAction === "sign_off_section_1") {
+    if (clickedAction === "sign_off_consent") {
       confirmMessage =
-        "Are you sure you want to UPDATE and SIGN OFF Section 1?";
+        "Are you sure you want to UPDATE and SIGN OFF Consents?";
     }
     if (!confirm(confirmMessage)) {
         return;
     }
 
-    // const requiredPads = [
-    //   { key: "patient", label: "Patient signature is required." },
-    //   { key: "attending", label: "Attending signature is required." },
-    //   { key: "witness", label: "Witness signature is required." },
-    //   // { key: "pdpa", label: "PDPA signature is required." }
-    // ];
+    const requiredPads = [
+      { key: "patient", label: "Patient signature is required." },
+      { key: "attending", label: "Attending signature is required." },
+      { key: "witness", label: "Witness signature is required." },
+      // { key: "pdpa", label: "PDPA signature is required." }
+    ];
 
-    // for (const pad of requiredPads) {
-    //   const p = signaturePads[pad.key];
+    for (const pad of requiredPads) {
+      const p = signaturePads[pad.key];
 
-    //   if (p && p.strokes.length === 0) {
-    //     alert(pad.label);
-    //     p.wrapper?.classList.add("border-danger");
-    //     return;
-    //   }
-    // }
+      if (p && p.strokes.length === 0) {
+        alert(pad.label);
+        p.wrapper?.classList.add("border-danger");
+        return;
+      }
+    }
 
     const formData = new FormData(this);
     formData.set("action", clickedAction);
@@ -1179,42 +969,42 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
        SAVE SIGNATURES
     ====================================================== */
 
-    // const patientPad = signaturePads["patient"];
-    // const patientConsentName = document.getElementById("patientConsentName")?.value?.trim();
+    const patientPad = signaturePads["patient"];
+    const patientConsentName = document.getElementById("patientConsentName")?.value?.trim();
 
-    // if (patientPad?.strokes.length > 0 && !patientConsentName) {
-    //   alert("Patient consent name is required.");
-    //   return;
-    // }
+    if (patientPad?.strokes.length > 0 && !patientConsentName) {
+      alert("Patient consent name is required.");
+      return;
+    }
 
-    // if (signaturePads["patient"]?.strokes.length > 0) {
-    //   formData.set(
-    //     "signature_data",
-    //     signaturePads["patient"].canvas.toDataURL("image/png")
-    //   );
-    // }
+    if (signaturePads["patient"]?.strokes.length > 0) {
+      formData.set(
+        "signature_data",
+        signaturePads["patient"].canvas.toDataURL("image/png")
+      );
+    }
 
-    // if (signaturePads["attending"]?.strokes.length > 0) {
-    //   formData.set(
-    //     "attending_signature_data",
-    //     signaturePads["attending"].canvas.toDataURL("image/png")
-    //   );
-    // }
+    if (signaturePads["attending"]?.strokes.length > 0) {
+      formData.set(
+        "attending_signature_data",
+        signaturePads["attending"].canvas.toDataURL("image/png")
+      );
+    }
 
-    // const witnessPad = signaturePads["witness"];
-    // const witnessName = document.getElementById("witnessName")?.value?.trim();
+    const witnessPad = signaturePads["witness"];
+    const witnessName = document.getElementById("witnessName")?.value?.trim();
 
-    // if (witnessPad?.strokes.length > 0 && !witnessName) {
-    //   alert("Witness name is required.");
-    //   return;
-    // }
+    if (witnessPad?.strokes.length > 0 && !witnessName) {
+      alert("Witness name is required.");
+      return;
+    }
 
-    // if (signaturePads["witness"]?.strokes.length > 0) {
-    //   formData.set(
-    //     "witness_signature_data",
-    //     signaturePads["witness"].canvas.toDataURL("image/png")
-    //   );
-    // }
+    if (signaturePads["witness"]?.strokes.length > 0) {
+      formData.set(
+        "witness_signature_data",
+        signaturePads["witness"].canvas.toDataURL("image/png")
+      );
+    }
 
     // const pdpaPad = signaturePads["pdpa"];
     // const pdpaName = document.getElementById("pdpaName")?.value?.trim();
@@ -1232,8 +1022,6 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     // }
 
     const payload = Object.fromEntries(formData.entries());
-    payload["section_1_anatomy_markers"] = markers;
-
     {% if assessment %}
       payload["assessment_id"] = "{{ assessment.id }}";
       const method = "PUT";
@@ -1241,7 +1029,7 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
       const method = "POST";
     {% endif %}
 
-    fetch("{% url 'assessment_section1_and_2_api' %}", {
+    fetch("{% url 'assessment_consent_api' %}", {
       method: method,
       headers: {
         "Content-Type": "application/json",

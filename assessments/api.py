@@ -25,6 +25,7 @@ from .serializers import (
     AssessmentSection3Serializer,
     AssessmentSection4Serializer,
     AssessmentAttachmentSerializer,
+    AssessmentConsentSerializer,
     AssessmentTreatmentPlanSerializer,
     SoapSerializer,
     PatientReevaluationSerializer,
@@ -708,6 +709,208 @@ class AssessmentSection4APIView(APIView):
             status=status.HTTP_200_OK,
         )
 
+
+class AssessmentConsentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    # =========================================================
+    # GET CONSENT DATA
+    # =========================================================
+    def get(self, request):
+        profile = request.user.profile
+        assessment_id = request.GET.get("assessment_id")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # -------------------------
+        # LOCK IF DISCHARGED
+        # -------------------------
+        if assessment.is_discharged:
+            logger.warning(
+                f"LOCKED_ASSESSMENT_EDIT_ATTEMPT | "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role})"
+            )
+
+            return Response(
+                {"detail": "This assessment has been discharged and is locked."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # -------------------------
+        # STUDENT RESTRICTION
+        # -------------------------
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot view this assessment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = AssessmentConsentSerializer(assessment)
+
+        logger.info(
+            f"VIEW - Consent | assessment_id={assessment.id}, "
+            f"user={profile.official_name} ({profile.role})"
+        )
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # =========================================================
+    # UPDATE CONSENT
+    # =========================================================
+    def put(self, request):
+        profile = request.user.profile
+        assessment_id = request.data.get("assessment_id")
+        action = request.data.get("action", "save_consent")
+
+        if not assessment_id:
+            return Response(
+                {"assessment_id": "Assessment ID is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        assessment = get_object_or_404(Assessments, id=assessment_id)
+
+        # -------------------------
+        # LOCK CHECK
+        # -------------------------
+        if assessment.is_discharged:
+            logger.warning(
+                f"LOCKED_UPDATE_ATTEMPT | assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role})"
+            )
+            return Response(
+                {"detail": "Assessment is discharged and locked."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # -------------------------
+        # PERMISSION CHECK
+        # -------------------------
+        if profile.role == "student" and assessment.student != profile:
+            return Response(
+                {"detail": "You cannot edit this assessment"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # -------------------------
+        # MISSING SIGNATURE CHECK
+        # -------------------------
+        # signature_data = request.data.get("signature_data")
+        # attending_signature_data = request.data.get("attending_signature_data")
+        # witness_signature_data = request.data.get("witness_signature_data")
+
+        # missing_signatures = []
+
+        # if not signature_data:
+        #     missing_signatures.append("initial_patient_signature")
+
+        # if not attending_signature_data:
+        #     missing_signatures.append("attending_signature")
+
+        # if not witness_signature_data:
+        #     missing_signatures.append("witness_signature")
+
+        # if missing_signatures:
+        #     logger.warning(
+        #         f"SIGNATURE_MISSING | assessment_id={assessment.id}, "
+        #         f"user={profile.official_name} ({profile.role}), "
+        #         f"missing={missing_signatures}, action={action}"
+        #     )
+
+        #     return Response(
+        #         {
+        #             "detail": "Missing required signatures",
+        #             "missing_signatures": missing_signatures
+        #         },
+        #         status=status.HTTP_400_BAD_REQUEST,
+        #     )
+
+        # -------------------------
+        # VALIDATE + SAVE BASE DATA (serializer fields only)
+        # -------------------------
+        serializer = AssessmentConsentSerializer(
+            assessment,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            # Save serializer fields FIRST
+            assessment = serializer.save()
+
+            message = "Consent updated successfully"
+
+            logger.info(
+                f"CONSENT_UPDATE | assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role}), action={action}"
+            )
+
+            # -------------------------
+            # APPLY ACTION LOGIC (NO SECOND SERIALIZER SAVE)
+            # -------------------------
+            if action == "save_consent":
+                assessment.is_consent_section_signed = False
+
+                logger.info(
+                    f"SAVE_CONSENT | assessment_id={assessment.id}, "
+                    f"user={profile.official_name} ({profile.role})"
+                )
+
+            elif action == "sign_off_consent":
+
+                if profile.role not in ["clinician", "admin"]:
+                    logger.warning(
+                        f"SIGN_OFF_DENIED | assessment_id={assessment.id}, "
+                        f"user={profile.official_name} ({profile.role})"
+                    )
+                    return Response(
+                        {"detail": "Not allowed to sign off consent"},
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+
+                assessment.is_consent_section_signed = True
+                assessment.consent_section_signed_by = profile
+                assessment.consent_section_signed_at = timezone.now()
+
+                logger.info(
+                    f"SIGN_OFF_CONSENT | assessment_id={assessment.id}, "
+                    f"signed_by={profile.official_name} ({profile.role})"
+                )
+
+                message = "Consent signed off successfully"
+
+            # -------------------------
+            # FINAL SAVE (ONLY ONCE)
+            # -------------------------
+            assessment.save()
+
+            logger.info(
+                f"CONSENT_FINAL_SAVED | assessment_id={assessment.id}, "
+                f"action={action}, message={message}"
+            )
+
+            return Response({"message": message}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(
+                f"CONSENT_UPDATE_FAILED | assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role}), error={str(e)}",
+                exc_info=True,
+            )
+
+            return Response(
+                {"detail": "Failed to update consent", "error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )    
 
 class AssessmentAttachmentAPIView(APIView):
     permission_classes = [IsAuthenticated]

@@ -99,11 +99,6 @@ class AssessmentSection1FormView(BaseAssessmentFormView):
         Allow students to create a new Section 1 assessment for themselves.
         """
         return False
-    
-    def get_extra_context(self):
-        return {
-            "witness_relationship_choices": WITNESS_RELATIONSHIP_CHOICES
-        }
 
 
 class AssessmentSection2FormView(BaseAssessmentFormView):
@@ -117,6 +112,14 @@ class AssessmentSection3FormView(BaseAssessmentFormView):
 class AssessmentSection4FormView(BaseAssessmentFormView):
     template_name = "assessments/section4_form.html"
 
+
+class AssessmentConsentsFormView(BaseAssessmentFormView):
+    template_name = "assessments/consents_form.html"
+
+    def get_extra_context(self):
+        return {
+            "witness_relationship_choices": WITNESS_RELATIONSHIP_CHOICES
+        }
 
 class AssessmentTreatmentPlanFormView(BaseAssessmentFormView):
     template_name = "assessments/treatment_plan_form.html"
