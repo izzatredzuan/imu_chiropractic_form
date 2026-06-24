@@ -12,7 +12,7 @@ from .models import (
     SoapModality,
     PatientReevaluation,
 )
-from .choices import WITNESS_RELATIONSHIP_CHOICES
+from .choices import INITIAL_PATIENT_CONSENT_CHOICES
 from .utils import (
     clinician_is_readonly,
 )
@@ -118,7 +118,7 @@ class AssessmentConsentsFormView(BaseAssessmentFormView):
 
     def get_extra_context(self):
         return {
-            "witness_relationship_choices": WITNESS_RELATIONSHIP_CHOICES
+            "initial_patient_consent_choices": INITIAL_PATIENT_CONSENT_CHOICES
         }
 
 class AssessmentTreatmentPlanFormView(BaseAssessmentFormView):

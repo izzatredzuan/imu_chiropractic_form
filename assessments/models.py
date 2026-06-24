@@ -212,6 +212,9 @@ class Assessments(models.Model):
     chiropractic_intern_treatment_consent = models.BooleanField(default=False)
     is_initial_patient_consent_signed = models.BooleanField(default=False)
     initial_patient_consent_signed_by = models.CharField(max_length=150, null=True, blank=True)
+    initial_patient_consent_relationship = models.CharField(
+        max_length=30, choices=choices.INITIAL_PATIENT_CONSENT_CHOICES, null=True, blank=True
+    )
     initial_patient_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("patient_signatures"), null=True, blank=True
     )
@@ -244,9 +247,6 @@ class Assessments(models.Model):
     # =====================
     is_witness_consent_signed = models.BooleanField(default=False)
     witness_consent_signed_by = models.CharField(max_length=150, null=True, blank=True)
-    witness_relationship = models.CharField(
-        max_length=30, choices=choices.WITNESS_RELATIONSHIP_CHOICES, null=True, blank=True
-    )
     witness_consent_signature = models.ImageField(
         upload_to=AssessmentUploadPath("witness_signatures"), null=True, blank=True
     )

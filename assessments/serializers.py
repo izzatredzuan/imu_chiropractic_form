@@ -271,7 +271,7 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             "gender_text",
-            "witness_relationship_text",
+            # "witness_relationship_text",
             "is_section_1_signed",
             "section_1_signed_by_name",
             "section_1_signed_by_role",
@@ -650,6 +650,11 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
         required=True, allow_blank=False
     )
 
+    initial_patient_consent_relationship_text = serializers.CharField(
+        source="get_initial_patient_consent__display",
+        read_only=True,
+    )
+
     attending_consent_signed_by_name = serializers.CharField(
         source="attending_consent_signed_by.official_name",
         read_only=True,
@@ -657,11 +662,6 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
 
     attending_consent_signed_by_role = serializers.CharField(
         source="attending_consent_signed_by.role",
-        read_only=True,
-    )
-
-    witness_relationship_text = serializers.CharField(
-        source="get_witness_relationship_display",
         read_only=True,
     )
 
@@ -682,6 +682,8 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
             # =====================================================
             "is_initial_patient_consent_signed",
             "initial_patient_consent_signed_by",
+            "initial_patient_consent_relationship",
+            "initial_patient_consent_relationship_text",
             "initial_patient_consent_signed_at",
             "initial_patient_consent_signature",
             "signature_data",
@@ -700,8 +702,6 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
             # =====================================================
             "is_witness_consent_signed",
             "witness_consent_signed_by",
-            "witness_relationship",
-            "witness_relationship_text",
             "witness_consent_signed_at",
             "witness_consent_signature",
             "witness_signature_data",
@@ -727,9 +727,9 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
         ]
 
         read_only_fields = [
+            "initial_patient_consent_relationship_text",
             "attending_consent_signed_by_name",
             "attending_consent_signed_by_role",
-            "witness_relationship_text",
             # "is_pdpa_consent_signed",
             # "pdpa_consent_signed_at",
             "is_consent_section_signed",

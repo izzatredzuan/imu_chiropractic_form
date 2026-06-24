@@ -107,6 +107,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "student_observation_consent",
                     "chiropractic_intern_treatment_consent",
                     "initial_patient_consent_signed_by",
+                    "initial_patient_consent_relationship",
                     "initial_patient_consent_signature",
                     "initial_patient_consent_signed_at",
                 )
@@ -129,7 +130,6 @@ class AssessmentsAdmin(admin.ModelAdmin):
                 "fields": (
                     "is_witness_consent_signed",
                     "witness_consent_signed_by",
-                    "witness_relationship",
                     "witness_consent_signature",
                     "witness_consent_signed_at",
                 )

@@ -290,7 +290,7 @@
             <strong>Signed Successfully</strong><br>
 
             <small class="text-muted d-block">
-              Signed by: {{ assessment.initial_patient_consent_signed_by }}
+              Signed by: {{ assessment.initial_patient_consent_signed_by }} ({{ assessment.get_initial_patient_consent_relationship_display }})
             </small>
 
             <small class="text-muted">
@@ -336,6 +336,23 @@
                   id="patientConsentName"
                   class="form-control"
                   placeholder="Enter Patient Consent name">
+          </div>
+
+          <div class="mt-2">
+            <label class="form-label required">Patient Consent Relationship</label>
+            <select name="initial_patient_consent_relationship"
+                    class="form-control"
+                    required
+                    {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
+                <option value="">-- Select --</option>
+
+                {% for value, label in initial_patient_consent_choices %}
+                    <option value="{{ value }}"
+                            {% if assessment.initial_patient_consent_relationship == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
           </div>
 
           <input type="hidden"
@@ -449,7 +466,7 @@
             <strong>Signed Successfully</strong><br>
             <small class="text-muted d-block">
               Signed by:
-              {{ assessment.witness_consent_signed_by }} ({{ assessment.get_witness_relationship_display }})
+              {{ assessment.witness_consent_signed_by }}
             </small>
 
             <small class="text-muted">
@@ -495,22 +512,6 @@
                   placeholder="Enter witness name">
           </div>
 
-          <div class="mt-2">
-            <label class="form-label required">Witness Relationship</label>
-            <select name="witness_relationship"
-                    class="form-control"
-                    required
-                    {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
-                <option value="">-- Select --</option>
-
-                {% for value, label in witness_relationship_choices %}
-                    <option value="{{ value }}"
-                            {% if assessment.witness_relationship == value %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
-          </div>
           <input type="hidden"
                 name="witness_signature_data"
                 id="witnessSignatureData">
@@ -908,8 +909,8 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     || "{{ assessment.ic_passport_number|default:'-' }}";
 
     document.getElementById("m_relationship").innerText =
-    document.querySelector("[name='witness_relationship']")?.value
-    || "{{ assessment.witness_relationship|default:'-' }}";
+    document.querySelector("[name='initial_patient_consent_relationship'] option:checked")?.textContent
+    || "{{ assessment.get_initial_patient_consent_relationship_display|default:'-' }}";
 
     document.getElementById("m_attending_name").innerText =
     document.querySelector("[name='attending_consent_signed_by'] option:checked")?.textContent

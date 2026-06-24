@@ -851,7 +851,7 @@
 
                     who is my
                     <span class="fw-bold text-primary">
-                      ${safe(consents.witness_relationship_text)}
+                      ${safe(consents.initial_patient_consent_relationship)}
                     </span>,
 
                     to undergo chiropractic treatment. The nature of the treatment,
@@ -882,7 +882,7 @@
                       <img class="signature-img d-block mx-auto"
                           src="${consents.initial_patient_consent_signature}">
                       <div class="mt-2 small text-muted">
-                        <strong>${safe(consents.initial_patient_consent_signed_by)}</strong>
+                        <strong>${safe(consents.initial_patient_consent_signed_by)} (${safe(consents.initial_patient_consent_relationship_text)})</strong>
                       </div>
 
                       <div class="small text-muted">
@@ -920,7 +920,7 @@
                           src="${consents.witness_consent_signature}">
 
                       <div class="mt-2 small text-muted">
-                        <strong>${safe(consents.witness_consent_signed_by)} (${safe(consents.witness_relationship_text)})</strong>
+                        <strong>${safe(consents.witness_consent_signed_by)}</strong>
                       </div>
 
                       <div class="small text-muted">

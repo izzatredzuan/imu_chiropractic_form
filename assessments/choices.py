@@ -31,16 +31,19 @@ MODALITIES_CHOICES = (
     ("shockwave", "Shockwave"),
 )
 
-WITNESS_RELATIONSHIP_CHOICES = (
-    ("supervising_clinician", "Supervising Clinician"),
-
-    ("staff_nurse", "Staff Nurse"),
-    ("healthcare_professional", "Healthcare Professional"),
-
-    ("colleague", "Colleague"),
-    ("student_peer", "Student Peer"),
-
-    ("administrative_staff", "Administrative Staff"),
-
+INITIAL_PATIENT_CONSENT_CHOICES = (
+    ("self", "Self (Patient)"),
+    ("parent", "Parent"),
+    ("legal_guardian", "Legal Guardian"),
+    ("spouse", "Spouse"),
+    ("sibling", "Sibling"),
+    ("child", "Child"),
+    ("grandparent", "Grandparent"),
+    ("grandchild", "Grandchild"),
+    ("relative", "Other Relative"),
+    ("caregiver", "Caregiver"),
+    ("next_of_kin", "Next of Kin"),
+    ("power_of_attorney", "Power of Attorney"),
+    ("authorized_representative", "Authorized Representative"),
     ("other", "Other"),
 )

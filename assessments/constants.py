@@ -92,6 +92,7 @@ CONSENTS_FIELDS = [
     "evaluator",
     # Patient checkboxes
     "initial_patient_consent_signed_by",
+    "initial_patient_consent_relationship",
     "patient_record_review_consent",
     "treatment_discontinuation_policy_consent",
     "student_observation_consent",
@@ -100,7 +101,6 @@ CONSENTS_FIELDS = [
     "attending_consent_signed_by",
     # Witness consent
     "witness_consent_signed_by",
-    "witness_relationship",
     # PDPA checkboxes
     # "pdpa_consent_signed_by",
     # "education_consent",
