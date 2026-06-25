@@ -772,10 +772,10 @@
                     </div>
                 ` : "";
 
-                const urlTemplate = "{% url 'assessment_soap_edit' 0 1 %}";
+                const urlTemplate = "{% url 'assessment_soap_edit' 99999999 88888888 %}";
                 const fullUrl = urlTemplate
-                    .replace("0", assessmentId)
-                    .replace("1", soap.id);
+                    .replace("99999999", assessmentId)
+                    .replace("88888888", soap.id);
 
                 html += `
                     <div class="card mb-4 shadow-sm soap-card hover-shadow" 
@@ -1033,11 +1033,11 @@
                     "";
 
                 const urlTemplate =
-                    "{% url 'assessment_patient_reevaluation_edit' 0 1 %}";
+                    "{% url 'assessment_patient_reevaluation_edit' 99999999 88888888 %}";
                 const fullUrl =
                     urlTemplate
-                    .replace("0", assessmentId)
-                    .replace("1", reevaluation.id);
+                    .replace("99999999", assessmentId)
+                    .replace("88888888", reevaluation.id);
 
                 html += `
                     <div class="card mb-4 shadow-sm hover-shadow"
@@ -1337,11 +1337,13 @@
                     "";
 
                 const urlTemplate =
-                    "{% url 'assessment_patient_new_complaint_edit' 0 1 %}";
+                    "{% url 'assessment_patient_new_complaint_edit' 99999999 88888888 %}";
                 const fullUrl =
                     urlTemplate
-                    .replace("0", assessmentId)
-                    .replace("1", newComplaint.id);
+                    .replace("99999999", assessmentId)
+                    .replace("88888888", newComplaint.id);
+                console.log(assessmentId)
+                console.log(fullUrl)
 
                 html += `
                     <div class="card mb-4 shadow-sm hover-shadow"
