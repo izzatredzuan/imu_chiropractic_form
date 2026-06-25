@@ -4,7 +4,7 @@ SECTION_1_FIELDS = [
     "evaluator",
     # Patient Details
     "patient_name",
-    "ic_passport_number",
+    "patient_ic_passport_number",
     "mrn_number",
     "gender",
     "date_of_birth",
@@ -92,6 +92,7 @@ CONSENTS_FIELDS = [
     "evaluator",
     # Patient checkboxes
     "initial_patient_consent_signed_by",
+    "initial_patient_consent_ic_passport_number",
     "initial_patient_consent_relationship",
     "patient_record_review_consent",
     "treatment_discontinuation_policy_consent",

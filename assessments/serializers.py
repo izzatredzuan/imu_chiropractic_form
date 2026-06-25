@@ -61,7 +61,7 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "patient_name",
-            "ic_passport_number",
+            "patient_ic_passport_number",
             "mrn_number",
             "student",
             "clinician",
@@ -188,7 +188,7 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
             "evaluator",
             # Section 1 – Initial Assessment
             "patient_name",
-            "ic_passport_number",
+            "patient_ic_passport_number",
             "mrn_number",
             "gender",
             "gender_text",
@@ -682,6 +682,7 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
             # =====================================================
             "is_initial_patient_consent_signed",
             "initial_patient_consent_signed_by",
+            "initial_patient_consent_ic_passport_number",
             "initial_patient_consent_relationship",
             "initial_patient_consent_relationship_text",
             "initial_patient_consent_signed_at",

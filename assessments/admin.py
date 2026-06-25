@@ -20,7 +20,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "patient_name",
-        "ic_passport_number",
+        "patient_ic_passport_number",
         "student",
         "evaluator",
         "is_initial_patient_consent_signed",
@@ -61,7 +61,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
     search_fields = (
         "id",
         "patient_name",
-        "ic_passport_number",
+        "patient_ic_passport_number",
         "student__user__username",
         "evaluator__user__username",
     )
@@ -107,6 +107,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
                     "student_observation_consent",
                     "chiropractic_intern_treatment_consent",
                     "initial_patient_consent_signed_by",
+                    "initial_patient_consent_ic_passport_number",
                     "initial_patient_consent_relationship",
                     "initial_patient_consent_signature",
                     "initial_patient_consent_signed_at",
@@ -164,7 +165,7 @@ class AssessmentsAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "patient_name",
-                    "ic_passport_number",
+                    "patient_ic_passport_number",
                     "mrn_number",
                     "gender",
                     "date_of_birth",
@@ -352,7 +353,7 @@ class AssessmentAttachmentAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__ic_passport_number",
+        "assessment__patient_ic_passport_number",
         "assessment__mrn_number",
         "label",
         "file",
@@ -460,7 +461,7 @@ class SoapsAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__ic_passport_number",
+        "assessment__patient_ic_passport_number",
         "assessment__mrn_number",
         "student__user__username",
         "evaluator__user__username",
@@ -644,7 +645,7 @@ class PatientReevaluationAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__ic_passport_number",
+        "assessment__patient_ic_passport_number",
         "assessment__mrn_number",
         "student__user__username",
         "evaluator__user__username",
@@ -754,7 +755,7 @@ class PatientNewComplaintAdmin(admin.ModelAdmin):
 
     search_fields = (
         "assessment__patient_name",
-        "assessment__ic_passport_number",
+        "assessment__patient_ic_passport_number",
         "assessment__mrn_number",
         "student__user__username",
         "evaluator__user__username",

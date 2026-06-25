@@ -14,23 +14,6 @@ Priority:
 Note:
 - Add Convert to pdf function
 
-19/06/2026:
-Section 1 to New Consent section (After section 4 & Before treatment plan)
-- PDPA consent section will be removed from the application [DONE]
-- Move all consent section other than PDPA to the new page [DONE]
-- Witness consent is actually witness for the attending staff NOT patient so need to change the relationship list [DONE]
-
-Consent & Submission Confirmation section:
-- For the , the first name after "I, ____" sentence is the Patient Consent name not witness consent name [DONE]
-- Add IC field with encryption to the Assessment model and display it in the consent confirmation text [DONE]
-General:
-Fix logo image in login page [DONE]
-
-24/06/2026:
-Consent:
-- Repurpose Witness Relationship to Patient Consent Relationship instead
-- Add Patient Consent IC section but in 
-
 Enhancement Suggestion:
 
 - Login need to check if user is_locked or not
@@ -152,6 +135,24 @@ Assessment:
 - Phase 1, 2, 3 change it to be optional and not mandatory [DONE]
   General:
 - Change all orthopedic words to orthopaedic [DONE]
+
+19/06/2026:
+Section 1 to New Consent section (After section 4 & Before treatment plan)
+- PDPA consent section will be removed from the application [DONE]
+- Move all consent section other than PDPA to the new page [DONE]
+- Witness consent is actually witness for the attending staff NOT patient so need to change the relationship list [DONE]
+
+Consent & Submission Confirmation section:
+- For the , the first name after "I, ____" sentence is the Patient Consent name not witness consent name [DONE]
+- Add IC field with encryption to the Assessment model and display it in the consent confirmation text [DONE]
+General:
+Fix logo image in login page [DONE]
+
+24/06/2026:
+Consent:
+- Repurpose Witness Relationship to Patient Consent Relationship instead [DONE]
+- Add Patient Consent IC section [DONE]
+
 ======================================================= CANCELLED =======================================================
 Bugs:
 

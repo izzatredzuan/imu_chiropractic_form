@@ -147,10 +147,10 @@
               <div class="col-md-4 mb-3">
                 <label class="form-label required">IC / Passport Number</label>
                 <input type="text"
-                      name="ic_passport_number"
+                      name="patient_ic_passport_number"
                       class="form-control"
                       required
-                      value="{{ assessment.ic_passport_number|default_if_none:'' }}"
+                      value="{{ assessment.patient_ic_passport_number|default_if_none:'' }}"
                       {% if is_readonly or assessment.is_consent_section_signed %}disabled{% endif %}>
               </div>
               <div class="col-md-4 mb-3">
@@ -337,7 +337,16 @@
                   class="form-control"
                   placeholder="Enter Patient Consent name">
           </div>
-
+          
+          <div class="mt-2">
+            <label class="form-label required">Patient Consent IC / Passport Number</label>
+            <input type="text"
+                  name="initial_patient_consent_ic_passport_number"
+                  id="patientConsentICPassport"
+                  class="form-control"
+                  placeholder="Enter Patient Consent name IC / Passport Number">
+          </div>
+          
           <div class="mt-2">
             <label class="form-label required">Patient Consent Relationship</label>
             <select name="initial_patient_consent_relationship"
@@ -904,9 +913,9 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     document.querySelector("[name='patient_name']")?.value
     || "{{ assessment.patient_name|default:'-' }}";
 
-    document.getElementById("m_ic_passport_number").innerText =
-    document.querySelector("[name='ic_passport_number']")?.value
-    || "{{ assessment.ic_passport_number|default:'-' }}";
+    document.getElementById("m_initial_patient_consent_ic_passport_number").innerText =
+    document.querySelector("[name='initial_patient_consent_ic_passport_number']")?.value
+    || "{{ assessment.initial_patient_consent_ic_passport_number|default:'-' }}";
 
     document.getElementById("m_relationship").innerText =
     document.querySelector("[name='initial_patient_consent_relationship'] option:checked")?.textContent
@@ -1029,7 +1038,6 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     {% else %}
       const method = "POST";
     {% endif %}
-
     fetch("{% url 'assessment_consent_api' %}", {
       method: method,
       headers: {

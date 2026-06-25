@@ -65,11 +65,11 @@ class Assessments(models.Model):
     # Section 1 – Initial Assessment
     # =====================
     patient_name = models.CharField(max_length=150)
-    ic_passport_number = EncryptedCharField(max_length=255)
+    patient_ic_passport_number = EncryptedCharField(max_length=255)
     # Store the hash of IC/Passport for indexing and lookup without exposing the actual value
     # for query reference: 
     # Assessments.objects.get(ic_passport_hash=hashlib.sha256("123456".strip().upper().encode()).hexdigest())
-    ic_passport_hash = models.CharField(
+    patient_ic_passport_hash = models.CharField(
         max_length=64,
         db_index=True,
         editable=False
@@ -212,6 +212,17 @@ class Assessments(models.Model):
     chiropractic_intern_treatment_consent = models.BooleanField(default=False)
     is_initial_patient_consent_signed = models.BooleanField(default=False)
     initial_patient_consent_signed_by = models.CharField(max_length=150, null=True, blank=True)
+    initial_patient_consent_ic_passport_number = EncryptedCharField(max_length=255, null=True, blank=True)
+    # Store the hash of IC/Passport for indexing and lookup without exposing the actual value
+    # for query reference: 
+    # Assessments.objects.get(initial_patient_consent_ic_passport_hash=hashlib.sha256("123456".strip().upper().encode()).hexdigest())
+    initial_patient_consent_ic_passport_hash = models.CharField(
+        max_length=64,
+        db_index=True,
+        editable=False, 
+        null=True, 
+        blank=True
+    )
     initial_patient_consent_relationship = models.CharField(
         max_length=30, choices=choices.INITIAL_PATIENT_CONSENT_CHOICES, null=True, blank=True
     )
@@ -344,9 +355,9 @@ class Assessments(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if self.ic_passport_number:
-            self.ic_passport_hash = hashlib.sha256(
-                self.ic_passport_number.strip().upper().encode()
+        if self.patient_ic_passport_number:
+            self.patient_ic_passport_hash = hashlib.sha256(
+                self.patient_ic_passport_number.strip().upper().encode()
             ).hexdigest()
 
         super().save(*args, **kwargs)
