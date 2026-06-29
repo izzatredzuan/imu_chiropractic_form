@@ -917,7 +917,7 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     document.querySelector("[name='initial_patient_consent_ic_passport_number']")?.value
     || "{{ assessment.initial_patient_consent_ic_passport_number|default:'-' }}";
 
-    document.getElementById("m_relationship").innerText =
+    document.getElementById("m_patient_consent_relationship").innerText =
     document.querySelector("[name='initial_patient_consent_relationship'] option:checked")?.textContent
     || "{{ assessment.get_initial_patient_consent_relationship_display|default:'-' }}";
 

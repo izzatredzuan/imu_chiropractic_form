@@ -134,6 +134,17 @@ USE_I18N = True
 
 USE_TZ = True
 
+# E-mail sending config
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+
+EMAIL_HOST = "smtp.office365.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = "izzatredzuan@imu.edu.my"
+EMAIL_HOST_PASSWORD = "$Abc1037"
+
+DEFAULT_FROM_EMAIL = "izzatredzuan@imu.edu.my"
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/

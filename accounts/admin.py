@@ -1,9 +1,5 @@
 from django.contrib import admin
-from .models import Profile
-
-
-from django.contrib import admin
-from .models import Profile
+from .models import Profile, Department
 
 
 @admin.register(Profile)
@@ -14,13 +10,14 @@ class ProfileAdmin(admin.ModelAdmin):
         "member_id",
         "official_name",
         "role",
-        "department_code",
+        "department",
         "cohort_code",
         "location",
         "phone",
         "is_admin",
         "is_locked",
         "account_creation_date",
+        "first_time_password_change",
     )
 
     # Filters in the sidebar
@@ -32,6 +29,7 @@ class ProfileAdmin(admin.ModelAdmin):
         "location",
         "country",
         "state",
+        "first_time_password_change",
         "account_creation_date",
     )
 
@@ -45,7 +43,8 @@ class ProfileAdmin(admin.ModelAdmin):
         "personal_email",
         "phone",
         "nricpsprt",
-        "department_code",
+        "department__department_code",
+        "department__department_name",
         "cohort_code",
         "location",
     )
@@ -80,6 +79,7 @@ class ProfileAdmin(admin.ModelAdmin):
                     "is_admin",
                     "is_locked",
                     "account_creation_date",
+                    "first_time_password_change",
                 )
             },
         ),
@@ -137,7 +137,7 @@ class ProfileAdmin(admin.ModelAdmin):
             {
                 "classes": ("collapse",),
                 "fields": (
-                    "department_code",
+                    "department",
                     "business_unit",
                 ),
             },
@@ -151,4 +151,20 @@ class ProfileAdmin(admin.ModelAdmin):
                 ),
             },
         ),
+    )
+
+@admin.register(Department)
+class DepartmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "department_code",
+        "department_name",
+    )
+
+    search_fields = (
+        "department_code",
+        "department_name",
+    )
+
+    ordering = (
+        "department_code",
     )

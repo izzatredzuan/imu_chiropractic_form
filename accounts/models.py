@@ -3,6 +3,23 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class Department(models.Model):
+    department_code = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=False,
+        null=False,
+        help_text="Unique code for department.",
+    )
+    department_name =  models.CharField(max_length=30, blank=False, null=False)
+
+    class Meta:
+        ordering = ["department_name"]
+
+    def __str__(self):
+        return f"{self.department_code} - {self.department_name}"
+
+
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
 
@@ -31,6 +48,7 @@ class Profile(models.Model):
     )
 
     is_admin = models.BooleanField(default=False)
+    first_time_password_change = models.BooleanField(default=True)
 
     # Shared fields
     nricpsprt = models.CharField("IC / Passport", max_length=30, blank=True, null=True)
@@ -60,7 +78,14 @@ class Profile(models.Model):
     advisor_email = models.EmailField(blank=True, null=True)
 
     # clinicians-specific fields (can be blank for students)
-    department_code = models.CharField("Department Code", max_length=15, choices=choices.DEPARTMENT_CODE_CHOICES, blank=True, null=True, help_text="Clinician department code")
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="profiles",
+        help_text="Clinician department"
+    )
     business_unit = models.CharField(max_length=30, blank=True, null=True)
 
     # Extra fields
@@ -73,4 +98,3 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.member_id} - {self.official_name}"
-    

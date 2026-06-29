@@ -1,29 +1,27 @@
 This are the minute and change request requested by user Chow Kit Yee and Nashereena Kaur Dhillon
 
 09/04/2026
-
 - SOAP:
   - Add delete function for modalities if it is not sign off yet
-
-28/04/2026
-
-- User creation, student need a field for cohorts
 
 Priority:
 21/05/2026
 Note:
 - Add Convert to pdf function
+- Note Page (Soap Section) need to list out description of each marker on pdf convert 
 
 Enhancement Suggestion:
-
 - Login need to check if user is_locked or not
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
 - Add filter for assessment, display entry by month
-- Might what to add AI to do a summary for the whole assessment when convert to pdf
+
+- Might want to add AI to do a summary for the whole assessment when convert to pdf
+
+26/06/2026
+- Section 4 Diagnosis, change to to be like remark field where you can click add to add multiple cmment with dates
 
 Bugs:
-
 - Datatable sorting is incorrect
 
 QUESTION to ask in the future to Chiro team:
@@ -44,34 +42,10 @@ Major:
 - SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment [DONE]
 
 09/04/2026
-
 - SOAP:
   - Next appoinment and modalities is not mandatory [DONE]
 
-Minor:
 
-- Clinician can view all assessments [DONE]
-- Clinician can assign any clinician [DONE]
-- Add confirmation alert box if user really want to save the assessment [DONE]
-- Add a column "last updated by whom" [DONE]
-- Add the time for "last updated" [DONE]
-- Add 2 new field 'Differential Diagnosis' and 'Working Diagnosis'in Assessment table [DONE]
-- If a clinician view an assessments that are not theirs, all the field will be readonly and sign-off and save button will be hide [DONE]
-- Need to add Patient detail (name, file number) for each section. [DONE]
-- Fix page redirect on login issue [DONE]
-- clinician and Student cant save assessment [DONE]
-- Change button color after student edit a section for clinician to know which assessments to sign-off [DONE]
-- Filter button for clinician to only see all assessments assigned to them [DONE]
-- Create a new field name "file_number" [DONE]
-- Change Legend sequence [DONE]
-- Combine date field with at and by into 1 column [DONE]
-- Section 5 will be move to Part 2 [DONE]
-- Everything can only access after section 4 complete [DONE]
-- Change the flow, clinician only need to sign off one section that has been edited by student [DONE]
-- SOAP create button should be disabled if its not assign to you [DONE]
-
-- Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
-- Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
 - Fix UI on the undo and clear button in section 1 signature [DONE]
 
 06/03/2026
@@ -93,6 +67,9 @@ Minor:
 - Add File uploading field in Treatment Plan [DONE]
 
 Priority:
+28/04/2026
+- User creation, student need a field for cohorts [DONE]
+
 21/05/2026
 Section 1 :
 
@@ -152,6 +129,35 @@ Fix logo image in login page [DONE]
 Consent:
 - Repurpose Witness Relationship to Patient Consent Relationship instead [DONE]
 - Add Patient Consent IC section [DONE]
+
+29/06/2026:
+- Create Employee/Student User profile  account sync(create/update) from IMU API [DONE]
+- Create change password page and function [DONE]
+
+Minor:
+
+- Clinician can view all assessments [DONE]
+- Clinician can assign any clinician [DONE]
+- Add confirmation alert box if user really want to save the assessment [DONE]
+- Add a column "last updated by whom" [DONE]
+- Add the time for "last updated" [DONE]
+- Add 2 new field 'Differential Diagnosis' and 'Working Diagnosis'in Assessment table [DONE]
+- If a clinician view an assessments that are not theirs, all the field will be readonly and sign-off and save button will be hide [DONE]
+- Need to add Patient detail (name, file number) for each section. [DONE]
+- Fix page redirect on login issue [DONE]
+- clinician and Student cant save assessment [DONE]
+- Change button color after student edit a section for clinician to know which assessments to sign-off [DONE]
+- Filter button for clinician to only see all assessments assigned to them [DONE]
+- Create a new field name "file_number" [DONE]
+- Change Legend sequence [DONE]
+- Combine date field with at and by into 1 column [DONE]
+- Section 5 will be move to Part 2 [DONE]
+- Everything can only access after section 4 complete [DONE]
+- Change the flow, clinician only need to sign off one section that has been edited by student [DONE]
+- SOAP create button should be disabled if its not assign to you [DONE]
+
+- Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
+- Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
 
 ======================================================= CANCELLED =======================================================
 Bugs:

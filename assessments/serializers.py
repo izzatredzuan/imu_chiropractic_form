@@ -651,7 +651,7 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
     )
 
     initial_patient_consent_relationship_text = serializers.CharField(
-        source="get_initial_patient_consent__display",
+        source="get_initial_patient_consent_relationship_display",
         read_only=True,
     )
 
