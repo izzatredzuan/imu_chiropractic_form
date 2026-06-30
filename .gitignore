@@ -13,6 +13,9 @@ __pycache__/
 venv/
 env/
 
+# Django Enviroment file
+.env
+
 # Django static files (collected with collectstatic)
 static/
 
