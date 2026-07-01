@@ -108,6 +108,7 @@ class Command(BaseCommand):
                             "member_id": emp_code,
                             "official_name": emp.get("EMP_NAME", ""),
                             "role": role,
+                            "personal_email": emp.get("EMAIL", ""),
                             "address_1": emp.get("ADDRESS1"),
                             "address_2": emp.get("ADDRESS2"),
                             "address_3": emp.get("ADDRESS3"),

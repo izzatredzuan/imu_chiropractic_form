@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 APP_NAME = "IMU Chiropractic Form"
-APP_VERSION = "0.6.3"
+APP_VERSION = "0.6.4"
 
 
 # Quick-start development settings - unsuitable for production
@@ -183,8 +183,10 @@ LOGIN_EXEMPT_URLS = (
     r"^accounts/api/*",
     r"^media/",
     r"^dashboard/",
-    r"^password-reset/",
+    r"^reset-password/",
+    r"^reset-password(?:/.*)?$",
     r"^forgot-password/",
+    r"^forgot-password/?$",
     r"^onboarding/",
 )
 

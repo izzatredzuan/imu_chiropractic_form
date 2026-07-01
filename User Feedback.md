@@ -133,6 +133,7 @@ Consent:
 29/06/2026:
 - Create Employee/Student User profile  account sync(create/update) from IMU API [DONE]
 - Create change password page and function [DONE]
+- Create forget password page and function [DONE]
 
 Minor:
 
