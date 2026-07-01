@@ -14,29 +14,35 @@ from accounts.services import (
 logger = logging.getLogger("userprofile")
 
 
+# Sync all students
+# python manage.py sync_student_profile
+
+# Sync one student
+# python manage.py sync_student_profile 00000051843
+
+
+# Sync multiple students
+# python manage.py sync_student_profile 00000051843 00000051844 00000051845
 class Command(BaseCommand):
     help = "Sync IMU students into User and Profile models"
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "student_id",
-            nargs="?",
+            "student_ids",
+            nargs="*",
             type=str,
-            help="Sync only the specified student.",
+            help="One or more student IDs to sync.",
         )
-
         parser.add_argument(
             "--create-only",
             action="store_true",
             help="Create new users only. Existing users are skipped.",
         )
-
         parser.add_argument(
             "--update-only",
             action="store_true",
             help="Update existing users only. New users are skipped.",
         )
-
         parser.add_argument(
             "--dry-run",
             action="store_true",
@@ -44,7 +50,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        student_id = options.get("student_id")
+        student_ids = options.get("student_ids") or []
+        student_ids_set = set(student_ids)
+
         create_only = options["create_only"]
         update_only = options["update_only"]
         dry_run = options["dry_run"]
@@ -54,12 +62,12 @@ class Command(BaseCommand):
                 "--create-only and --update-only cannot be used together."
             )
 
-        logger.info("Student sync started. Filter=%s", student_id or "ALL")
+        logger.info(
+            "Student sync started. Filter=%s",
+            ", ".join(student_ids) if student_ids else "ALL",
+        )
 
-        if student_id:
-            students = get_imu_student_details(student_id)
-        else:
-            students = get_imu_student_details()
+        students = get_imu_student_details(student_ids)
 
         created_count = 0
         updated_count = 0
@@ -80,18 +88,18 @@ class Command(BaseCommand):
                 logger.warning("Skipping record with missing EMPLID")
                 continue
 
+            if student_ids and member_id not in student_ids_set:
+                continue
+
             try:
                 with transaction.atomic():
-
                     profile = (
                         Profile.objects.filter(member_id=member_id)
                         .select_related("user")
                         .first()
                     )
 
-                    #
                     # Existing user
-                    #
                     if profile:
                         if create_only:
                             skipped_count += 1
@@ -104,9 +112,7 @@ class Command(BaseCommand):
                         user = profile.user
                         created = False
 
-                    #
                     # New user
-                    #
                     else:
                         if update_only:
                             skipped_count += 1
@@ -127,7 +133,9 @@ class Command(BaseCommand):
 
                         if not dry_run:
                             user.save()
-                            send_temp_password_email(user,student["LONG_FULL_NAME"], temp_password)
+                            send_temp_password_email(
+                                user, student["LONG_FULL_NAME"], temp_password
+                            )
 
                         created = True
 

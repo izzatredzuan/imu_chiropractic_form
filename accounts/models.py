@@ -73,7 +73,7 @@ class Profile(models.Model):
     # student-specific fields (can be blank for clinicians)
     cohort_code = models.CharField("Cohort Code", max_length=20, choices=choices.COHORT_CODE_CHOICES, blank=True, null=True, help_text="Student cohort code")
     program_description = models.CharField(max_length=50, blank=True, null=True)
-    transcript_description = models.CharField(max_length=80, blank=True, null=True)
+    transcript_description = models.CharField(max_length=200, blank=True, null=True)
     advisor_name = models.CharField(max_length=150, blank=True, null=True)
     advisor_email = models.EmailField(blank=True, null=True)
 

@@ -36,7 +36,6 @@ def send_temp_password_email(user, full_name, temp_password):
         """,
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
-            # recipient_list=["izzatredzuan@imu.edu.my"],
             fail_silently=False,
         )
 
@@ -66,40 +65,52 @@ def send_reset_password_email(user, reset_link):
             )
     
 # API Configuration
-# HEADERS = {
-#     "x-functions-key": "mF5mDk4S3fPFC_60ETADBUUafITYSZS3fQA8xobV4HgxAzFuTbBW6Q=="
-# }
-
-# BASE_URL = "https://imuapi.azurewebsites.net/api/SqlToREST/IMU"
-
 HEADERS = {
     "x-functions-key": settings.AZURE_FUNCTION_KEY
 }
 
 BASE_URL = settings.AZURE_BASE_URL
 
-def get_imu_employee_details(employee_id=None):
-    if employee_id:
-        url = f"{BASE_URL}/EmployeeInfoById"
-        params = {"EMPLID": employee_id}
-    else:
-        url = f"{BASE_URL}/EmployeeInfo"
-        params = None
+def _fetch_by_ids(all_endpoint, by_id_endpoint, ids):
+    if not ids:
+        response = requests.get(
+            f"{BASE_URL}/{all_endpoint}",
+            headers=HEADERS,
+        )
+        response.raise_for_status()
+        return response.json()
 
-    response = requests.get(url, headers=HEADERS, params=params)
-    response.raise_for_status()
+    results = []
 
-    return response.json()
+    for item_id in ids:
+        response = requests.get(
+            f"{BASE_URL}/{by_id_endpoint}",
+            headers=HEADERS,
+            params={"EMPLID": item_id},
+        )
+        response.raise_for_status()
+
+        data = response.json()
+
+        if isinstance(data, list):
+            results.extend(data)
+        elif data:
+            results.append(data)
+
+    return results
 
 
-def get_imu_student_details(student_id=None):
-    if student_id:
-        url = f"{BASE_URL}/StudentProgramInfoById"
-        params = {"EMPLID": student_id}
-    else:
-        url = f"{BASE_URL}/StudentProgramInfo"
-        params = None
+def get_imu_employee_details(employee_ids=None):
+    return _fetch_by_ids(
+        "EmployeeInfo",
+        "EmployeeInfoById",
+        employee_ids,
+    )
 
-    response = requests.get(url, headers=HEADERS, params=params)
-    response.raise_for_status()
-    return response.json()
+
+def get_imu_student_details(student_ids=None):
+    return _fetch_by_ids(
+        "StudentProgramInfo",
+        "StudentProgramInfoById",
+        student_ids,
+    )
