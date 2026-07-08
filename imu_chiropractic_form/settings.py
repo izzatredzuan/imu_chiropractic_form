@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 APP_NAME = "IMU Chiropractic Form"
-APP_VERSION = "0.6.7"
+APP_VERSION = "0.6.9"
 
 
 # Quick-start development settings - unsuitable for production
@@ -33,8 +33,12 @@ SALT_KEY = os.environ["SALT_KEY"]
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    "192.168.2.156",
+    "*",
+]
 
 # Application definition
 
