@@ -132,7 +132,7 @@ mysql -u root -p
 Create the application database:
 
 ```sql
-CREATE DATABASE chiropractic_form_db;
+CREATE DATABASE imu_assessment_db;
 ```
 
 Exit MySQL:
@@ -167,14 +167,14 @@ sudo mysql
 Create database:
 
 ```sql
-CREATE DATABASE chiropractic_form_db;
+CREATE DATABASE imu_assessment_db;
 ```
 
 Create a user (optional):
 
 ```sql
 CREATE USER 'django'@'localhost' IDENTIFIED BY 'your_password';
-GRANT ALL PRIVILEGES ON chiropractic_form_db.* TO 'django'@'localhost';
+GRANT ALL PRIVILEGES ON imu_assessment_db.* TO 'django'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -197,7 +197,7 @@ docker pull mysql:8.0
 docker run -d \
   --name chiropractic-mysql \
   -e MYSQL_ROOT_PASSWORD=your_password \
-  -e MYSQL_DATABASE=chiropractic_form_db \
+  -e MYSQL_DATABASE=imu_assessment_db \
   -p 3306:3306 \
   mysql:8.0
 ```
@@ -208,7 +208,7 @@ For Windows PowerShell:
 docker run -d `
   --name chiropractic-mysql `
   -e MYSQL_ROOT_PASSWORD=your_password `
-  -e MYSQL_DATABASE=chiropractic_form_db `
+  -e MYSQL_DATABASE=imu_assessment_db `
   -p 3306:3306 `
   mysql:8.0
 ```
@@ -356,7 +356,7 @@ project/
 - Verify MySQL is running.
 - Ensure port **3306** is available.
 - Check your `.env` credentials.
-- Confirm the database `chiropractic_form_db` exists.
+- Confirm the database `imu_assessment_db` exists.
 
 ---
 
