@@ -10,6 +10,10 @@ Note:
 - Add Convert to pdf function
 - Note Page (Soap Section) need to list out description of each marker on pdf convert 
 
+26/06/2026
+- Section 4 Diagnosis, change to to be like remark field where you can click add to add multiple cmment with dates
+- Automated email should provide the url to the website as well
+
 Enhancement Suggestion:
 - Login need to check if user is_locked or not
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
@@ -17,9 +21,6 @@ Enhancement Suggestion:
 - Add filter for assessment, display entry by month
 
 - Might want to add AI to do a summary for the whole assessment when convert to pdf
-
-26/06/2026
-- Section 4 Diagnosis, change to to be like remark field where you can click add to add multiple cmment with dates
 
 Bugs:
 - Datatable sorting is incorrect
