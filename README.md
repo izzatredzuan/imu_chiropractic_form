@@ -91,7 +91,7 @@ SECRET_KEY=your-secret-key
 SALT_KEY=your-salt-key
 
 # Database
-DB_NAME=chiropractic_form_db
+DB_NAME=your_db_name
 DB_USER=root
 DB_PASSWORD=your_password
 DB_HOST=localhost
@@ -241,11 +241,16 @@ python manage.py migrate
 
 ---
 
-# 8. Upload the Latest Static and Media
+# 8. Upload the Latest Static and Media Files
 
-In project directory copy the latest media and static folder
-<project-directory>/static
-<project-directory>/media
+From the project root directory (the same directory that contains `manage.py`), copy the latest `static` and `media` folders:
+
+```text
+<project-directory>/
+├── manage.py
+├── static/
+└── media/
+```
 
 # 9. Create an Administrator Account
 
