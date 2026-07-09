@@ -32,6 +32,12 @@ class LoginView(View):
     template_name = "login.html"
 
     def get(self, request):
+        if request.user.is_authenticated:
+            if request.user.profile.first_time_password_change:
+                return redirect("change_password")
+
+            return redirect("/assessments/")
+        
         return render(request, self.template_name)
 
     def post(self, request):
@@ -43,6 +49,21 @@ class LoginView(View):
         user = authenticate(request, username=username, password=password)
 
         if user:
+            if user.profile.is_locked:
+                auth_logger.warning(
+                    "LOGIN BLOCKED (ACCOUNT LOCKED) | user=%s | user_id=%s | ip=%s | ua=%s",
+                    user.username,
+                    user.id,
+                    ip,
+                    user_agent,
+                )
+
+                messages.error(
+                    request,
+                    "Your account has been locked. Please contact the system administrator.",
+                )
+                return render(request, self.template_name)
+            
             login(request, user)
 
             auth_logger.info(

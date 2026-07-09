@@ -22,7 +22,16 @@ class AssessmentListView(View):
     template_name = "assessments/assessments.html"
     def get(self, request):
         profile = request.user.profile  # Debugging line
-        context = {"profile": profile, "can_signoff": profile.role in ["clinician", "admin"]}
+        context = {
+            "profile": profile, 
+            "can_signoff": profile.role in ["clinician", "admin"],
+            "students": Profile.objects.filter(role="student").order_by(
+                "official_name"
+            ),
+            "clinicians": Profile.objects.filter(role="clinician").order_by(
+                "official_name"
+            ),
+        }
         return render(request, self.template_name, context)
 
 

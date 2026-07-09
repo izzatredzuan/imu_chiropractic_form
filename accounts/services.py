@@ -1,8 +1,11 @@
+import os
 import requests
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
+
+SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")
 
 def generate_temp_password(length=12):
     return get_random_string(
@@ -19,6 +22,8 @@ def send_temp_password_email(user, full_name, temp_password):
         Your IMU account has been successfully created.
 
         You may now log in using the following credentials:
+
+        Login Page: {SITE_URL}
 
         Username: {user.username}
         Temporary Password: {temp_password}

@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from datetime import datetime, time, date
 from django.utils import timezone
 from .models import (
     Assessments,
@@ -52,8 +53,15 @@ class AssessmentsListAPIView(APIView):
     def get(self, request):
         profile = request.user.profile
         role = profile.role
+        today = timezone.now().date()
+        default_year_start = date(today.year, 1, 1)
+        default_year_end = date(today.year, 12, 31)
 
-        scope = request.GET.get("scope", "all")  # all | assigned
+        scope = request.GET.get("scope", "all")
+
+        # =========================
+        # Permission / Scope filter
+        # =========================
         if role == "student":
             queryset = Assessments.objects.filter(student=profile)
 
@@ -69,10 +77,116 @@ class AssessmentsListAPIView(APIView):
         else:
             queryset = Assessments.objects.none()
 
+        # =========================
+        # Custom Filters
+        # =========================
+
+        patient = request.GET.get("patient")
+        mrn = request.GET.get("mrn")
+
+        student = request.GET.get("student")
+        clinician = request.GET.get("clinician")
+
+        created_from = request.GET.get("created_from")
+        created_to = request.GET.get("created_to")
+
+        updated_from = request.GET.get("updated_from")
+        updated_to = request.GET.get("updated_to")
+
+        discharged = request.GET.get("discharged")
+        if patient:
+            queryset = queryset.filter(patient_name__icontains=patient)
+        if mrn:
+            queryset = queryset.filter(mrn_number__icontains=mrn)
+        if student:
+            queryset = queryset.filter(student_id=student)
+        if clinician:
+            queryset = queryset.filter(evaluator_id=clinician)
+
+        # =========================
+        # Date Range Filters
+        # =========================
+        # Created From
+        if created_from:
+            start_date = datetime.strptime(
+                created_from,
+                "%Y-%m-%d"
+            ).date()
+        else:
+            start_date = default_year_start
+
+        created_start = timezone.make_aware(
+            datetime.combine(
+                start_date,
+                time.min
+            )
+        )
+        queryset = queryset.filter(
+            created_at__gte=created_start
+        )
+
+        # Created To
+        if created_to:
+            end_date = datetime.strptime(
+                created_to,
+                "%Y-%m-%d"
+            ).date()
+        else:
+            end_date = default_year_end
+
+        created_end = timezone.make_aware(
+            datetime.combine(
+                end_date,
+                time.max
+            )
+        )
+        queryset = queryset.filter(
+            created_at__lte=created_end
+        )
+
+        # Updated From
+        if updated_from:
+            updated_start_date = datetime.strptime(
+                updated_from,
+                "%Y-%m-%d"
+            ).date()
+
+            updated_start = timezone.make_aware(
+                datetime.combine(
+                    updated_start_date,
+                    time.min
+                )
+            )
+            queryset = queryset.filter(
+                updated_at__gte=updated_start
+            )
+
+        # Updated To
+        if updated_to:
+            updated_end_date = datetime.strptime(
+                updated_to,
+                "%Y-%m-%d"
+            ).date()
+
+            updated_end = timezone.make_aware(
+                datetime.combine(
+                    updated_end_date,
+                    time.max
+                )
+            )
+            queryset = queryset.filter(
+                updated_at__lte=updated_end
+            )
+
+        if discharged == "yes":
+            queryset = queryset.filter(is_discharged=True)
+        elif discharged == "no":
+            queryset = queryset.filter(is_discharged=False)
+
         queryset = queryset.select_related("student", "evaluator").order_by(
             "-updated_at"
         )
-
+        
         serializer = AssessmentsListSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -910,7 +1024,8 @@ class AssessmentConsentAPIView(APIView):
             return Response(
                 {"detail": "Failed to update consent", "error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )    
+            )
+
 
 class AssessmentAttachmentAPIView(APIView):
     permission_classes = [IsAuthenticated]

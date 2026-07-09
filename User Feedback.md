@@ -12,13 +12,14 @@ Note:
 
 26/06/2026
 - Section 4 Diagnosis, change to to be like remark field where you can click add to add multiple cmment with dates
-- Automated email should provide the url to the website as well
+- Automated email should provide the url to the website as well [Need Testing]
 
 Enhancement Suggestion:
-- Login need to check if user is_locked or not
+- Check if user already login and redirect [DONE]
+- Login need to check if user is_locked or not [DONE]
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
-- Add filter for assessment, display entry by month
+- Add filter for assessment, display entry by year [DONE]
 
 - Might want to add AI to do a summary for the whole assessment when convert to pdf
 
