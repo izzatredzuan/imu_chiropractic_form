@@ -87,13 +87,13 @@
                     </div>
 
                     <!-- Student -->
+                    {% if request.user.profile.role != "student" %}
                     <div class="col-md-3">
                         <label class="form-label small fw-semibold">
                             Student
                         </label>
 
                         <select id="filterStudent" class="form-select form-select-sm">
-
                             <option value="">
                                 All Students
                             </option>
@@ -103,9 +103,9 @@
                                 {{ s.member_id }} – {{ s.official_name }}
                             </option>
                             {% endfor %}
-
                         </select>
                     </div>
+                    {% endif %}
 
                     <!-- Clinician -->
                     <div class="col-md-3">
@@ -211,7 +211,7 @@
 
                     <button 
                         id="resetAssessmentFilters"
-                        class="btn btn-outline-secondary btn-sm ms-2">
+                        class="btn btn-danger btn-sm ms-2">
 
                         <i class="bi bi-x-circle me-1"></i>
                         Reset

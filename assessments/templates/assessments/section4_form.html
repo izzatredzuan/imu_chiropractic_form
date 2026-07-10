@@ -103,8 +103,13 @@
 
         <!-- ========================= Diagnosis ========================== -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-semibold">
-                Diagnosis
+            <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
+                <span>Diagnosis</span>
+
+                <button type="button" class="btn btn-sm {% if is_readonly or assessment.is_section_4_signed %}btn-secondary disabled{% else %}btn-primary{% endif %}" data-bs-toggle="modal"
+                        data-bs-target="#addDiagnosisModal">
+                        + Add Diagnosis
+                </button>
             </div>
 
             <div class="card-body">
@@ -112,8 +117,8 @@
                     <label class="form-label required">
                         Diagnosis
                     </label>
-                    <textarea name="diagnosis" class="form-control" rows="4" required
-                        {% if is_readonly or assessment.is_section_4_signed %}disabled{% endif %}>{{ assessment.diagnosis }}</textarea>
+                    <textarea id="diagnosis" name="diagnosis" class="form-control" rows="8"
+                        readonly>{{assessment.diagnosis|default_if_none:""}}</textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label required">
@@ -154,11 +159,35 @@
             </button>
             {% endif %}
             {% endif %}
-
         </div>
-
     </form>
+    <!-- ========================= Add Diagnosis Modal ========================== -->
+    <div class="modal fade" id="addDiagnosisModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
 
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Diagnosis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <textarea id="newDiagnosisText" class="form-control" rows="10"
+                        placeholder="Enter diagnosis here..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnAddDiagnosis">
+                        Add
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </div>
 
 
@@ -206,32 +235,66 @@
         payload["assessment_id"] = "{{ assessment.id }}";
 
         fetch("{% url 'assessment_section4_api' %}", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": CSRFTOKEN
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(err => {
-                        throw err;
-                    });
-                }
-                return res.json();
-            })
-            .then(data => {
-                alert(data.message || "Section 4 updated successfully");
-                window.location.href = "{% url 'assessments_list' %}";
-            })
-            .catch(err => {
-                console.error(err);
-                alert(err.detail || "Failed. Please check required fields.");
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": CSRFTOKEN
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (!res.ok) {
+                return res.json().then(err => {
+                    throw err;
+                });
+            }
+            return res.json();
+        })
+        .then(data => {
+            alert(data.message || "Section 4 updated successfully");
+            window.location.href = "{% url 'assessments_list' %}";
+        })
+        .catch(err => {
+            console.error(err);
+            alert(err.detail || "Failed. Please check required fields.");
 
-            });
-
+        });
     });
+    // =========================
+    // Add Diagnosis Logic
+    // =========================
+    const btnAddDiagnosis = document.getElementById("btnAddDiagnosis");
+
+    if (btnAddDiagnosis) {
+        btnAddDiagnosis.addEventListener("click", function () {
+            const textarea = document.getElementById("diagnosis");
+            const newDiagnosis = document.getElementById("newDiagnosisText").value.trim();
+            const editorName = "{{ request.user.profile.official_name|escapejs }}";
+
+            if (!newDiagnosis) {
+                alert("Diagnosis cannot be empty.");
+                return;
+            }
+
+            const now = new Date();
+            const formattedDate = moment().format("DD/MM/YYYY h:mm A");
+            const formattedDiagnosis = `[${formattedDate} - ${editorName}]\n${newDiagnosis}`;
+
+            if (textarea.value.trim() !== "") {
+                textarea.value = textarea.value.trimEnd() + "\n\n" + formattedDiagnosis;
+            } else {
+                textarea.value = formattedDiagnosis;
+            }
+
+            document.getElementById("newDiagnosisText").value = "";
+
+            const modal = bootstrap.Modal.getInstance(
+                document.getElementById('addDiagnosisModal')
+            );
+            modal.hide();
+        });
+    }
+
 </script>
 
 {% endblock %}

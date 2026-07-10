@@ -10,21 +10,15 @@ Note:
 - Add Convert to pdf function
 - Note Page (Soap Section) need to list out description of each marker on pdf convert 
 
-26/06/2026
-- Section 4 Diagnosis, change to to be like remark field where you can click add to add multiple cmment with dates
-- Automated email should provide the url to the website as well [Need Testing]
-
 Enhancement Suggestion:
-- Check if user already login and redirect [DONE]
-- Login need to check if user is_locked or not [DONE]
 - Form should be able to save halfway but make sure its not able to be signed off if its not completed
 - Logs splited by day but need to archieve
-- Add filter for assessment, display entry by year [DONE]
+- May need to add edit function for section 4 Diagnosis and Treatment Plan Remark in the future.
 
 - Might want to add AI to do a summary for the whole assessment when convert to pdf
 
 Bugs:
-- Datatable sorting is incorrect
+- Datatable sorting is incorrect [DONE]
 
 QUESTION to ask in the future to Chiro team:
 
@@ -132,13 +126,21 @@ Consent:
 - Repurpose Witness Relationship to Patient Consent Relationship instead [DONE]
 - Add Patient Consent IC section [DONE]
 
+26/06/2026
+- Section 4 Diagnosis, change to to be like remark field where you can click add to add multiple cmment with dates [DONE]
+- Automated email should provide the url to the website as well [DONE]
+
 29/06/2026:
 - Create Employee/Student User profile  account sync(create/update) from IMU API [DONE]
 - Create change password page and function [DONE]
 - Create forget password page and function [DONE]
 
-Minor:
+Enhancement Suggestion:
+- Check if user already login and redirect [DONE]
+- Login need to check if user is_locked or not [DONE]
+- Add filter for assessment, display entry by year [DONE]
 
+Minor:
 - Clinician can view all assessments [DONE]
 - Clinician can assign any clinician [DONE]
 - Add confirmation alert box if user really want to save the assessment [DONE]

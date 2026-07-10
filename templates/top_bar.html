@@ -19,9 +19,9 @@
       <!-- Only show if user is authenticated -->
       {% if request.user.is_authenticated%}
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center mobile-block">
-        <!-- Assessments -->
+        <!-- ICMC -->
         <li class="nav-item dropdown px-2 mobile-left">
-          <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">Assessments</a>
+          <a class="nav-link dropdown-toggle fw-semibold text-dark" href="#" data-bs-toggle="dropdown">ICMC</a>
           <ul class="dropdown-menu shadow-sm border-0 rounded-3 p-2">
             <li>
               <a class="dropdown-item rounded-2 py-2" href="{% url 'assessments_list' %}">
