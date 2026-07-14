@@ -1,4 +1,5 @@
-from django.http import HttpResponseForbidden, HttpResponseNotFound
+from django.http import HttpResponseForbidden, HttpResponse
+from django.urls import reverse
 from django.shortcuts import (
     get_object_or_404,
     render,
@@ -15,6 +16,7 @@ from .models import (
 from .choices import INITIAL_PATIENT_CONSENT_CHOICES
 from .utils import (
     clinician_is_readonly,
+    generate_pdf,
 )
 
 
@@ -359,5 +361,41 @@ class NotesView(View):
 
     def get(self, request, assessment_id=None):
         profile = request.user.profile
-        context = {"profile": profile, "assessment_id": assessment_id}
+        context = {"profile": profile, "assessment_id": assessment_id, "print_mode": request.GET.get("print") == "1"}
         return render(request, self.template_name, context)
+
+
+class NotesPDFView(View):
+    def get(self, request, assessment_id=None):
+        url = request.build_absolute_uri(
+            reverse(
+                "assessment_notes",
+                args=[assessment_id]
+            )
+        ) + "?print=1"
+
+        cookies = []
+        session_cookie = request.COOKIES.get("sessionid")
+        if session_cookie:
+            cookies.append({
+                "name": "sessionid",
+                "value": session_cookie,
+                "domain": "127.0.0.1",
+                "path": "/",
+            })
+
+        pdf = generate_pdf(
+            url,
+            cookies=cookies
+        )
+
+        response = HttpResponse(
+            pdf,
+            content_type="application/pdf"
+        )
+
+        response["Content-Disposition"] = (
+            f'attachment; filename="assessment_{assessment_id}.pdf"'
+        )
+
+        return response

@@ -1,176 +1,236 @@
-This are the minute and change request requested by user Chow Kit Yee and Nashereena Kaur Dhillon
+# Chiro Assessment System – Meeting Minutes & Change Requests
 
-09/04/2026
-- SOAP:
-  - Add delete function for modalities if it is not sign off yet
+**Requested by:** Chow Kit Yee, Nashereena Kaur Dhillon
 
-Priority:
-21/05/2026
-Note:
-- Add Convert to pdf function
-- Note Page (Soap Section) need to list out description of each marker on pdf convert 
+---
 
-Enhancement Suggestion:
-- Form should be able to save halfway but make sure its not able to be signed off if its not completed
-- Logs splited by day but need to archieve
-- May need to add edit function for section 4 Diagnosis and Treatment Plan Remark in the future.
+# Pending
 
-- Might want to add AI to do a summary for the whole assessment when convert to pdf
+## 09 April 2026
 
-Bugs:
-- Datatable sorting is incorrect [DONE]
+### S.O.A.P
+- Add a delete function for modalities if the S.O.A.P has not been signed off.
 
-QUESTION to ask in the future to Chiro team:
+---
 
-======================================================= COMPLETED =======================================================
-Major:
+## Priority
 
-- Original Section 1 will be split into 2 section and original section 2 and 3 will be combine into 1 section [DONE]
-- Add PDPA consent section on section 1 [DONE]
-  Major
-- 3 New column need to be added in Section 2 [DONE]
-  . Red flags
-  . Yellow flags
-  . Contraindications
-  06/03/2026
-- Discharge only need discharge reason and remark, only clinician and admin can discharge patient [DONE]
-- Treatment log is just a list of SOAP done, can click to open the designated SOAP [DONE]
-- SOAP will need to sign-off, before and after treatment can create multiple for 1 assessment [DONE]
+### 21 May 2026
 
-09/04/2026
-- SOAP:
-  - Next appoinment and modalities is not mandatory [DONE]
+#### Notes Page
+- Add **Convert to PDF** functionality.
+- The S.O.A.P Notes page should include the description of each anatomy marker in the generated PDF.
 
+#### Enhancement Suggestions
+- Allow forms to be saved as drafts before completion.
+  - Drafts **must not** be eligible for sign-off until all required sections are completed.
+- Archive logs by day.
+- Add an edit function for **Section 4 – Diagnosis & Treatment Plan Remarks** in the future.
+- Consider adding AI-generated assessment summaries when exporting to PDF.
 
-- Fix UI on the undo and clear button in section 1 signature [DONE]
+#### Bugs
+- *No pending bugs.*
 
-06/03/2026
+---
 
-- Add "Patient Re-Evaluation Form" and "Patient Complain Form", can create multiple for 1 assessment like S.O.A.P [DONE]
+## Questions for the Chiro Team
 
-09/04/2026
+- *No pending questions.*
 
-- Section 3:
-  - Range of Motion: have a drawing section, with text inside to split up for the 3 field of the RoM [DONE]
+---
 
-- Anatomy Marking
-  - For SOAP need to able to add notes in the marking but Section 1 dont requires note [DONE]
+# Completed
 
-- Several fields need to be added alter but need to wait for Chiro team to provides the fields information [DONE]
+## Major
 
-28/04/2026
+### 06 March 2026
 
-- Add File uploading field in Treatment Plan [DONE]
+- Split the original **Section 1** into two sections and merge the original **Sections 2 & 3** into one. ✅
+- Add a **PDPA Consent** section to Section 1. ✅
+- Add three new fields to Section 2:
+  - Red Flags ✅
+  - Yellow Flags ✅
+  - Contraindications ✅
+- Simplify the discharge process:
+  - Only require **Discharge Reason** and **Remarks**. ✅
+  - Only **Clinicians** and **Admins** can discharge patients. ✅
+- Treatment Log now displays a list of completed S.O.A.P records and allows users to open each record. ✅
+- S.O.A.P records require sign-off, and multiple S.O.A.P records can be created for a single assessment. ✅
+- Add **Patient Re-Evaluation Form** and **Patient Complaint Form**, supporting multiple records per assessment. ✅
 
-Priority:
-28/04/2026
-- User creation, student need a field for cohorts [DONE]
+### 09 April 2026
 
-21/05/2026
-Section 1 :
+#### S.O.A.P
+- Next Appointment and Modalities are no longer mandatory. ✅
 
-- Add new consent section [DONE]
-- Change phase 1 is complete logic, special direction is not mandatory. [DONE]
-- Note on anatomy marker, remover "Left-click a marker to add/edit a note. Right-click to delete." instructions [DONE]
+#### Section 3
+- Add a drawing area for **Range of Motion (RoM)** with text separated into three fields. ✅
 
-Section 4:
+#### Anatomy Marking
+- S.O.A.P markers support notes. ✅
+- Assessment Section 1 markers do not require notes. ✅
 
-- Add "intervention approved" field [DONE]
+#### General
+- Added remaining required fields after receiving specifications from the Chiro team. ✅
+- Fixed UI issues for the **Undo** and **Clear** buttons in Section 1 signature. ✅
 
-S.O.A.P
+---
 
-- Fail to create because assessment id not passed [DONE]
+### 28 April 2026
 
-Note:
+- Add file upload support in **Treatment Plan**. ✅
 
-- For soap anatomy On hold click doest show marker details [DONE]
+#### Priority
+- Add **Cohort** field for Student user creation. ✅
 
-Discharge:
+---
 
-- Need signoff section [DONE]
+### 21 May 2026
 
-28/05/2026
+#### Section 1
+- Add the new Consent section. ✅
+- Update Phase 1 completion logic:
+  - **Special Direction** is no longer mandatory. ✅
+- Remove the anatomy marker instruction:
+  - *"Left-click a marker to add/edit a note. Right-click to delete."* ✅
 
-- Fix {% if assessment and request.user.profile.role in "clinician admin" %} issue [DONE]
-- Fix outdated Constant [DONE]
+#### Section 4
+- Add **Intervention Approved** field. ✅
 
-12/6/2026
-Assessment:
+#### S.O.A.P
+- Fixed assessment ID not being passed during creation. ✅
 
-- Fix Section 4 button lock again on Section 3 sign off [DONE]
-  Section 1:
-- Update Consent section with the four checkbox, explaination and the initial consent section [DONE]
-- Add Patient Relationship and Intepreter field [DONE]
-- PDPA and Patient consent need name field [DONE]
-  Section 3:
-- Add confirmation message on save and sign off [DONE]
-  Treatment Plan:
-- Phase 1, 2, 3 change it to be optional and not mandatory [DONE]
-  General:
-- Change all orthopedic words to orthopaedic [DONE]
+#### Notes
+- Fixed anatomy marker details not displaying when clicking/holding a marker. ✅
 
-19/06/2026:
-Section 1 to New Consent section (After section 4 & Before treatment plan)
-- PDPA consent section will be removed from the application [DONE]
-- Move all consent section other than PDPA to the new page [DONE]
-- Witness consent is actually witness for the attending staff NOT patient so need to change the relationship list [DONE]
+#### Discharge
+- Added sign-off section. ✅
 
-Consent & Submission Confirmation section:
-- For the , the first name after "I, ____" sentence is the Patient Consent name not witness consent name [DONE]
-- Add IC field with encryption to the Assessment model and display it in the consent confirmation text [DONE]
-General:
-Fix logo image in login page [DONE]
+---
 
-24/06/2026:
-Consent:
-- Repurpose Witness Relationship to Patient Consent Relationship instead [DONE]
-- Add Patient Consent IC section [DONE]
+### 28 May 2026
 
-26/06/2026
-- Section 4 Diagnosis, change to to be like remark field where you can click add to add multiple cmment with dates [DONE]
-- Automated email should provide the url to the website as well [DONE]
+- Fixed `{% if assessment and request.user.profile.role in "clinician admin" %}` logic. ✅
+- Updated outdated constants. ✅
 
-29/06/2026:
-- Create Employee/Student User profile  account sync(create/update) from IMU API [DONE]
-- Create change password page and function [DONE]
-- Create forget password page and function [DONE]
+---
 
-Enhancement Suggestion:
-- Check if user already login and redirect [DONE]
-- Login need to check if user is_locked or not [DONE]
-- Add filter for assessment, display entry by year [DONE]
+### 12 June 2026
 
-Minor:
-- Clinician can view all assessments [DONE]
-- Clinician can assign any clinician [DONE]
-- Add confirmation alert box if user really want to save the assessment [DONE]
-- Add a column "last updated by whom" [DONE]
-- Add the time for "last updated" [DONE]
-- Add 2 new field 'Differential Diagnosis' and 'Working Diagnosis'in Assessment table [DONE]
-- If a clinician view an assessments that are not theirs, all the field will be readonly and sign-off and save button will be hide [DONE]
-- Need to add Patient detail (name, file number) for each section. [DONE]
-- Fix page redirect on login issue [DONE]
-- clinician and Student cant save assessment [DONE]
-- Change button color after student edit a section for clinician to know which assessments to sign-off [DONE]
-- Filter button for clinician to only see all assessments assigned to them [DONE]
-- Create a new field name "file_number" [DONE]
-- Change Legend sequence [DONE]
-- Combine date field with at and by into 1 column [DONE]
-- Section 5 will be move to Part 2 [DONE]
-- Everything can only access after section 4 complete [DONE]
-- Change the flow, clinician only need to sign off one section that has been edited by student [DONE]
-- SOAP create button should be disabled if its not assign to you [DONE]
+#### Assessment
+- Fixed Section 4 becoming locked again after Section 3 sign-off. ✅
 
-- Consent section, how it suppose to look like also does registration form is consider as consent form [DONE]
-- Section 3, in the middle of it has physical sign off but not at the end, what is the real format [DONE]
+#### Section 1
+- Updated the Consent section:
+  - Added four consent checkboxes.
+  - Added consent explanation.
+  - Added initial consent section.
+- Added **Patient Relationship** and **Interpreter** fields.
+- Added name fields for **PDPA Consent** and **Patient Consent**. ✅
 
-======================================================= CANCELLED =======================================================
-Bugs:
+#### Section 3
+- Added confirmation messages for **Save** and **Sign Off**. ✅
 
-- SOAP unable to unsign off on update soap button [DONE]
+#### Treatment Plan
+- Made Phases 1–3 optional instead of mandatory. ✅
 
-- Patient will need to provide consent signature before assessment creation and during final phase of the assessment [CANCELLED]
+#### General
+- Changed all occurrences of **Orthopedic** to **Orthopaedic**. ✅
 
-Minor existing Changes To do:
+---
 
-- Evaluator need to be able multi select [CANCELLED]
+### 19 June 2026
+
+#### New Consent Section
+*(Located after Section 4 and before Treatment Plan)*
+
+- Removed the PDPA Consent section from the application. ✅
+- Moved all remaining consent sections to the new Consent page. ✅
+- Updated Witness Relationship to refer to the attending staff instead of the patient. ✅
+
+#### Consent & Submission Confirmation
+
+- Updated the first name in:
+  > "I, ______"
+
+  to display the **Patient Consent Name** instead of the Witness Name. ✅
+
+- Added an encrypted **IC** field to the Assessment model and displayed it in the consent confirmation. ✅
+
+#### General
+
+- Fixed the login page logo. ✅
+
+---
+
+### 24 June 2026
+
+#### Consent
+
+- Repurposed **Witness Relationship** into **Patient Consent Relationship**. ✅
+- Added **Patient Consent IC** field. ✅
+
+---
+
+### 26 June 2026
+
+- Changed **Section 4 Diagnosis** to support multiple dated comments (similar to Remarks). ✅
+- Automated emails now include the application URL. ✅
+
+---
+
+### 29 June 2026
+
+#### User Management
+
+- Sync Employee/Student user profiles (Create/Update) from the IMU API. ✅
+- Added Change Password page and functionality. ✅
+- Added Forgot Password page and functionality. ✅
+
+#### Enhancements
+
+- Redirect users who are already logged in. ✅
+- Prevent login for locked accounts. ✅
+- Add Assessment filtering by year. ✅
+
+---
+
+### Minor Improvements
+
+- Clinicians can view all assessments. ✅
+- Clinicians can assign any clinician. ✅
+- Add a confirmation dialog before saving assessments. ✅
+- Display **Last Updated By**. ✅
+- Display **Last Updated Time**. ✅
+- Add **Differential Diagnosis** and **Working Diagnosis** fields. ✅
+- Make assessments read-only when viewed by clinicians who are not assigned to them. ✅
+- Display patient details (Name & File Number) in every section. ✅
+- Fixed login redirect issue. ✅
+- Fixed clinicians and students being unable to save assessments. ✅
+- Change button colours after student edits so clinicians know which sections require sign-off. ✅
+- Add clinician filter for assigned assessments. ✅
+- Add `file_number` field. ✅
+- Update legend sequence. ✅
+- Merge Date, Time and Updated By into a single column. ✅
+- Move Section 5 to Part 2. ✅
+- Restrict access until Section 4 is completed. ✅
+- Simplify the workflow so clinicians only sign off sections edited by students. ✅
+- Disable S.O.A.P creation if the assessment is not assigned to the current user. ✅
+- Finalised Consent section layout and requirements. ✅
+- Finalised Section 3 physical sign-off placement. ✅
+
+#### Bugs
+- Datatable sorting is incorrect.  ✅
+
+---
+
+# Cancelled
+
+## Bugs
+
+- S.O.A.P could not be unsigned after clicking **Update S.O.A.P**. *(Resolved before cancellation.)*
+
+## Cancelled Requests
+
+- Require patient consent signature before assessment creation and again during the final assessment phase. ❌
+- Allow multiple Evaluators to be selected. ❌

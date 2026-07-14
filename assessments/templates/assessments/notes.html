@@ -401,14 +401,310 @@
       max-width: 260px;
     }
   }
+
+ /* =====================================================
+   PDF PRINT MODE
+===================================================== */
+.print-mode {
+    background: white !important;
+}
+
+
+/* =====================================================
+   REMOVE APP UI
+===================================================== */
+.print-mode .navbar-toggler,
+.print-mode .offcanvas,
+.print-mode .sidebar,
+.print-mode footer,
+.print-mode .pdf-download-btn {
+    display: none !important;
+}
+
+.print-mode .navbar-toggler {
+    display: none !important;
+}
+
+/* PDF HEADER */
+.pdf-navbar .navbar-toggler {
+    display:none !important;
+}
+
+.pdf-navbar #navbarToggler {
+    display:none !important;
+}
+
+.print-mode .pdf-hide {
+    display: none !important;
+}
+
+/* =====================================================
+   PAGE CONTAINER
+===================================================== */
+
+.print-mode .container,
+.print-mode .container-fluid {
+    width:100% !important;
+    max-width:none !important;
+    padding:0 !important;
+    margin:0 !important;
+}
+
+.print-mode h1,
+.print-mode h2,
+.print-mode h3 {
+    margin-top:10px !important;
+    margin-bottom:12px !important;
+}
+
+/* =====================================================
+   ACCORDION FIX
+===================================================== */
+.print-mode .collapse,
+.print-mode .collapsing,
+.print-mode .accordion-collapse {
+    display:block !important;
+    height:auto !important;
+    overflow:visible !important;
+    transition:none !important;
+}
+
+.print-mode .accordion-button {
+    background:white !important;
+    color:#1f3c88 !important;
+    font-weight:700 !important;
+    pointer-events:none !important;
+}
+
+.print-mode .accordion-button::after {
+    display:none !important;
+}
+
+.print-mode .accordion-item {
+    border:1px solid #ddd !important;
+    margin-bottom:12px !important;
+}
+
+/* =====================================================
+   DEFAULT EVERYTHING VERTICAL
+   (IMPORTANT)
+===================================================== */
+/* Bootstrap rows */
+.print-mode .row {
+    display:block !important;
+    margin:0 !important;
+}
+
+.print-mode .row > * {
+    width:100% !important;
+    max-width:100% !important;
+    flex:none !important;
+}
+
+/* Custom grids */
+.print-mode .info-grid,
+.print-mode .modalities-grid {
+    display:block !important;
+}
+
+.print-mode .info-grid > *,
+.print-mode .modalities-grid > * {
+    width:100% !important;
+    max-width:100% !important;
+    margin-bottom:12px !important;
+}
+
+/* Bootstrap flex layouts */
+.print-mode .d-flex {
+    display:block !important;
+}
+
+.print-mode .justify-content-center,
+.print-mode .align-items-center,
+.print-mode .align-items-stretch {
+    display:block !important;
+}
+
+/* =====================================================
+   ALLOWED GRID 1:
+   PATIENT DETAILS ONLY
+===================================================== */
+.print-mode .pdf-grid {
+    display:grid !important;
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:12px !important;
+
+}
+
+.print-mode .pdf-grid > * {
+    width:auto !important;
+    max-width:none !important;
+    margin-bottom:0 !important;
+}
+/* =====================================================
+   ALLOWED GRID 2:
+   VITALS ONLY
+===================================================== */
+.print-mode .vitals-grid {
+    display:grid !important;
+    grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+    gap:12px !important;
+}
+
+.print-mode .vitals-grid > * {
+    width:auto !important;
+    max-width:none !important;
+}
+
+/* =====================================================
+   CARDS
+===================================================== */
+.print-mode .card,
+.print-mode .card-body,
+.print-mode .accordion-body,
+.print-mode .section-card {
+    margin-top:0 !important;
+}
+
+.print-mode .card {
+    box-shadow:none !important;
+    margin-bottom:12px !important;
+}
+
+.print-mode .card-body {
+    padding:12px !important;
+}
+
+/* =====================================================
+   CONTENT BLOCKS
+===================================================== */
+.print-mode .medical-card,
+.print-mode .mini-card,
+.print-mode .vital-box,
+.print-mode .timeline-card {
+    break-inside:auto !important;
+    page-break-inside:auto !important;
+}
+
+.print-mode .medical-section {
+    display:block !important;
+}
+
+.print-mode .medical-section > * {
+    margin-bottom:12px !important;
+}
+
+/* =====================================================
+   REMOVE BOOTSTRAP SPACING
+===================================================== */
+.print-mode .mt-4,
+.print-mode .mt-5 {
+    margin-top:12px !important;
+}
+
+.print-mode .mb-4,
+.print-mode .mb-5 {
+    margin-bottom:12px !important;
+}
+
+.print-mode .py-4,
+.print-mode .py-5 {
+    padding-top:0 !important;
+    padding-bottom:0 !important;
+}
+
+/* =====================================================
+   PAGE BREAK CONTROL
+===================================================== */
+.print-mode .accordion-item,
+.print-mode .card {
+    break-inside:auto !important;
+    page-break-inside:auto !important;
+}
+
+.print-mode .accordion-header,
+.print-mode .card-header {
+    break-after:avoid !important;
+    page-break-after:avoid !important;
+}
+
+/* =====================================================
+   ANATOMY
+===================================================== */
+.print-mode #anatomyWrapper {
+    max-width:350px !important;
+}
+
+.print-mode #anatomyImage {
+    max-height:350px !important;
+    object-fit:contain;
+}
+
+.print-mode .soap-anatomy-wrapper {
+    max-width:220px !important;
+}
+
+.print-mode .soap-anatomy-image {
+    max-height:250px !important;
+    object-fit:contain;
+}
+
+.print-mode .soap-tooltip {
+    display:none !important;
+}
+
+/* =====================================================
+   SIGNATURES
+===================================================== */
+.print-mode .signature-img {
+    max-height:100px !important;
+    object-fit:contain;
+}
+
+/* =====================================================
+   TABLES
+===================================================== */
+.print-mode table {
+    font-size:12px !important;
+}
+.print-mode .table-responsive {
+    overflow:visible !important;
+}
+
+/* =====================================================
+   IMAGES
+===================================================== */
+.print-mode img {
+    max-width:100% !important;
+}
+
+/* =====================================================
+   PRINT
+===================================================== */
+@media print {
+    body {
+        background:white !important;
+    }
+
+    .print-mode {
+        color:black !important;
+    }
+}
 </style>
 
-<div class="container-fluid py-4 mt-4 mb-4 px-4">
-
-  <div class="mb-4">
-    <h2 class="fw-semibold mobile-fonts">
-      Patient Assessments Summary
+<div class="{% if print_mode %}print-mode{% endif %} container-fluid py-4 mt-4 mb-4 px-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-semibold mobile-fonts mb-0">
+        Patient Assessments Summary
     </h2>
+
+    <a
+        href="{% url 'assessment_notes_pdf' assessment_id %}"
+        class="btn btn-primary pdf-download-btn"
+    >
+        <i class="bi bi-file-earmark-pdf"></i>
+        Download PDF
+    </a>
   </div>
 
   <div class="accordion" id="assessmentAccordion">
@@ -475,7 +771,6 @@
       </h2>
 
       <div id="sec4" class="accordion-collapse collapse show ">
-
         <div class="accordion-body section-body">
           <div id="section4"></div>
         </div>
@@ -554,11 +849,14 @@
     </div>
   </div>
 </div>
-<script>
-  const ASSESSMENT_ID = "{{ assessment_id }}";
 
-  const apiUrl =
-    "{% url 'assessment_notes_api' %}?assessment_id=" + ASSESSMENT_ID;
+<script>
+  window.pdfReady = false;
+  
+
+  const ASSESSMENT_ID = "{{ assessment_id }}";
+  const apiUrl = "{% url 'assessment_notes_api' %}?assessment_id=" + ASSESSMENT_ID;
+  const isPrint = new URLSearchParams(window.location.search).has("print");
 
   function safe(v) {
     return (v === null || v === undefined || v === "") ?
@@ -609,7 +907,7 @@
         s12.section_1_signed_at
       )}
           
-      <div class="info-grid">
+      <div class="info-grid pdf-grid">
 
         <div class="info-item">
           <span class="medical-label">Patient Name</span>
@@ -1188,7 +1486,7 @@
                       <th>File</th>
                       <th>Uploaded By</th>
                       <th>Date</th>
-                      <th class="text-center">Action</th>
+                      <th class="text-center pdf-hide">Action</th>
                     </tr>
                   </thead>
 
@@ -1213,7 +1511,7 @@
                           ${formatDate(a.uploaded_at, true)}
                         </td>
 
-                        <td class="text-center">
+                        <td class="text-center pdf-hide">
                           <a href="${a.file}" target="_blank" class="text-decoration-none">
                             <i class="bi bi-download fs-5"></i>
                           </a>
@@ -1256,7 +1554,7 @@
                 s.soap_signed_at
               )}
 
-              <div class="info-grid">
+              <div class="info-grid pdf-grid">
                 <div class="info-item">
                   <span class="medical-label">Date</span>
                   <div>${formatDate(s.created_at)}</div>
@@ -1465,6 +1763,25 @@
                       </div>
                     </div>
                   </div>
+                  ${isPrint && s.markers?.length ? `
+                    <div class="card mt-3">
+                      <div class="card-header fw-semibold">
+                          Marker Notes
+                      </div>
+
+                      <div class="card-body">
+                        ${s.markers.map(marker => `
+                            <div class="mini-card mb-3">
+                                <div class="medical-label">
+                                    Marker ${marker.id}
+                                </div>
+
+                                <div class="medical-value">${safe(marker.note)}</div>
+                            </div>
+                        `).join("")}
+                      </div>
+                    </div>
+                  ` : ""}
                 </div>
               </div>
             </div>
@@ -1579,6 +1896,13 @@
         </div>
       `).join("")
       : emptyState("No New Complaints Exist");
+      
+      console.log("PDF READY");
+      window.pdfReady = true;
+    })
+    .catch(error => {
+        console.error("PDF Render Error:", error);
+        window.pdfReady = true;
     });
 
   function renderField(label, value) {

@@ -12,6 +12,7 @@ django-appconf==1.2.0
 django-fernet-encrypted-fields==0.4.0
 djangorestframework==3.16.1
 Flask==3.1.1
+greenlet==3.5.3
 idna==3.11
 itsdangerous==2.2.0
 Jinja2==3.1.6
@@ -22,11 +23,14 @@ packaging==25.0
 pathspec==0.12.1
 pillow==12.1.0
 platformdirs==4.5.0
+playwright==1.61.0
 pycparser==3.0
+pyee==13.0.1
 python-dotenv==1.2.2
 pytokens==0.3.0
 requests==2.32.5
 sqlparse==0.5.3
+typing_extensions==4.16.0
 tzdata==2025.2
 urllib3==2.6.1
 Werkzeug==3.1.3

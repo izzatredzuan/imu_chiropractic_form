@@ -78,6 +78,11 @@ urlpatterns = [
         views.NotesView.as_view(),
         name="assessment_notes",
     ),
+    path(
+        "<int:assessment_id>/notes/pdf/",
+        views.NotesPDFView.as_view(),
+        name="assessment_notes_pdf",
+    ),
 
     # API endpoints
     path(

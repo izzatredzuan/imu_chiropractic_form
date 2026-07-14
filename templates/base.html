@@ -9,7 +9,9 @@
         {% endblock %}
     </head>
     <body>
-        {% include 'top_bar.html' %}
+
+            {% include 'top_bar.html' %}
+
         
         <div class="container mt-3">
             {% if messages %}
@@ -53,7 +55,10 @@
             {% block content %}
             {% endblock %}
         </div>
-        {% include 'footer.html' %}
+        {% if not print_mode %}
+            {% include 'footer.html' %}
+        {% endif %}
+        
         <script>
         </script>
     </body>
