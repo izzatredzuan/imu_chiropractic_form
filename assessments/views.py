@@ -383,7 +383,7 @@ class NotesPDFView(View):
             "url": request.build_absolute_uri("/")
         }]
 
-        print("========== VIEW DEBUG ==========")
+        print("========== VIEW PDF DEBUG ==========")
         print("Generated URL:", url)
         print("Session exists:", bool(session_cookie))
         print("Cookie:", cookies)

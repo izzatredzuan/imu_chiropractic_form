@@ -43,9 +43,6 @@ def generate_pdf(url, cookies=None):
         if cookies:
             context.add_cookies(cookies)
 
-        print("Cookies inside browser:")
-        print(context.cookies())
-
         page = context.new_page()
         page.emulate_media(media="print")
 
@@ -54,24 +51,13 @@ def generate_pdf(url, cookies=None):
             wait_until="networkidle"
         )
 
-        print("Current cookies:")
-        print(context.cookies())
-
         print("========== PDF DEBUG ==========")
         print("Requested URL:", url)
         print("Final URL:", page.url)
         print("Status:", response.status if response else None)
         print("Title:", page.title())
-
-        print("window.pdfReady type:",
-            page.evaluate("typeof window.pdfReady"))
-
-        print("window.pdfReady value:",
-            page.evaluate("window.pdfReady"))
-
-        print("Body preview:")
-        print(page.locator("body").inner_text()[:800])
-
+        print("Cookies inside browser:")
+        print(context.cookies())
         print("===============================")
 
         page.wait_for_function(
