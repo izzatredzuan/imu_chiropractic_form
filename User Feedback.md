@@ -15,11 +15,6 @@
 
 ## Priority
 
-### 21 May 2026
-
-#### Notes Page
-- Add **Convert to PDF** functionality.
-- The S.O.A.P Notes page should include the description of each anatomy marker in the generated PDF.
 
 #### Enhancement Suggestions
 - Allow forms to be saved as drafts before completion.
@@ -86,6 +81,10 @@
 ---
 
 ### 21 May 2026
+
+#### Notes Page
+- Add **Convert to PDF** functionality. ✅
+- The S.O.A.P Notes page should include the description of each anatomy marker in the generated PDF. ✅
 
 #### Section 1
 - Add the new Consent section. ✅

@@ -49,6 +49,14 @@ def generate_pdf(url, cookies=None):
             wait_until="networkidle"
         )
 
+        print("========== PDF DEBUG ==========")
+        print("URL:", page.url)
+        print("STATUS:", response.status if response else None)
+        print("TITLE:", page.title())
+        print("pdfReady:", page.evaluate("window.pdfReady"))
+        print("BODY:", page.locator("body").inner_text()[:500])
+        print("===============================")
+
         page.wait_for_function(
             "window.pdfReady === true",
             timeout=60000

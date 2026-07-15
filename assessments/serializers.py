@@ -130,31 +130,6 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         child=serializers.DictField(), required=False
     )
 
-    # signature_data = serializers.CharField(write_only=True, required=False)
-    # initial_patient_consent_signed_by = serializers.CharField(
-    #     required=True, allow_blank=False
-    # )
-
-    # attending_signature_data = serializers.CharField(write_only=True, required=False)
-    # attending_consent_signed_by_name = serializers.CharField(
-    #     source="attending_consent_signed_by.official_name",
-    #     read_only=True,
-    # )
-
-    # attending_consent_signed_by_role = serializers.CharField(
-    #     source="attending_consent_signed_by.role",
-    #     read_only=True,
-    # )
-
-    # witness_signature_data = serializers.CharField(write_only=True, required=False)
-    # witness_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
-    # witness_relationship_text = serializers.CharField(
-    #     source="get_witness_relationship_display", read_only=True
-    # )
-    section_1_anatomy_markers = serializers.ListField(
-        child=serializers.DictField(), required=False
-    )
-
     # pdpa_signature_data = serializers.CharField(write_only=True, required=False)
     # pdpa_consent_signed_by = serializers.CharField(required=True, allow_blank=False)
     section_1_signed_by_name = serializers.CharField(
@@ -201,33 +176,6 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
             "summary",
             "special_direction",
             "section_1_anatomy_markers",
-            # "is_initial_patient_consent_signed",
-            # "patient_record_review_consent",
-            # "treatment_discontinuation_policy_consent",
-            # "student_observation_consent",
-            # "chiropractic_intern_treatment_consent",
-            # "initial_patient_consent_signature",
-            # "signature_data",
-            # "initial_patient_consent_signed_by",
-            # "initial_patient_consent_signed_at",
-            # "is_attending_consent_signed",
-            # "attending_signature_data",
-            # "attending_consent_signed_by",
-            # "attending_consent_signature",
-            # "attending_consent_signed_at",
-            # "attending_consent_signed_by_name",
-            # "attending_consent_signed_by_role",
-            # "is_witness_consent_signed",
-            # "witness_signature_data",
-            # "witness_consent_signed_by",
-            # "witness_relationship",
-            # "witness_relationship_text",
-            # "witness_consent_signature",
-            # "witness_consent_signed_at",
-            # "is_pdpa_consent_signed",
-            # "education_consent",
-            # "research_consent",
-            # "marketing_consent",
             # "pdpa_signature_data",
             # "pdpa_consent_signed_by",
             # "pdpa_consent_signature",
@@ -306,43 +254,10 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         validated_data["created_by"] = user_profile
         validated_data["updated_by"] = user_profile
 
-        initial_signature = validated_data.pop("signature_data", None)
-        patient_name = validated_data.pop("initial_patient_consent_signed_by", None)
-        attending_signature = validated_data.pop("attending_signature_data", None)
-        witness_signature = validated_data.pop("witness_signature_data", None)
-        witness_name = validated_data.pop("witness_consent_signed_by", None)
         # pdpa_signature = validated_data.pop("pdpa_signature_data", None)
         # pdpa_name = validated_data.pop("pdpa_consent_signed_by", None)
 
         instance = super().create(validated_data)
-
-        if initial_signature:
-            self._save_signature(
-                instance,
-                initial_signature,
-                "initial_patient_consent",
-                extra_data={"initial_patient_consent_signed_by": patient_name},
-            )
-
-        if attending_signature:
-            self._save_signature(
-                instance,
-                attending_signature,
-                "attending_consent",
-                extra_data={
-                    "attending_consent_signed_by": validated_data.get(
-                        "attending_consent_signed_by"
-                    )
-                },
-            )
-
-        if witness_signature:
-            self._save_signature(
-                instance,
-                witness_signature,
-                "witness_consent",
-                extra_data={"witness_consent_signed_by": witness_name},
-            )
 
         # if pdpa_signature:
         #     self._save_signature(
@@ -359,43 +274,10 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
         user_profile = request.user.profile
         instance.updated_by = user_profile
 
-        initial_signature = validated_data.pop("signature_data", None)
-        patient_name = validated_data.pop("initial_patient_consent_signed_by", None)
-        attending_signature = validated_data.pop("attending_signature_data", None)
-        witness_signature = validated_data.pop("witness_signature_data", None)
-        witness_name = validated_data.pop("witness_consent_signed_by", None)
         # pdpa_signature = validated_data.pop("pdpa_signature_data", None)
         # pdpa_name = validated_data.pop("pdpa_consent_signed_by", None)
 
         instance = super().update(instance, validated_data)
-
-        if initial_signature:
-            self._save_signature(
-                instance,
-                initial_signature,
-                "initial_patient_consent",
-                extra_data={"initial_patient_consent_signed_by": patient_name},
-            )
-
-        if attending_signature:
-            self._save_signature(
-                instance,
-                attending_signature,
-                "attending_consent",
-                extra_data={
-                    "attending_consent_signed_by": validated_data.get(
-                        "attending_consent_signed_by"
-                    )
-                },
-            )
-
-        if witness_signature:
-            self._save_signature(
-                instance,
-                witness_signature,
-                "witness_consent",
-                extra_data={"witness_consent_signed_by": witness_name},
-            )
 
         # if pdpa_signature:
         #     self._save_signature(
@@ -437,70 +319,41 @@ class AssessmentSection1And2Serializer(serializers.ModelSerializer):
 
         return cleaned
 
-    def _save_signature(
-        self, instance, signature_data, field_prefix, user_profile=None, extra_data=None
-    ):
-        if not signature_data:
-            return
+    # def _save_signature(
+    #     self, instance, signature_data, field_prefix, user_profile=None, extra_data=None
+    # ):
+    #     if not signature_data:
+    #         return
 
-        try:
-            format, imgstr = signature_data.split(";base64,")
-            ext = format.split("/")[-1]
+    #     try:
+    #         format, imgstr = signature_data.split(";base64,")
+    #         ext = format.split("/")[-1]
 
-            file = ContentFile(
-                base64.b64decode(imgstr),
-                name=f"{uuid.uuid4()}.{ext}",
-            )
+    #         file = ContentFile(
+    #             base64.b64decode(imgstr),
+    #             name=f"{uuid.uuid4()}.{ext}",
+    #         )
 
-            # -----------------------------
-            # Explicit field mapping (FIX)
-            # -----------------------------
-            if field_prefix == "initial_patient_consent":
-                instance.initial_patient_consent_signature = file
-                instance.is_initial_patient_consent_signed = True
-                instance.initial_patient_consent_signed_at = timezone.now()
+    #         # -----------------------------
+    #         # Explicit field mapping (FIX)
+    #         # -----------------------------
 
-                if extra_data:
-                    name = extra_data.get("initial_patient_consent_signed_by")
-                    if name:
-                        instance.initial_patient_consent_signed_by = name
+    #         # if field_prefix == "pdpa_consent":
+    #         #     instance.pdpa_consent_signature = file
+    #         #     instance.is_pdpa_consent_signed = True
+    #         #     instance.pdpa_consent_signed_at = timezone.now()
 
-            elif field_prefix == "attending_consent":
-                instance.attending_consent_signature = file
-                instance.is_attending_consent_signed = True
-                instance.attending_consent_signed_at = timezone.now()
+    #         #     if extra_data:
+    #         #         name = extra_data.get("pdpa_consent_signed_by")
+    #         #         if name:
+    #         #             instance.pdpa_consent_signed_by = name
 
-                if extra_data:
-                    instance.attending_consent_signed_by = extra_data.get(
-                        "attending_consent_signed_by"
-                    )
+    #         instance.save()
 
-            elif field_prefix == "witness_consent":
-                instance.witness_consent_signature = file
-                instance.is_witness_consent_signed = True
-                instance.witness_consent_signed_at = timezone.now()
-
-                if extra_data:
-                    name = extra_data.get("witness_consent_signed_by")
-                    if name:
-                        instance.witness_consent_signed_by = name
-
-            # elif field_prefix == "pdpa_consent":
-            #     instance.pdpa_consent_signature = file
-            #     instance.is_pdpa_consent_signed = True
-            #     instance.pdpa_consent_signed_at = timezone.now()
-
-            #     if extra_data:
-            #         name = extra_data.get("pdpa_consent_signed_by")
-            #         if name:
-            #             instance.pdpa_consent_signed_by = name
-
-            instance.save()
-
-        except Exception as e:
-            raise serializers.ValidationError(
-                {"signature_data": f"Invalid image data: {str(e)}"}
-            )
+    #     except Exception as e:
+    #         raise serializers.ValidationError(
+    #             {"signature_data": f"Invalid image data: {str(e)}"}
+    #         )
 
 
 class AssessmentSection3Serializer(serializers.ModelSerializer):

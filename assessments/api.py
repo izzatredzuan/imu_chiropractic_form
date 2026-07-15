@@ -263,9 +263,6 @@ class AssessmentSection1And2APIView(APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        signature_data = request.data.get("signature_data")
-        attending_signature_data = request.data.get("attending_signature_data")
-        witness_signature_data = request.data.get("witness_signature_data")
         # pdpa_signature_data = request.data.get("pdpa_signature_data")
 
         # --------------------------------
@@ -284,17 +281,11 @@ class AssessmentSection1And2APIView(APIView):
 
             if any(
                 [
-                    signature_data,
-                    attending_signature_data,
-                    witness_signature_data,
                     # pdpa_signature_data,
                 ]
             ):
                 logger.info(
                     f"SIGNATURE_SAVED - Signatures processed for assessment {assessment.id} | "
-                    f"initial={bool(signature_data)}, "
-                    f"attending={bool(attending_signature_data)}, "
-                    f"witness={bool(witness_signature_data)}, "
                     # f"pdpa={bool(pdpa_signature_data)}"
                 )
 
@@ -348,24 +339,15 @@ class AssessmentSection1And2APIView(APIView):
                 f"user={profile.official_name} ({profile.role})"
             )
 
-            signature_data = request.data.get("signature_data")
-            attending_signature_data = request.data.get("attending_signature_data")
-            witness_signature_data = request.data.get("witness_signature_data")
             # pdpa_signature_data = request.data.get("pdpa_signature_data")
 
             if any(
                 [
-                    signature_data,
-                    attending_signature_data,
-                    witness_signature_data,
                     # pdpa_signature_data,
                 ]
             ):
                 logger.info(
                     f"SIGNATURE_UPDATE - assessment_id={assessment.id} | "
-                    f"initial={bool(signature_data)}, "
-                    f"attending={bool(attending_signature_data)}, "
-                    f"witness={bool(witness_signature_data)}, "
                     # f"pdpa={bool(pdpa_signature_data)}"
                 )
         except Exception as e:
