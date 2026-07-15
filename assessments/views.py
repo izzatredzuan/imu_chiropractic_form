@@ -377,12 +377,17 @@ class NotesPDFView(View):
         cookies = []
         session_cookie = request.COOKIES.get("sessionid")
         if session_cookie:
-            cookies.append({
-                "name": "sessionid",
-                "value": session_cookie,
-                "domain": "127.0.0.1",
-                "path": "/",
-            })
+            cookies = [{
+            "name": "sessionid",
+            "value": session_cookie,
+            "url": request.build_absolute_uri("/")
+        }]
+
+        print("========== VIEW DEBUG ==========")
+        print("Generated URL:", url)
+        print("Session exists:", bool(session_cookie))
+        print("Cookie:", cookies)
+        print("===============================")
 
         pdf = generate_pdf(
             url,
