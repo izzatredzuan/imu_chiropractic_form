@@ -827,25 +827,41 @@ EXIT;
 ```
 ---
 
+---
+
 # 21. Database Backup
 
-A dedicated backup container automatically creates a MySQL database backup every week.
+The application uses **Ubuntu Cron** to automatically create weekly MySQL database backups.
+
+The backup process runs outside Docker and uses the running MySQL container to export the database.
+
+---
 
 ## Backup Schedule
 
-The backup runs every **Sunday at 2:00 AM**.
+The backup runs every Sunday at **2:00 AM**.
 
-Cron schedule:
+Cron configuration:
 
-```text
-0 2 * * 0
+```cron
+0 2 * * 0 /usr/local/bin/imu-db-backup.sh >> /var/log/imu-db-backup.log 2>&1
 ```
+
+Explanation:
+
+| Value | Meaning |
+|---|---|
+| `0` | Minute 0 |
+| `2` | 2 AM |
+| `*` | Every day |
+| `*` | Every month |
+| `0` | Sunday |
 
 ---
 
 ## Backup Storage Location
 
-Database backups are stored on the host server at:
+Database backups are stored outside the project directory:
 
 ```text
 /var/backups/imu-assessment/
@@ -855,122 +871,169 @@ Example:
 
 ```text
 /var/backups/imu-assessment/
-├── imu_assessment_2026-07-20_02-00-00.sql
-├── imu_assessment_2026-07-27_02-00-00.sql
+├── imu_assessment_2026-07-19_02-00-00.sql
+├── imu_assessment_2026-07-26_02-00-00.sql
 └── ...
 ```
 
-This directory is located outside the project folder, so backup files are **not committed to Git**.
+The backup directory is outside Git, so database dumps will not be committed to the repository.
 
 ---
 
 ## Create Backup Directory
 
-Before starting the Docker containers for the first time, create the backup directory:
+Create the backup storage location:
 
 ```bash
 sudo mkdir -p /var/backups/imu-assessment
 ```
 
-Grant write permission:
-
-```bash
-sudo chmod 775 /var/backups/imu-assessment
-```
-
 ---
 
-## Create the Backup Script
+## Create Backup Script
 
-Create the backup script in the project root:
+Create the backup script:
 
 ```bash
-nano backup.sh
+sudo nano /usr/local/bin/imu-db-backup.sh
 ```
 
-Paste the following:
+Add:
 
 ```bash
-#!/bin/sh
+#!/bin/bash
+
+APP_DIR="/var/www/IMU-Student-Assessment-Application"
+BACKUP_DIR="/var/backups/imu-assessment"
+
+# Read database settings from .env
+DB_PASSWORD=$(grep '^DB_PASSWORD=' "$APP_DIR/.env" | cut -d '=' -f2-)
+DB_NAME=$(grep '^DB_NAME=' "$APP_DIR/.env" | cut -d '=' -f2-)
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
-mysqldump \
-  -h db \
-  -u root \
-  -p"$DB_PASSWORD" \
-  "$DB_NAME" \
-  > "/backups/imu_assessment_${TIMESTAMP}.sql"
+mkdir -p "$BACKUP_DIR"
 
-# Remove backups older than 30 days
-find /backups -name "imu_assessment_*.sql" -mtime +30 -delete
+docker exec -e MYSQL_PWD="$DB_PASSWORD" imu-assessment-db \
+  mysqldump \
+  -u root \
+  "$DB_NAME" \
+  > "$BACKUP_DIR/imu_assessment_${TIMESTAMP}.sql"
+
+# Delete backups older than 30 days
+find "$BACKUP_DIR" -name "imu_assessment_*.sql" -mtime +30 -delete
 ```
 
 Save the file.
 
-Make it executable:
+Make the script executable:
 
 ```bash
-chmod +x backup.sh
+sudo chmod +x /usr/local/bin/imu-db-backup.sh
 ```
 
 ---
 
-## Test the Backup
+## Test Backup Manually
 
-You can manually trigger a backup to verify everything is working:
+Run:
 
 ```bash
-docker compose exec backup sh /backup.sh
+sudo /usr/local/bin/imu-db-backup.sh
 ```
 
-Verify the backup was created:
+Check generated backups:
 
 ```bash
 ls -lh /var/backups/imu-assessment
 ```
 
-Example:
+Expected output:
 
 ```text
--rw-r--r-- 1 root root 12M Jul 17 02:00 imu_assessment_2026-07-17_02-00-00.sql
+imu_assessment_2026-07-17_15-30-00.sql
 ```
 
 ---
 
-## Restore a Backup
+## Configure Ubuntu Cron
 
-Copy a backup into the MySQL container and restore it:
+Open root cron:
 
 ```bash
-docker compose exec -T db mysql -u root -p"$DB_PASSWORD" "$DB_NAME" < /var/backups/imu-assessment/imu_assessment_2026-07-17_02-00-00.sql
+sudo crontab -e
 ```
 
-Alternatively, from inside the database container:
+Add:
 
-```bash
-docker compose exec db bash
+```cron
+0 2 * * 0 /usr/local/bin/imu-db-backup.sh >> /var/log/imu-db-backup.log 2>&1
 ```
 
-Then run:
+Save and exit.
+
+Verify cron configuration:
 
 ```bash
-mysql -u root -p"$DB_PASSWORD" "$DB_NAME" < /var/backups/imu-assessment/imu_assessment_2026-07-17_02-00-00.sql
+sudo crontab -l
+```
+
+Expected:
+
+```text
+0 2 * * 0 /usr/local/bin/imu-db-backup.sh >> /var/log/imu-db-backup.log 2>&1
 ```
 
 ---
 
-## Retention Policy
+## Check Backup Logs
 
-The backup script automatically removes backup files older than **30 days**.
+Backup execution logs are stored at:
+
+```text
+/var/log/imu-db-backup.log
+```
+
+View logs:
+
+```bash
+sudo cat /var/log/imu-db-backup.log
+```
+
+Follow logs:
+
+```bash
+sudo tail -f /var/log/imu-db-backup.log
+```
+
+---
+
+## Restore Database Backup
+
+To restore a database backup:
+
+```bash
+docker exec -i imu-assessment-db \
+  mysql \
+  -u root \
+  -p"$DB_PASSWORD" \
+  "$DB_NAME" \
+  < /var/backups/imu-assessment/imu_assessment_2026-07-17_02-00-00.sql
+```
+
+---
+
+## Backup Retention
+
+The backup script automatically deletes backups older than **30 days**.
 
 This is controlled by:
 
 ```bash
-find /backups -name "imu_assessment_*.sql" -mtime +30 -delete
+find "$BACKUP_DIR" -name "imu_assessment_*.sql" -mtime +30 -delete
 ```
 
-Increase or decrease the number as required.
+Adjust `30` if a different retention period is required.
 
 ---
 
