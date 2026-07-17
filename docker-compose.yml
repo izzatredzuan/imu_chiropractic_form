@@ -24,22 +24,5 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-  backup:
-    image: mysql:8
-    container_name: imu-assessment-backup
-    restart: unless-stopped
-    env_file:
-      - .env
-    depends_on:
-      - db
-    volumes:
-      - /var/backups/imu-assessment:/backups
-      - ./backup.sh:/backup.sh:ro
-    command: >
-      sh -c "
-      echo '0 2 * * 0 /backup.sh >> /var/log/backup.log 2>&1' > /etc/crontabs/root &&
-      crond -f
-      "
-
 volumes:
   mysql_data:
