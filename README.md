@@ -403,7 +403,8 @@ RUN apt-get update && apt-get install -y \
 COPY requirements.txt .
 
 RUN pip install --upgrade pip \
-    && pip install -r requirements.txt
+    && pip install -r requirements.txt \
+    && playwright install --with-deps chromium
 
 COPY . .
 
@@ -436,7 +437,7 @@ Add:
 services:
   web:
     build: .
-    container_name: chiropractic-web
+    container_name: imu-assessment-web
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
@@ -449,7 +450,7 @@ services:
 
   db:
     image: mysql:8
-    container_name: chiropractic-db
+    container_name: imu-assessment-db
     restart: always
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -458,6 +459,23 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+
+  backup:
+    image: mysql:8
+    container_name: imu-assessment-backup
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - /var/backups/imu-assessment:/backups
+      - ./backup.sh:/backup.sh:ro
+    command: >
+      sh -c "
+      echo '0 2 * * 0 /backup.sh >> /var/log/backup.log 2>&1' > /etc/crontabs/root &&
+      crond -f
+      "
 
 volumes:
   mysql_data:
@@ -807,10 +825,156 @@ Exit MySQL:
 ```sql id="s4k2pf"
 EXIT;
 ```
+---
+
+# 21. Database Backup
+
+A dedicated backup container automatically creates a MySQL database backup every week.
+
+## Backup Schedule
+
+The backup runs every **Sunday at 2:00 AM**.
+
+Cron schedule:
+
+```text
+0 2 * * 0
+```
 
 ---
 
-# 21. Project Structure
+## Backup Storage Location
+
+Database backups are stored on the host server at:
+
+```text
+/var/backups/imu-assessment/
+```
+
+Example:
+
+```text
+/var/backups/imu-assessment/
+├── imu_assessment_2026-07-20_02-00-00.sql
+├── imu_assessment_2026-07-27_02-00-00.sql
+└── ...
+```
+
+This directory is located outside the project folder, so backup files are **not committed to Git**.
+
+---
+
+## Create Backup Directory
+
+Before starting the Docker containers for the first time, create the backup directory:
+
+```bash
+sudo mkdir -p /var/backups/imu-assessment
+```
+
+Grant write permission:
+
+```bash
+sudo chmod 775 /var/backups/imu-assessment
+```
+
+---
+
+## Create the Backup Script
+
+Create the backup script in the project root:
+
+```bash
+nano backup.sh
+```
+
+Paste the following:
+
+```bash
+#!/bin/sh
+
+TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+
+mysqldump \
+  -h db \
+  -u root \
+  -p"$DB_PASSWORD" \
+  "$DB_NAME" \
+  > "/backups/imu_assessment_${TIMESTAMP}.sql"
+
+# Remove backups older than 30 days
+find /backups -name "imu_assessment_*.sql" -mtime +30 -delete
+```
+
+Save the file.
+
+Make it executable:
+
+```bash
+chmod +x backup.sh
+```
+
+---
+
+## Test the Backup
+
+You can manually trigger a backup to verify everything is working:
+
+```bash
+docker compose exec backup sh /backup.sh
+```
+
+Verify the backup was created:
+
+```bash
+ls -lh /var/backups/imu-assessment
+```
+
+Example:
+
+```text
+-rw-r--r-- 1 root root 12M Jul 17 02:00 imu_assessment_2026-07-17_02-00-00.sql
+```
+
+---
+
+## Restore a Backup
+
+Copy a backup into the MySQL container and restore it:
+
+```bash
+docker compose exec -T db mysql -u root -p"$DB_PASSWORD" "$DB_NAME" < /var/backups/imu-assessment/imu_assessment_2026-07-17_02-00-00.sql
+```
+
+Alternatively, from inside the database container:
+
+```bash
+docker compose exec db bash
+```
+
+Then run:
+
+```bash
+mysql -u root -p"$DB_PASSWORD" "$DB_NAME" < /var/backups/imu-assessment/imu_assessment_2026-07-17_02-00-00.sql
+```
+
+---
+
+## Retention Policy
+
+The backup script automatically removes backup files older than **30 days**.
+
+This is controlled by:
+
+```bash
+find /backups -name "imu_assessment_*.sql" -mtime +30 -delete
+```
+
+Increase or decrease the number as required.
+
+---
+
+# 22. Project Structure
 
 The expected project structure:
 

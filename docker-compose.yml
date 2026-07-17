@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    container_name: chiropractic-web
+    container_name: imu-assessment-web
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/app
@@ -14,7 +14,7 @@ services:
 
   db:
     image: mysql:8
-    container_name: chiropractic-db
+    container_name: imu-assessment-db
     restart: always
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -23,6 +23,23 @@ services:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+
+  backup:
+    image: mysql:8
+    container_name: imu-assessment-backup
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - /var/backups/imu-assessment:/backups
+      - ./backup.sh:/backup.sh:ro
+    command: >
+      sh -c "
+      echo '0 2 * * 0 /backup.sh >> /var/log/backup.log 2>&1' > /etc/crontabs/root &&
+      crond -f
+      "
 
 volumes:
   mysql_data:

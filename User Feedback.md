@@ -6,31 +6,30 @@
 
 # Pending
 
-## 09 April 2026
-
-### S.O.A.P
-- Add a delete function for modalities if the S.O.A.P has not been signed off.
+- _No pending issue._
 
 ---
 
 ## Priority
 
+- _No pending priority issue._
 
 #### Enhancement Suggestions
+
 - Allow forms to be saved as drafts before completion.
   - Drafts **must not** be eligible for sign-off until all required sections are completed.
 - Archive logs by day.
-- Add an edit function for **Section 4 – Diagnosis & Treatment Plan Remarks** in the future.
 - Consider adding AI-generated assessment summaries when exporting to PDF.
 
 #### Bugs
-- *No pending bugs.*
+
+- _No pending bugs._
 
 ---
 
 ## Questions for the Chiro Team
 
-- *No pending questions.*
+- _No pending questions._
 
 ---
 
@@ -56,16 +55,21 @@
 ### 09 April 2026
 
 #### S.O.A.P
+
 - Next Appointment and Modalities are no longer mandatory. ✅
+- Add a delete function for modalities if the S.O.A.P has not been signed off. ✅
 
 #### Section 3
+
 - Add a drawing area for **Range of Motion (RoM)** with text separated into three fields. ✅
 
 #### Anatomy Marking
+
 - S.O.A.P markers support notes. ✅
 - Assessment Section 1 markers do not require notes. ✅
 
 #### General
+
 - Added remaining required fields after receiving specifications from the Chiro team. ✅
 - Fixed UI issues for the **Undo** and **Clear** buttons in Section 1 signature. ✅
 
@@ -76,6 +80,7 @@
 - Add file upload support in **Treatment Plan**. ✅
 
 #### Priority
+
 - Add **Cohort** field for Student user creation. ✅
 
 ---
@@ -83,26 +88,32 @@
 ### 21 May 2026
 
 #### Notes Page
+
 - Add **Convert to PDF** functionality. ✅
 - The S.O.A.P Notes page should include the description of each anatomy marker in the generated PDF. ✅
 
 #### Section 1
+
 - Add the new Consent section. ✅
 - Update Phase 1 completion logic:
   - **Special Direction** is no longer mandatory. ✅
 - Remove the anatomy marker instruction:
-  - *"Left-click a marker to add/edit a note. Right-click to delete."* ✅
+  - _"Left-click a marker to add/edit a note. Right-click to delete."_ ✅
 
 #### Section 4
+
 - Add **Intervention Approved** field. ✅
 
 #### S.O.A.P
+
 - Fixed assessment ID not being passed during creation. ✅
 
 #### Notes
+
 - Fixed anatomy marker details not displaying when clicking/holding a marker. ✅
 
 #### Discharge
+
 - Added sign-off section. ✅
 
 ---
@@ -117,9 +128,11 @@
 ### 12 June 2026
 
 #### Assessment
+
 - Fixed Section 4 becoming locked again after Section 3 sign-off. ✅
 
 #### Section 1
+
 - Updated the Consent section:
   - Added four consent checkboxes.
   - Added consent explanation.
@@ -128,12 +141,15 @@
 - Added name fields for **PDPA Consent** and **Patient Consent**. ✅
 
 #### Section 3
+
 - Added confirmation messages for **Save** and **Sign Off**. ✅
 
 #### Treatment Plan
+
 - Made Phases 1–3 optional instead of mandatory. ✅
 
 #### General
+
 - Changed all occurrences of **Orthopedic** to **Orthopaedic**. ✅
 
 ---
@@ -141,7 +157,8 @@
 ### 19 June 2026
 
 #### New Consent Section
-*(Located after Section 4 and before Treatment Plan)*
+
+_(Located after Section 4 and before Treatment Plan)_
 
 - Removed the PDPA Consent section from the application. ✅
 - Moved all remaining consent sections to the new Consent page. ✅
@@ -150,7 +167,8 @@
 #### Consent & Submission Confirmation
 
 - Updated the first name in:
-  > "I, ______"
+
+  > "I, **\_\_**"
 
   to display the **Patient Consent Name** instead of the Witness Name. ✅
 
@@ -191,6 +209,8 @@
 - Redirect users who are already logged in. ✅
 - Prevent login for locked accounts. ✅
 - Add Assessment filtering by year. ✅
+- Add an edit function for **Section 4 – Diagnosis & Treatment Plan Remarks** in the future. ✅
+- Create backup DB cron function that runs every week ✅
 
 ---
 
@@ -219,7 +239,8 @@
 - Finalised Section 3 physical sign-off placement. ✅
 
 #### Bugs
-- Datatable sorting is incorrect.  ✅
+
+- Datatable sorting is incorrect. ✅
 
 ---
 
@@ -227,7 +248,7 @@
 
 ## Bugs
 
-- S.O.A.P could not be unsigned after clicking **Update S.O.A.P**. *(Resolved before cancellation.)*
+- S.O.A.P could not be unsigned after clicking **Update S.O.A.P**. _(Resolved before cancellation.)_
 
 ## Cancelled Requests
 
