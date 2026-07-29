@@ -697,7 +697,7 @@
     <h2 class="fw-semibold mobile-fonts mb-0">
         Patient Assessments Summary
     </h2>
-
+    {% if request.user.profile.role != "student" %}
     <a
         href="{% url 'assessment_notes_pdf' assessment_id %}"
         class="btn btn-primary pdf-download-btn"
@@ -705,6 +705,7 @@
         <i class="bi bi-file-earmark-pdf"></i>
         Download PDF
     </a>
+    {% endif %}
   </div>
 
   <div class="accordion" id="assessmentAccordion">
@@ -1531,7 +1532,9 @@
       // =====================================
       document.getElementById("soap").innerHTML =
         data.soaps?.length
-        ? data.soaps.map(s => `
+        ? data.soaps.map((s, index) => { 
+          const soapNumber = data.soaps.length - index;
+          return `
           <div class="card mb-4 shadow-sm soap-card hover-shadow"
               data-url="/soap/${s.id}/"
               style="cursor: pointer;">
@@ -1539,7 +1542,7 @@
             <!-- Header -->
             <div class="card-header d-flex justify-content-between align-items-center">
               <div>
-                <span class="fw-semibold">S.O.A.P.</span><br>
+                <span class="fw-semibold">S.O.A.P. #${soapNumber}</span><br>
                 <small class="text-muted">
                   <strong>ID:</strong> ${s.id}
                 </small>
@@ -1786,7 +1789,7 @@
               </div>
             </div>
           </div>
-        `).join("")
+        `}).join("")
         : emptyState("No S.O.A.P. Notes Exist");
 
       // =====================================
@@ -1794,17 +1797,19 @@
       // =====================================
       document.getElementById("reeval").innerHTML =
       data.reevaluations?.length
-        ? data.reevaluations.map(r => `
-        <div class="card mb-4 shadow-sm">
-          <!-- HEADER -->
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-              <span class="fw-semibold">Re-Evaluation</span><br>
-              <small class="text-muted">
-                <strong>ID:</strong> ${r.id}
-              </small>
-            </div>
-          </div>
+        ? data.reevaluations.map((r, index) => {
+          const reevaluationNumber = data.reevaluations.length - index;
+          return `
+            <div class="card mb-4 shadow-sm">
+              <!-- HEADER -->
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="fw-semibold">Re-Evaluation #${reevaluationNumber}</span><br>
+                  <small class="text-muted">
+                    <strong>ID:</strong> ${r.id}
+                  </small>
+                </div>
+              </div>
 
           <div class="card-body">
             ${renderSignedOff(
@@ -1839,7 +1844,7 @@
 
           </div>
         </div>
-      `).join("")
+      `}).join("")
       : emptyState("No Re-Evaluations Exist");
 
       // =====================================
@@ -1847,18 +1852,19 @@
       // =====================================
       document.getElementById("complaints").innerHTML =
         data.new_complaints?.length
-          ? data.new_complaints.map(c => `
-
-        <div class="card mb-4 shadow-sm">
-          <!-- HEADER -->
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <div>
-              <span class="fw-semibold">New Complaint</span><br>
-              <small class="text-muted">
-                <strong>ID:</strong> ${c.id}
-              </small>
-            </div>
-          </div>
+          ? data.new_complaints.map((c, index) => {
+            const complaintNumber = data.new_complaints.length - index;
+            return `
+              <div class="card mb-4 shadow-sm">
+                <!-- HEADER -->
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <div>
+                    <span class="fw-semibold">New Complaint #${complaintNumber}</span><br>
+                    <small class="text-muted">
+                      <strong>ID:</strong> ${c.id}
+                    </small>
+                  </div>
+                </div>
 
           <div class="card-body">
             ${renderSignedOff(
@@ -1894,7 +1900,7 @@
             </div>
           </div>
         </div>
-      `).join("")
+      `}).join("")
       : emptyState("No New Complaints Exist");
       
       console.log("PDF READY");

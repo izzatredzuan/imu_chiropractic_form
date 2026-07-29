@@ -12,7 +12,35 @@
 
 ## Priority
 
-- _No pending priority issue._
+## 22 July 2026: UAT Feedback
+
+- Add multiselect `Case Mix` field somewhere in the form, need to discuss more with clinician soon
+
+Section 1:
+
+- Remove `Interpreter Name` field ✅
+
+Section 2:
+
+- Change the page to `Patient History Assessment` ✅
+
+S.O.A.P. / Re-Evaluation / New Complain:
+- Need to show numbers based on which one is latest  ✅
+- Change logic where as long the role is clinician or admin they can create any assessment ✅
+
+Treatment Plan
+
+- Treatment Phase, change it to have its own table and can be add multiple time like modalities
+- For each of the Treatment Phase add new text area field call `Treatment Plan Diagnosis`
+
+Notes:
+
+- Disable download to pdf button for student ✅
+
+General:
+
+- Each fields need to be change to be like Section 4 Diagnosis field where need to click add, to add more test to differentiate who writing it, need to consider text color as well for different role
+- Need to have a function to download each section as an empty form pdf templete
 
 #### Enhancement Suggestions
 
@@ -20,6 +48,10 @@
   - Drafts **must not** be eligible for sign-off until all required sections are completed.
 - Archive logs by day.
 - Consider adding AI-generated assessment summaries when exporting to PDF.
+
+Section 4:
+
+- Figure out how to show sign off history
 
 #### Bugs
 

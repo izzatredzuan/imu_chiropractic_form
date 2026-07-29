@@ -216,12 +216,6 @@
                   value="{% if assessment %}{{ assessment.date_of_birth|date:'Y-m-d' }}{% endif %}"
                   {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
               </div>
-              <div class="col-md-4 mb-3">
-                <label class="form-label">Interpreter Name</label>
-                <input type="text" name="interpreter_name" class="form-control"
-                  value="{{ assessment.interpreter_name|default_if_none:'' }}"
-                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
-              </div>
             </div>
           </div>
         </div>
@@ -1094,43 +1088,6 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
   }
 
   loadMarkersFromAPI();
-
-  /* ======================================================
-     CONSENT MODAL
-  ====================================================== */
-  // let consentModal;
-
-  // document.addEventListener("DOMContentLoaded", () => {
-  //   consentModal = new bootstrap.Modal(
-  //     document.getElementById("consentConfirmModal")
-  //   );
-  // });
-
-  // document.getElementById("btnProceedConfirm")?.addEventListener("click", function(e) {
-  //   e.preventDefault();
-  //   // fill modal values
-  //   document.getElementById("m_patient_consent_name").innerText =
-  //   document.getElementById("patientConsentName")?.value
-  //   || "{{ assessment.witness_consent_signed_by|default:'-' }}";
-
-  //   document.getElementById("m_patient_name").innerText =
-  //   document.querySelector("[name='patient_name']")?.value
-  //   || "{{ assessment.patient_name|default:'-' }}";
-
-  //   document.getElementById("m_relationship").innerText =
-  //   document.querySelector("[name='witness_relationship']")?.value
-  //   || "{{ assessment.witness_relationship|default:'-' }}";
-
-  //   document.getElementById("m_attending_name").innerText =
-  //   document.querySelector("[name='attending_consent_signed_by'] option:checked")?.textContent
-  //   || "{{ assessment.attending_consent_signed_by.official_name|default:'-' }}";
-
-  //   document.getElementById("m_interpreter_name").innerText =
-  //   document.querySelector("[name='interpreter_name']")?.value
-  //   || "{{ assessment.interpreter_name|default:'-' }}";
-
-  //   consentModal.show();
-  // });
 
   /* ======================================================
      FORM SUBMIT

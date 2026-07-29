@@ -1336,8 +1336,11 @@ class SoapAPIView(APIView):
         # =========================
         # GET ALL SOAPs (fallback)
         # =========================
-        soaps = Soaps.objects.filter(assessment=assessment).prefetch_related(
-            "soap_modalities"
+        soaps = (
+            Soaps.objects
+            .filter(assessment=assessment)
+            .prefetch_related("soap_modalities")
+            .order_by("-created_at")
         )
 
         serializer = SoapSerializer(soaps, many=True)
@@ -1667,7 +1670,11 @@ class PatientReevaluationAPIView(APIView):
         # =========================
         # GET ALL
         # =========================
-        reevaluations = PatientReevaluation.objects.filter(assessment=assessment)
+        reevaluations = (
+            PatientReevaluation.objects
+            .filter(assessment=assessment)
+            .order_by("-created_at")
+        )
 
         serializer = PatientReevaluationSerializer(
             reevaluations,
@@ -2008,7 +2015,11 @@ class PatientNewComplaintAPIView(APIView):
         # =========================
         # GET ALL
         # =========================
-        new_complaints = PatientNewComplaint.objects.filter(assessment=assessment)
+        new_complaints = (
+            PatientNewComplaint.objects
+            .filter(assessment=assessment)
+            .order_by("-created_at")
+        )
 
         serializer = PatientNewComplaintSerializer(
             new_complaints,

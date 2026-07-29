@@ -56,7 +56,6 @@
             </button>
         </div>
 
-
         <div id="assessmentFilterPanel" class="collapse">
             <div class="card-body">
                 <div class="row g-3">
@@ -912,7 +911,7 @@
 
             // Update Create S.O.A.P. button state
             const section4Signed = rowData.section_4_signed_at || rowData.is_section_4_signed;
-            const canAccess = ("{{ profile }}" === rowData.clinician) || ("{{ profile }}" === rowData.student);
+            const canAccess = ["admin", "clinician"].includes(USER_ROLE) || "{{ profile }}" === rowData.student;
 
             if (rowData.is_discharged || !section4Signed || !canAccess) {
                 $('#createSoapBtn')
@@ -968,7 +967,9 @@
             }
 
             let html = "";
-            data.forEach(soap => {
+            const total = data.length;
+            data.forEach((soap, index) => {
+                const soapNumber = total - index;
                 const createdDate = soap.created_at ?
                     moment(soap.created_at).format("DD/MM/YYYY HH:mm") :
                     "-";
@@ -1011,7 +1012,7 @@
                         <!-- Header -->
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div>
-                                <span class="fw-semibold">S.O.A.P.</span><br>
+                                <span class="fw-semibold">S.O.A.P. #${soapNumber}</span><br>
                                 <small class="text-muted"><strong>ID:</strong> ${soap.id}</small>
                             </div>
                             ${signedBadge}
@@ -1122,9 +1123,9 @@
                 const section4Signed =
                     rowData.section_4_signed_at ||
                     rowData.is_section_4_signed;
-                const canAccess =
-                    ("{{ profile }}" === rowData.clinician) ||
-                    ("{{ profile }}" === rowData.student);
+                const canAccess = 
+                    ["admin", "clinician"].includes(USER_ROLE) || 
+                    "{{ profile }}" === rowData.student;
 
                 if (
                     rowData.is_discharged ||
@@ -1215,7 +1216,8 @@
             }
 
             let html = "";
-            data.forEach(reevaluation => {
+            data.forEach((reevaluation, index) => {
+                const reevaluationNumber = totalCount - index;
                 const createdDate =
                     reevaluation.created_at ?
                     moment(reevaluation.created_at)
@@ -1272,7 +1274,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="fw-semibold">
-                                    Reevaluation
+                                    Reevaluation #${reevaluationNumber}
                                 </span>
                                 <br>
 
@@ -1416,9 +1418,9 @@
                 const section4Signed =
                     rowData.section_4_signed_at ||
                     rowData.is_section_4_signed;
-                const canAccess =
-                    ("{{ profile }}" === rowData.clinician) ||
-                    ("{{ profile }}" === rowData.student);
+                const canAccess = 
+                    ["admin", "clinician"].includes(USER_ROLE) || 
+                    "{{ profile }}" === rowData.student;
 
                 if (
                     rowData.is_discharged ||
@@ -1511,7 +1513,8 @@
             }
 
             let html = "";
-            data.forEach(newComplaint => {
+            data.forEach((newComplaint, index) => {
+                const newComplaintNumber = totalCount - index;
                 const createdDate =
                     newComplaint.created_at
                     ?
@@ -1577,7 +1580,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <div>
                                 <span class="fw-semibold">
-                                    New Complaint
+                                    New Complaint #${newComplaintNumber}
                                 </span>
                                 <br>
 
