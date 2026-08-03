@@ -7,6 +7,7 @@ from accounts.models import Profile
 from .models import (
     Assessments,
     AssessmentAttachment,
+    AssessmentTreatmentPlanPhase,
     PatientNewComplaint,
     SoapModality,
     Soaps,
@@ -751,22 +752,39 @@ class AssessmentAttachmentSerializer(serializers.ModelSerializer):
         ]
 
 
+class AssessmentTreatmentPlanPhaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AssessmentTreatmentPlanPhase
+        fields = [
+            "id",
+            "phase_1",
+            "phase_2",
+            "phase_3",
+            "treatment_plan_diagnosis",
+        ]
+
+
 class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
+    treatment_plan_phases = AssessmentTreatmentPlanPhaseSerializer(
+        many=True,
+        read_only=True,
+    )
+
     treatment_plan_signed_by_name = serializers.CharField(
-        source="treatment_plan_signed_by.official_name", read_only=True
+        source="treatment_plan_signed_by.official_name",
+        read_only=True,
     )
     treatment_plan_signed_by_role = serializers.CharField(
-        source="treatment_plan_signed_by.role", read_only=True
+        source="treatment_plan_signed_by.role",
+        read_only=True,
     )
 
     class Meta:
         model = Assessments
         fields = [
             "id",
-            "phase_1",
-            "phase_2",
-            "phase_3",
             "treatment_remarks",
+            "treatment_plan_phases",
             "is_treatment_plan_signed",
             "treatment_plan_signed_by_name",
             "treatment_plan_signed_by_role",

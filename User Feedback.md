@@ -16,26 +16,9 @@
 
 - Add multiselect `Case Mix` field somewhere in the form, need to discuss more with clinician soon
 
-Section 1:
+Section 4:
 
-- Remove `Interpreter Name` field ✅
-
-Section 2:
-
-- Change the page to `Patient History Assessment` ✅
-
-S.O.A.P. / Re-Evaluation / New Complain:
-- Need to show numbers based on which one is latest  ✅
-- Change logic where as long the role is clinician or admin they can create any assessment ✅
-
-Treatment Plan
-
-- Treatment Phase, change it to have its own table and can be add multiple time like modalities
-- For each of the Treatment Phase add new text area field call `Treatment Plan Diagnosis`
-
-Notes:
-
-- Disable download to pdf button for student ✅
+- Figure out how to show sign off history
 
 General:
 
@@ -49,9 +32,6 @@ General:
 - Archive logs by day.
 - Consider adding AI-generated assessment summaries when exporting to PDF.
 
-Section 4:
-
-- Figure out how to show sign off history
 
 #### Bugs
 
@@ -235,6 +215,29 @@ _(Located after Section 4 and before Treatment Plan)_
 - Sync Employee/Student user profiles (Create/Update) from the IMU API. ✅
 - Added Change Password page and functionality. ✅
 - Added Forgot Password page and functionality. ✅
+
+### 22 July 2026: UAT Feedback
+
+Section 1:
+
+- Remove `Interpreter Name` field ✅
+
+Section 2:
+
+- Change the page to `Patient History Assessment` ✅
+
+Treatment Plan
+
+- Treatment Phase, change it to have its own table and can be add multiple time like modalities ✅
+- For each of the Treatment Phase add new text area field call `Treatment Plan Diagnosis` ✅
+
+S.O.A.P. / Re-Evaluation / New Complain:
+- Need to show numbers based on which one is latest ✅
+- Change logic where as long the role is clinician or admin they can create any assessment ✅
+
+Notes:
+
+- Disable download to pdf button for student ✅
 
 #### Enhancements
 

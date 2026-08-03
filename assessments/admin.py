@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     Assessments,
+    AssessmentTreatmentPlanPhase,
     AssessmentAttachment,
     PatientNewComplaint,
     PatientReevaluation,
@@ -11,9 +12,57 @@ from .models import (
     Soaps,
 )
 
+# =====================================================
+# Treatment Plan Inline
+# =====================================================
 
+class AssessmentTreatmentPlanPhaseInline(admin.StackedInline):
+    model = AssessmentTreatmentPlanPhase
+    extra = 1
+
+    verbose_name = "Treatment Plan Phase"
+    verbose_name_plural = "Section 5 – Treatment Plan Phases"
+
+    fields = (
+        "phase_1",
+        "phase_2",
+        "phase_3",
+        "treatment_plan_diagnosis",
+        "created_at",
+        "created_by",
+        "updated_at",
+        "updated_by",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+        "created_by",
+        "updated_by",
+    )
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+
+        for obj in instances:
+            if request.user.is_authenticated and hasattr(request.user, "profile"):
+                profile = request.user.profile
+
+                if obj.created_by is None:
+                    obj.created_by = profile
+
+                obj.updated_by = profile
+
+            obj.save()
+
+        formset.save_m2m()
+
+        
 @admin.register(Assessments)
 class AssessmentsAdmin(admin.ModelAdmin):
+    inlines = [
+        AssessmentTreatmentPlanPhaseInline,
+    ]
     # =====================
     # List view
     # =====================
@@ -259,9 +308,6 @@ class AssessmentsAdmin(admin.ModelAdmin):
             "Section 5 – Treatment Plan",
             {
                 "fields": (
-                    "phase_1",
-                    "phase_2",
-                    "phase_3",
                     "is_treatment_plan_signed",
                     "treatment_plan_signed_by",
                     "treatment_plan_signed_at",

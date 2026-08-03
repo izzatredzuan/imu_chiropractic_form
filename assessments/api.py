@@ -15,6 +15,7 @@ from django.utils import timezone
 from .models import (
     Assessments,
     AssessmentAttachment,
+    AssessmentTreatmentPlanPhase,
     PatientNewComplaint,
     SoapModality,
     Soaps,
@@ -1151,9 +1152,14 @@ class AssessmentTreatmentPlanAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assessment = get_object_or_404(Assessments, id=assessment_id)
+        assessment = get_object_or_404(
+            Assessments.objects.prefetch_related("treatment_plan_phases"),
+            id=assessment_id,
+        )
 
+        # -----------------------------
         # Permission check
+        # -----------------------------
         if profile.role == "student" and assessment.student != profile:
             return Response(
                 {"detail": "You cannot view this treatment plan"},
@@ -1183,9 +1189,14 @@ class AssessmentTreatmentPlanAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assessment = get_object_or_404(Assessments, id=assessment_id)
+        assessment = get_object_or_404(
+            Assessments.objects.prefetch_related("treatment_plan_phases"),
+            id=assessment_id,
+        )
 
+        # -----------------------------
         # Permission check
+        # -----------------------------
         if profile.role == "student" and assessment.student != profile:
             return Response(
                 {"detail": "You cannot edit this treatment plan"},
@@ -1201,7 +1212,41 @@ class AssessmentTreatmentPlanAPIView(APIView):
         serializer.is_valid(raise_exception=True)
 
         try:
-            serializer.save()
+            # -----------------------------
+            # Save Treatment Plan
+            # -----------------------------
+            assessment = serializer.save(
+                updated_by=profile,
+            )
+
+            logger.info(
+                f"UPDATE - Treatment Plan | "
+                f"assessment_id={assessment.id}, "
+                f"updated_by={profile.official_name}, "
+                f"updated_at={assessment.updated_at}"
+            )
+
+            # -----------------------------
+            # Update Treatment Plan Phases
+            # -----------------------------
+            phases = request.data.get("treatment_plan_phases", None)
+
+            if phases is not None:
+                assessment.treatment_plan_phases.all().delete()
+
+                for phase in phases:
+                    AssessmentTreatmentPlanPhase.objects.create(
+                        assessment=assessment,
+                        phase_1=phase.get("phase_1", ""),
+                        phase_2=phase.get("phase_2", ""),
+                        phase_3=phase.get("phase_3", ""),
+                        treatment_plan_diagnosis=phase.get(
+                            "treatment_plan_diagnosis",
+                            "",
+                        ),
+                        created_by=profile,
+                        updated_by=profile,
+                    )
 
             # =========================
             # ACTION LOGIC
@@ -1227,8 +1272,11 @@ class AssessmentTreatmentPlanAPIView(APIView):
                         f"assessment_id={assessment.id}, "
                         f"user={profile.official_name} ({profile.role})"
                     )
+
                     return Response(
-                        {"detail": "Not allowed to sign off Treatment Plan"},
+                        {
+                            "detail": "Not allowed to sign off Treatment Plan"
+                        },
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
@@ -1251,7 +1299,8 @@ class AssessmentTreatmentPlanAPIView(APIView):
 
             if action == "save_treatment_plan":
                 message = (
-                    "Treatment Plan updated successfully. " "Sign-off has been reset."
+                    "Treatment Plan updated successfully. "
+                    "Sign-off has been reset."
                 )
 
             elif action == "sign_off_treatment_plan":
@@ -1279,7 +1328,10 @@ class AssessmentTreatmentPlanAPIView(APIView):
             )
 
             return Response(
-                {"detail": "Failed to update treatment plan", "error": str(e)},
+                {
+                    "detail": "Failed to update treatment plan",
+                    "error": str(e),
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1336,12 +1388,7 @@ class SoapAPIView(APIView):
         # =========================
         # GET ALL SOAPs (fallback)
         # =========================
-        soaps = (
-            Soaps.objects
-            .filter(assessment=assessment)
-            .prefetch_related("soap_modalities")
-            .order_by("-created_at")
-        )
+        soaps = Soaps.objects.filter(assessment=assessment).prefetch_related("soap_modalities")
 
         serializer = SoapSerializer(soaps, many=True)
 
@@ -1670,11 +1717,7 @@ class PatientReevaluationAPIView(APIView):
         # =========================
         # GET ALL
         # =========================
-        reevaluations = (
-            PatientReevaluation.objects
-            .filter(assessment=assessment)
-            .order_by("-created_at")
-        )
+        reevaluations = PatientReevaluation.objects.filter(assessment=assessment)
 
         serializer = PatientReevaluationSerializer(
             reevaluations,
@@ -2015,11 +2058,7 @@ class PatientNewComplaintAPIView(APIView):
         # =========================
         # GET ALL
         # =========================
-        new_complaints = (
-            PatientNewComplaint.objects
-            .filter(assessment=assessment)
-            .order_by("-created_at")
-        )
+        new_complaints = PatientNewComplaint.objects.filter(assessment=assessment)
 
         serializer = PatientNewComplaintSerializer(
             new_complaints,

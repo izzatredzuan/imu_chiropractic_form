@@ -298,9 +298,6 @@ class Assessments(models.Model):
     # =====================
     # Treatment Plan
     # =====================
-    phase_1 = models.TextField(blank=True, default="")
-    phase_2 = models.TextField(blank=True, default="")
-    phase_3 = models.TextField(blank=True, default="")
     treatment_remarks = models.TextField(blank=True, default="")
 
     is_treatment_plan_signed = models.BooleanField(default=False)
@@ -374,6 +371,47 @@ class Assessments(models.Model):
             models.Index(fields=["patient_name"]),
             models.Index(fields=["created_at"]),
         ]
+
+
+class AssessmentTreatmentPlanPhase(models.Model):
+    assessment = models.ForeignKey(
+        Assessments,
+        on_delete=models.CASCADE,
+        related_name="treatment_plan_phases",
+    )
+
+    phase_1 = models.TextField(blank=True, default="")
+    phase_2 = models.TextField(blank=True, default="")
+    phase_3 = models.TextField(blank=True, default="")
+
+    treatment_plan_diagnosis = models.TextField(blank=True, default="")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_treatment_plan_phases",
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_treatment_plan_phases",
+    )
+
+    class Meta:
+        ordering = ["-id"]
+
+    def __str__(self):
+        return (
+            f"Treatment Plan Phase #{self.id} "
+            f"for Assessment {self.assessment_id}"
+        )
 
 
 class AssessmentAttachment(models.Model):

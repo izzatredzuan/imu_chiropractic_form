@@ -94,33 +94,108 @@
         </div>
         {% endif %}
 
-        <!-- ========================= Treatment Plan ========================== -->
-        <!-- <h4 class="fw-semibold mb-3 mobile-fonts">
-            Section 5 – Treatment Plan
-        </h4> -->
-
+        <!-- ========================= Treatment Phases ========================== -->
         <div class="card mb-4 shadow-sm">
-            <div class="card-header fw-semibold">Treatment Phases</div>
-            <div class="card-body">
+            <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
+                <span>Treatment Phases</span>
+                <button type="button" id="addPhaseBtn" class="btn btn-sm 
+                    {% if is_readonly or assessment.is_treatment_plan_signed %}
+                        btn-secondary disabled
+                    {% else %}
+                        btn-primary
+                    {% endif %}">
+                    + Add Phase
+                </button>
+            </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Phase 1</label>
-                    <textarea name="phase_1" class="form-control" rows="4"
-                        {% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}>{{ assessment.phase_1|default_if_none:'' }}</textarea>
+            <div class="card-body" id="treatmentPhaseContainer">
+                {% for phase in assessment.treatment_plan_phases.all reversed %}
+                <div class="treatment-phase-item card mb-3 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="phase-title fw-semibold">
+                            Treatment Phase {{ forloop.revcounter }}
+                        </span>
+                        {% if not is_readonly and not assessment.is_treatment_plan_signed %}
+                        <button type="button" class="btn-close remove-phase-btn">
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Treatment Plan Diagnosis
+                            </label>
+                            <textarea class="form-control" name="treatment_plan_diagnosis_{{ forloop.counter }}"rows="2"{% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}>{{ phase.treatment_plan_diagnosis }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Phase 1
+                            </label>
+                            <textarea class="form-control" name="phase_1_{{ forloop.counter }}" rows="4"{% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}>{{ phase.phase_1 }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Phase 2
+                            </label>
+                            <textarea class="form-control" name="phase_2_{{ forloop.counter }}" rows="4"{% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}>{{ phase.phase_2 }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Phase 3
+                            </label>
+                            <textarea class="form-control" name="phase_3_{{ forloop.counter }}" rows="4"{% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}>{{ phase.phase_3 }}</textarea>
+                        </div>
+                    </div>
                 </div>
+                {% empty %}
 
-                <div class="mb-3">
-                    <label class="form-label">Phase 2</label>
-                    <textarea name="phase_2" class="form-control" rows="4"
-                        {% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}>{{ assessment.phase_2|default_if_none:'' }}</textarea>
+                <!-- First empty phase -->
+                <div class="treatment-phase-item card mb-3 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="phase-title fw-semibold">
+                            Treatment Phase 1
+                        </span>
+
+                        {% if not is_readonly and not assessment.is_treatment_plan_signed %}
+                        <button type="button" class="btn-close remove-phase-btn">
+                        </button>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Treatment Plan Diagnosis
+                            </label>
+                            <textarea class="form-control" name="treatment_plan_diagnosis_1" rows="2"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Phase 1
+                            </label>
+                            <textarea class="form-control" name="phase_1_1" rows="4"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Phase 2
+                            </label>
+                            <textarea class="form-control" name="phase_2_1" rows="4"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">
+                                Phase 3
+                            </label>
+                            <textarea class="form-control" name="phase_3_1" rows="4"></textarea>
+                        </div>
+                    </div>
                 </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Phase 3</label>
-                    <textarea name="phase_3" class="form-control" rows="4"
-                        {% if is_readonly or assessment.is_treatment_plan_signed %}disabled{% endif %}>{{ assessment.phase_3|default_if_none:'' }}</textarea>
-                </div>
-
+                {% endfor %}
             </div>
         </div>
 
@@ -140,7 +215,7 @@
                     readonly>{{assessment.treatment_remarks|default_if_none:""}}</textarea>
             </div>
         </div>
-        
+
         <!-- ========================= Attachments ========================== -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
@@ -209,7 +284,7 @@
 
                                         <a href="{{ attachment.file.url }}"
                                         target="_blank"
-                                        class="text-decoration-none">
+                                            class="text-decoration-none">
                                             <i class="bi bi-download text-primary"
                                             role="button"
                                             title="Download attachment"
@@ -236,9 +311,9 @@
                     </table>
                 </div>
                 {% else %}
-                    <div class="text-center text-muted py-4">
-                        No attachments uploaded.
-                    </div>
+                <div class="text-center text-muted py-4">
+                    No attachments uploaded.
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -296,9 +371,12 @@
 <script>
     let clickedAction = "save_treatment_plan";
 
-    // =========================
-    // Button Click Handlers
-    // =========================
+    const IS_READONLY = {{ is_readonly|yesno:"true,false" }};
+    const IS_SIGNED = {{ assessment.is_treatment_plan_signed|yesno:"true,false" }};
+
+    // =====================================================
+    // BUTTON CLICK HANDLERS
+    // =====================================================
     const btnSave = document.getElementById("btnSave");
     const btnSignOff = document.getElementById("btnSignOff");
 
@@ -313,74 +391,192 @@
             clickedAction = "sign_off_treatment_plan";
         });
     }
-    {% endif %}
+     {% endif %}
 
-    // =========================
-    // Form Submit
-    // =========================
-    document.getElementById("treatmentPlanForm").addEventListener("submit", function (e) {
-        e.preventDefault();
+    // =====================================================
+    // TREATMENT PHASE DYNAMIC SECTION
+    // =====================================================
+    const phaseContainer = document.getElementById("treatmentPhaseContainer");
+    const addPhaseBtn = document.getElementById("addPhaseBtn");
 
-        let confirmMessage =
-            "Are you sure you want to save changes? Existing sign-off may be reset.";
+    let phaseCounter = phaseContainer.querySelectorAll(".treatment-phase-item").length;
 
-        if (clickedAction === "sign_off_treatment_plan") {
-            confirmMessage =
-                "Are you sure you want to UPDATE and SIGN OFF Treatment Plan?";
-        }
+    function renumberPhases() {
+        const phases = phaseContainer.querySelectorAll(".treatment-phase-item");
+        const total = phases.length;
 
-        if (!confirm(confirmMessage)) {
-            return;
-        }
+        phases.forEach((item, index) => {
+            const num = total - index;
 
-        const formData = new FormData(this);
-        formData.set("action", clickedAction);
+            item.querySelector(".phase-title").textContent =
+                `Treatment Phase ${num}`;
 
-        const payload = {};
-        formData.forEach((value, key) => {
-            payload[key] = value;
+            item.querySelectorAll("textarea").forEach(textarea => {
+
+                if (textarea.name.startsWith("treatment_plan_diagnosis")) {
+                    textarea.name = `treatment_plan_diagnosis_${num}`;
+                } else if (textarea.name.startsWith("phase_1")) {
+                    textarea.name = `phase_1_${num}`;
+                } else if (textarea.name.startsWith("phase_2")) {
+                    textarea.name = `phase_2_${num}`;
+                } else if (textarea.name.startsWith("phase_3")) {
+                    textarea.name = `phase_3_${num}`;
+                }
+            });
         });
 
-        payload["assessment_id"] = "{{ assessment.id }}";
+        phaseCounter = total;
+    }
 
-        fetch("{% url 'assessment_treatment_plan_api' %}", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": CSRFTOKEN
-                },
-                body: JSON.stringify(payload)
-            })
-            .then(res => {
-                if (!res.ok) {
-                    return res.json().then(err => {
-                        throw err;
-                    });
-                }
-                return res.json();
-            })
-            .then(async data => {
-                const files = document.getElementById("attachmentFiles").files;
+    addPhaseBtn.addEventListener("click", function () {
+        if (IS_READONLY || IS_SIGNED) return;
+        phaseCounter++;
+        const div = document.createElement("div");
+        div.className = "treatment-phase-item card mb-3 shadow-sm";
 
-                if (files.length > 0) {
-                    if (!validateAttachments(files)) {
-                        return;
-                    }
-                    await uploadAttachments(files);
-                }
+        div.innerHTML = `
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="phase-title fw-semibold">
+                    Treatment Phase ${phaseCounter}
+                </span>
+                <button type="button" class="btn-close remove-phase-btn"></button>
+            </div>
 
-                alert(data.message || "Treatment Plan updated successfully");
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">
+                        Treatment Plan Diagnosis
+                    </label>
+                    <textarea class="form-control" name="treatment_plan_diagnosis_${phaseCounter}" rows="2"></textarea>
+                </div>
 
-                window.location.href = "{% url 'assessments_list' %}";})
-            .catch(err => {
-                console.error(err);
-                alert(err.detail || "Failed. Please check required fields.");
-            });
+                <div class="mb-3">
+                    <label class="form-label">
+                        Phase 1
+                    </label>
+                    <textarea class="form-control" name="phase_1_${phaseCounter}" rows="4"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Phase 2
+                    </label>
+                    <textarea class="form-control" name="phase_2_${phaseCounter}" rows="4"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        Phase 3
+                    </label>
+                    <textarea class="form-control" name="phase_3_${phaseCounter}" rows="4"></textarea>
+                </div>
+            </div>
+        `;
+        phaseContainer.prepend(div);
     });
 
-    // =========================
-    // Add Remark Logic
-    // =========================
+    phaseContainer.addEventListener("click", function(e){
+        if(!e.target.classList.contains("remove-phase-btn")){
+            return;
+        }
+        if(IS_READONLY || IS_SIGNED){
+            return;
+        }
+        e.target.closest(".treatment-phase-item").remove();
+        renumberPhases();
+    });
+
+    // =====================================================
+    // FORM SUBMIT
+    // =====================================================
+    document
+        .getElementById("treatmentPlanForm")
+        .addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            let confirmMessage =
+                "Are you sure you want to save changes? Existing sign-off may be reset.";
+
+            if (clickedAction === "sign_off_treatment_plan") {
+                confirmMessage =
+                    "Are you sure you want to UPDATE and SIGN OFF Treatment Plan?";
+            }
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            const formData = new FormData(this);
+
+            const payload = {};
+            formData.forEach((value, key) => {
+                payload[key] = value;
+            });
+
+            payload["assessment_id"] = "{{ assessment.id }}";
+            payload["action"] = clickedAction;
+
+            // =====================================================
+            // BUILD TREATMENT PHASE ARRAY
+            // =====================================================
+            const phases = [];
+            document.querySelectorAll(".treatment-phase-item").forEach(item => {
+                phases.push({
+                    treatment_plan_diagnosis:
+                        item.querySelector('[name^="treatment_plan_diagnosis"]')?.value || "",
+                    phase_1:
+                        item.querySelector('[name^="phase_1"]')?.value || "",
+                    phase_2:
+                        item.querySelector('[name^="phase_2"]')?.value || "",
+                    phase_3:
+                        item.querySelector('[name^="phase_3"]')?.value || ""
+                });
+            });
+
+            payload["treatment_plan_phases"] = phases;
+            // remove old fields
+            delete payload.phase_1;
+            delete payload.phase_2;
+            delete payload.phase_3;
+
+            fetch(
+                    "{% url 'assessment_treatment_plan_api' %}", {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": CSRFTOKEN
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(err => {
+                            throw err;
+                        });
+                    }
+                    return res.json();
+                })
+                .then(async data => {
+                const files = document.getElementById("attachmentFiles").files;
+
+                    if (files.length > 0) {
+                        if (!validateAttachments(files)) {
+                            return;
+                        }
+                        await uploadAttachments(files);
+                    }
+                    alert(data.message || "Treatment Plan updated successfully");
+                    window.location.href = "{% url 'assessments_list' %}";
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert(err.detail || "Failed. Please check required fields.");
+                });
+        });
+
+    // =====================================================
+    // ADD REMARK LOGIC
+    // =====================================================
     const btnAddRemark = document.getElementById("btnAddRemark");
 
     if (btnAddRemark) {
@@ -413,9 +609,9 @@
         });
     }
 
-    // =========================
-    // Attachment Logic
-    // =========================
+    // =====================================================
+    // ATTACHMENT FUNCTIONS
+    // =====================================================
     function validateAttachments(files) {
         const allowedExtensions = [
             "pdf",
@@ -430,9 +626,9 @@
         for (const file of files) {
             const extension =
                 file.name
-                    .split(".")
-                    .pop()
-                    .toLowerCase();
+                .split(".")
+                .pop()
+                .toLowerCase();
 
             if (!allowedExtensions.includes(extension)) {
                 alert(
@@ -461,66 +657,69 @@
         }
 
         const response = await fetch(
-            "{% url 'assessment_attachment_api' %}",
-            {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": CSRFTOKEN
-                },
-                body: uploadData
-            }
-        );
+                "{% url 'assessment_attachment_api' %}", 
+                {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": CSRFTOKEN
+                    },
+                    body: uploadData
+                }
+            );
 
         if (!response.ok) {
-            const err = await response.json();
-            throw err;
+            throw await response.json();
+
         }
         return await response.json();
     }
 
+    // =====================================================
+    // DELETE ATTACHMENT
+    // =====================================================
     document.addEventListener("click", async function(e) {
         const btn = e.target.closest(".delete-attachment-btn");
-        if (!btn) {
-            return;
-        }
+            if (!btn) {
+                return;
+            }
 
         const attachmentId = btn.dataset.id;
         const attachmentName = btn.dataset.name;
         if (!confirm( `Delete "${attachmentName}"?`)) {
-            return;
-        }
-
-        try {
-            const response = await fetch(
-                "{% url 'assessment_attachment_api' %}",
-                {
-                    method: "DELETE",
-                    headers: {
-                        "Content-Type":
-                            "application/json",
-                        "X-CSRFToken":
-                            CSRFTOKEN,
-                    },
-                    body: JSON.stringify({
-                        attachment_id:
-                            attachmentId
-                    })
-                }
-            );
-
-            const data = await response.json();
-            if (!response.ok) {
-                throw data;
+                return;
             }
-            alert(data.message);
-            btn.closest("tr").remove();
-        } catch(err) {
-            alert(
-                err.detail ||
-                "Failed to delete attachment."
-            );
-            console.error(err);
-        }
-    });
+
+            try {
+                const response = await fetch(
+                    "{% url 'assessment_attachment_api' %}",
+                    {
+                                method: "DELETE",
+                                headers: {
+                                    "Content-Type":
+                                        "application/json",
+                                    "X-CSRFToken":
+                                        CSRFTOKEN,
+                                },
+                                body: JSON.stringify({
+                                    attachment_id:
+                                        attachmentId
+                                })
+                    }
+                );
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw data;
+                }
+                alert(data.message);
+                btn.closest("tr").remove();
+            } catch(err) {
+                alert(
+                    err.detail ||
+                    "Failed to delete attachment."
+                );
+                console.error(err);
+            }
+        });
 </script>
 {% endblock %}
