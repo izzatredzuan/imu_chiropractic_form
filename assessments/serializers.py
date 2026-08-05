@@ -753,6 +753,13 @@ class AssessmentAttachmentSerializer(serializers.ModelSerializer):
 
 
 class AssessmentTreatmentPlanPhaseSerializer(serializers.ModelSerializer):
+    updated_by = serializers.CharField(
+        source="updated_by.official_name", read_only=True
+    )
+    created_by = serializers.CharField(
+        source="created_by.official_name", read_only=True
+    )
+        
     class Meta:
         model = AssessmentTreatmentPlanPhase
         fields = [
@@ -761,6 +768,10 @@ class AssessmentTreatmentPlanPhaseSerializer(serializers.ModelSerializer):
             "phase_2",
             "phase_3",
             "treatment_plan_diagnosis",
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
         ]
 
 

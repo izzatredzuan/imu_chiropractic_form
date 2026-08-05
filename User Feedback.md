@@ -20,10 +20,25 @@ Section 4:
 
 - Figure out how to show sign off history
 
+Notes:
+- Need to fix to cater the new Treatment Plan section 
+
+Notes:
+- Add "Back" button
+
 General:
 
 - Each fields need to be change to be like Section 4 Diagnosis field where need to click add, to add more test to differentiate who writing it, need to consider text color as well for different role
 - Need to have a function to download each section as an empty form pdf templete
+
+## Urgent!:
+ 
+- Create a pdf for each of the form to give to clinician as handout. This is for emergency case if the server is crash
+
+
+## To be Done on end of First Semester
+- Change whole Treatment Plan section to be able to multiple create like S.O.A.P
+- Add Clinic Assistant Role and accesses
 
 #### Enhancement Suggestions
 
@@ -31,6 +46,7 @@ General:
   - Drafts **must not** be eligible for sign-off until all required sections are completed.
 - Archive logs by day.
 - Consider adding AI-generated assessment summaries when exporting to PDF.
+- Need to add notification for clinician to get info when to sign off a section
 
 
 #### Bugs

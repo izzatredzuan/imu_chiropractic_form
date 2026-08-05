@@ -1436,21 +1436,49 @@
       <!-- ========================= -->
       <!-- TREATMENT PHASES -->
       <!-- ========================= -->
-      <div class="info-grid">
-        <div class="mini-card">
-          <div class="medical-label">Phase 1</div>
-          <div>${safe(tp.phase_1)}</div>
-        </div>
+      <div class="section-spacing">
+        ${
+          tp.treatment_plan_phases && tp.treatment_plan_phases.length
+            ? tp.treatment_plan_phases.map((phase, index) => `
+                  <div class="card mb-4 shadow-sm soap-card hover-shadow"
+                    data-url=""
+                    style="cursor: pointer;">
 
-        <div class="mini-card">
-          <div class="medical-label">Phase 2</div>
-          <div>${safe(tp.phase_2)}</div>
-        </div>
+                    <!-- Header -->
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                      <div>
+                        <span class="fw-semibold">Treatment Phases #${tp.treatment_plan_phases.length - index}</span><br>
+                        <small class="text-muted">
+                          <strong>ID:</strong> ${tp.id}
+                        </small>
+                      </div>
+                    </div>
 
-        <div class="mini-card">
-          <div class="medical-label">Phase 3</div>
-          <div>${safe(tp.phase_3)}</div>
-        </div>
+                    <div class="card-body">
+                      <div class="medical-section">
+                        ${renderField(
+                          "Treatment Plan Diagnosis",
+                          phase.treatment_plan_diagnosis
+                        )}
+                        ${renderField(
+                          "Phase 1",
+                          phase.phase_1
+                        )}
+                        ${renderField(
+                          "Phase 2",
+                          phase.phase_2
+                        )}
+                        ${renderField(
+                          "Phase 3",
+                          phase.phase_3
+                        )}
+                      </div>
+                    </div>
+                  </div>
+            `).join("")
+            : `<div class="empty-value">No treatment phases available</div>`
+        }
+
       </div>
 
       <!-- ========================= -->
