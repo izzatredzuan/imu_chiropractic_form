@@ -31,10 +31,6 @@ General:
 - Each fields need to be change to be like Section 4 Diagnosis field where need to click add, to add more test to differentiate who writing it, need to consider text color as well for different role
 - Need to have a function to download each section as an empty form pdf templete
 
-## Urgent!:
- 
-- Create a pdf for each of the form to give to clinician as handout. This is for emergency case if the server is crash
-
 
 ## To be Done on end of First Semester
 - Change whole Treatment Plan section to be able to multiple create like S.O.A.P
@@ -254,6 +250,9 @@ S.O.A.P. / Re-Evaluation / New Complain:
 Notes:
 
 - Disable download to pdf button for student ✅
+## Urgent!:
+ 
+- Create a pdf for each of the form to give to clinician as handout. This is for emergency case if the server is crash ✅
 
 #### Enhancements
 
