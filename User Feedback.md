@@ -20,17 +20,13 @@ Section 4:
 
 - Figure out how to show sign off history
 
-Notes:
-- Need to fix to cater the new Treatment Plan section 
-
-Notes:
-- Add "Back" button
-
 General:
 
 - Each fields need to be change to be like Section 4 Diagnosis field where need to click add, to add more test to differentiate who writing it, need to consider text color as well for different role
 - Need to have a function to download each section as an empty form pdf templete
 
+## 09 August 2026
+- Fix exception handling for sync student and employee profile script. log and fix error when fail to query user from DB
 
 ## To be Done on end of First Semester
 - Change whole Treatment Plan section to be able to multiple create like S.O.A.P
@@ -248,8 +244,10 @@ S.O.A.P. / Re-Evaluation / New Complain:
 - Change logic where as long the role is clinician or admin they can create any assessment ✅
 
 Notes:
-
 - Disable download to pdf button for student ✅
+- Need to fix to cater the new Treatment Plan section ✅
+- Add "Back" button  ✅
+
 ## Urgent!:
  
 - Create a pdf for each of the form to give to clinician as handout. This is for emergency case if the server is crash ✅

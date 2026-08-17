@@ -849,15 +849,23 @@
       </div>
     </div>
   </div>
+  <div class="mt-4 d-flex justify-content-end gap-2 back-button-container">
+      <a href="{% url 'assessments_list' %}" class="btn btn-primary btn-mobile">
+          Back
+      </a>
+  </div>
 </div>
 
 <script>
   window.pdfReady = false;
   
-
   const ASSESSMENT_ID = "{{ assessment_id }}";
   const apiUrl = "{% url 'assessment_notes_api' %}?assessment_id=" + ASSESSMENT_ID;
   const isPrint = new URLSearchParams(window.location.search).has("print");
+
+  if (isPrint) {
+    document.querySelector(".back-button-container")?.remove();
+  }
 
   function safe(v) {
     return (v === null || v === undefined || v === "") ?
@@ -1091,7 +1099,7 @@
                     <input type="checkbox"
                           ${consents.patient_record_review_consent ? "checked" : ""}
                           disabled>
-                    I understand that the Chiropractor may review my patient records, lab and X-Ray reports to understand my complete health condition.
+                    I understand that the Chiropractor may review my patient records, lab and radiology reports to understand my complete health condition.
                   </label>
                 </div>
 

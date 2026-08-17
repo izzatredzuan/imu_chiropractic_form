@@ -1,11 +1,17 @@
 import os
 import requests
+import logging
+
+
 from django.conf import settings
 from django.utils.crypto import get_random_string
 from django.core.mail import send_mail
 from django.conf import settings
 
 SITE_URL = os.getenv("SITE_URL", "http://127.0.0.1:8000")
+
+logger = logging.getLogger("userprofile")
+
 
 def generate_temp_password(length=12):
     return get_random_string(
@@ -77,13 +83,25 @@ HEADERS = {
 BASE_URL = settings.AZURE_BASE_URL
 
 def _fetch_by_ids(all_endpoint, by_id_endpoint, ids):
+    # Get all records
     if not ids:
         response = requests.get(
             f"{BASE_URL}/{all_endpoint}",
             headers=HEADERS,
         )
+
         response.raise_for_status()
-        return response.json()
+
+        try:
+            return response.json()
+        except requests.exceptions.JSONDecodeError:
+            logger.error(
+                "IMU API returned invalid JSON. endpoint=%s status=%s response=%r",
+                all_endpoint,
+                response.status_code,
+                response.text[:500],
+            )
+            raise
 
     results = []
 
@@ -93,9 +111,36 @@ def _fetch_by_ids(all_endpoint, by_id_endpoint, ids):
             headers=HEADERS,
             params={"EMPLID": item_id},
         )
+
+        # Employee doesn't exist
+        if response.status_code == 404:
+            logger.warning(
+                "Employee not found in IMU API - employee_id=%s",
+                item_id,
+            )
+            continue
+
+        # Other HTTP errors are real failures
         response.raise_for_status()
 
-        data = response.json()
+        # Some APIs return 200 with an empty body
+        if not response.text.strip():
+            logger.warning(
+                "IMU API returned an empty response - employee_id=%s",
+                item_id,
+            )
+            continue
+
+        try:
+            data = response.json()
+        except requests.exceptions.JSONDecodeError:
+            logger.error(
+                "IMU API returned invalid JSON - employee_id=%s status=%s response=%r",
+                item_id,
+                response.status_code,
+                response.text[:500],
+            )
+            raise
 
         if isinstance(data, list):
             results.extend(data)

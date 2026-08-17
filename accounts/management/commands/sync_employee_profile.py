@@ -77,11 +77,48 @@ class Command(BaseCommand):
         )
 
         # Get data
-        employees = get_imu_employee_details(employee_ids)
+        employees = []
+        failed_users = []
+
+        if employee_ids:
+            for employee_id in employee_ids:
+                try:
+                    result = get_imu_employee_details([employee_id])
+
+                    if not result:
+                        failed_users.append(employee_id)
+                        logger.warning(
+                            "FAILED - employee not found - employee_id=%s",
+                            employee_id,
+                        )
+                        continue
+
+                    employees.extend(result)
+
+                except Exception:
+                    failed_users.append(employee_id)
+                    logger.exception(
+                        "FAILED - unable to retrieve employee - employee_id=%s",
+                        employee_id,
+                    )
+                    continue
+        else:
+            try:
+                employees = get_imu_employee_details(employee_ids)
+            except Exception:
+                logger.exception(
+                    "FAILED - unable to retrieve all employees from IMU API"
+                )
+                raise CommandError(
+                    "Unable to retrieve employees from IMU API."
+                )
 
         created_count = 0
         updated_count = 0
         skipped_count = 0
+
+        created_users = []
+        updated_users = []
 
         logger.info("Retrieved %s employee records from IMU API.", len(employees))
 
@@ -180,6 +217,7 @@ class Command(BaseCommand):
                             profile.save(update_fields=["first_time_password_change"])
 
                         created_count += 1
+                        created_users.append(emp_code)
                         logger.info(
                             "USER CREATED - username=%s member_id=%s",
                             user.username,
@@ -187,6 +225,7 @@ class Command(BaseCommand):
                         )
                     else:
                         updated_count += 1
+                        updated_users.append(emp_code)
                         logger.info(
                             "USER UPDATED - username=%s member_id=%s",
                             user.username,
@@ -194,18 +233,41 @@ class Command(BaseCommand):
                         )
 
             except Exception:
-                skipped_count += 1
+                failed_users.append(emp_code)
                 logger.exception("Failed to sync employee %s", emp_code)
 
         logger.info(
-            "Employee sync completed. Created=%s Updated=%s Skipped=%s",
+            "Employee sync completed. Created=%s Updated=%s Skipped=%s Failed=%s",
             created_count,
             updated_count,
             skipped_count,
+            len(failed_users),
+        )
+
+        logger.info(
+            "CREATED USERS: %s",
+            ", ".join(created_users) if created_users else "None",
+        )
+
+        logger.info(
+            "UPDATED USERS: %s",
+            ", ".join(updated_users) if updated_users else "None",
+        )
+
+        logger.info(
+            "FAILED USERS: %s",
+            ", ".join(failed_users) if failed_users else "None",
         )
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"Done. Created={created_count}, Updated={updated_count}, Skipped={skipped_count}"
+                f"Done. Created={created_count}, Updated={updated_count}, Skipped={skipped_count}, Failed={len(failed_users)}"
             )
         )
+
+        if failed_users:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Failed employee IDs: {', '.join(failed_users)}"
+                )
+            )

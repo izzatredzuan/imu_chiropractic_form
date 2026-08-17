@@ -240,7 +240,61 @@ Add Key
 
 ---
 
-### 7. Test SSH connection
+### 7. Verify the SSH Key
+
+Gitea may require verification of the SSH key before it can be used for authentication.
+
+If Gitea displays a verification token and asks for an **Armored SSH signature**, generate a signature using the private key that corresponds to the public key registered in Gitea.
+
+For an Ed25519 key stored at the default location, run:
+
+```bash
+echo -n '<VERIFICATION_TOKEN>' | ssh-keygen -Y sign -n gitea -f ~/.ssh/id_ed25519
+```
+
+Replace `<VERIFICATION_TOKEN>` with the token displayed by Gitea.
+
+For example, if Gitea provides a token such as:
+
+```text
+8a083e8eb249988a173d987905e2bec37e965b1f69521ef24a77240218aefb1d
+```
+
+run:
+
+```bash
+echo -n '8a083e8eb249988a173d987905e2bec37e965b1f69521ef24a77240218aefb1d' | ssh-keygen -Y sign -n gitea -f ~/.ssh/id_ed25519
+```
+
+The command generates an SSH signature similar to:
+
+```text
+-----BEGIN SSH SIGNATURE-----
+...
+-----END SSH SIGNATURE-----
+```
+
+Copy the **entire signature**, including:
+
+```text
+-----BEGIN SSH SIGNATURE-----
+```
+
+and:
+
+```text
+-----END SSH SIGNATURE-----
+```
+
+Paste the signature into Gitea's **Armored SSH signature** field and complete the verification.
+
+> **Important:** Never paste or upload the private key (`~/.ssh/id_ed25519`) to Gitea. The private key must remain on the server. Only the generated signature should be submitted during verification.
+
+After successful verification, Gitea should display the SSH key as a **Verified Key**.
+
+---
+
+### 8. Test SSH connection
 
 Run:
 
@@ -473,10 +527,10 @@ services:
       - ./backup.sh:/backup.sh:ro
     command: >
       sh -c "
-      echo '0 2 * * 0 /backup.sh >> /var/log/backup.log 2>&1' > /etc/crontabs/root &&
+      echo '0 2 * * * /bin/sh /backup.sh >> /var/log/backup.log 2>&1' > /etc/crontabs/root &&
       crond -f
       "
-
+      
 volumes:
   mysql_data:
 ```
