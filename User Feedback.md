@@ -26,7 +26,9 @@ General:
 - Need to have a function to download each section as an empty form pdf templete
 
 ## 09 August 2026
+Sync Script:
 - Fix exception handling for sync student and employee profile script. log and fix error when fail to query user from DB
+
 
 ## To be Done on end of First Semester
 - Change whole Treatment Plan section to be able to multiple create like S.O.A.P
@@ -246,7 +248,13 @@ S.O.A.P. / Re-Evaluation / New Complain:
 Notes:
 - Disable download to pdf button for student ✅
 - Need to fix to cater the new Treatment Plan section ✅
-- Add "Back" button  ✅
+- Add "Back" button ✅
+
+
+## 09 August 2026
+
+Homepage
+- Redirect home url to assessment main page ✅
 
 ## Urgent!:
  

@@ -22,11 +22,11 @@ auth_logger = logging.getLogger("auth")
 
 class Home(View):
     def get(self, request):
-        return render(
-            request,
-            "home.html",
-        )
-
+        # return render(
+        #     request,
+        #     "home.html",
+        # )
+        return redirect("/assessments/")
 
 class LoginView(View):
     template_name = "login.html"
