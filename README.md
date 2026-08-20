@@ -530,7 +530,7 @@ services:
       microdnf install -y cronie &&
       echo '0 2 * * * root /bin/sh /backup.sh >> /var/log/backup.log 2>&1' > /etc/cron.d/imu-backup &&
       chmod 0644 /etc/cron.d/imu-backup &&
-      crond -f
+      crond -n
       "
       
 volumes:
