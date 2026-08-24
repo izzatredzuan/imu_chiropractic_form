@@ -528,7 +528,8 @@ services:
     command: >
       sh -c "
       microdnf install -y cronie &&
-      echo '0 2 * * * root /bin/sh /backup.sh >> /var/log/backup.log 2>&1' > /etc/cron.d/imu-backup &&
+      env | grep '^DB_' > /etc/imu-backup.env &&
+      echo '0 2 * * * root . /etc/imu-backup.env && /bin/sh /backup.sh >> /var/log/backup.log 2>&1' > /etc/cron.d/imu-backup &&
       chmod 0644 /etc/cron.d/imu-backup &&
       crond -n
       "
