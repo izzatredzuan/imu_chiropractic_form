@@ -297,7 +297,8 @@ Homepage
 #### Bugs
 
 - Datatable sorting is incorrect. ✅
-
+- Drawing canvas distort when flipping screen horizontal or vertically. ✅
+- Vitals fields doesnt have any check to prevent absurb number. ✅
 ---
 
 # Cancelled

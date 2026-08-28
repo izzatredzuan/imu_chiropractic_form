@@ -335,21 +335,34 @@
   {% endif %}
 
   /* ======================================================
-    ROM DRAWING PAD
+     ROM DRAWING PAD
   ====================================================== */
-
-  /* ========================= GLOBAL STATE ========================= */
   const IS_READONLY = {{ is_readonly|yesno:"true,false" }};
   const IS_SECTION_SIGNED = {{ assessment.is_section_3_signed|yesno:"true,false" }};
   const IS_LOCKED = IS_READONLY || IS_SECTION_SIGNED;
 
-  let romCanvas = document.getElementById("romDrawingPad");
-  let romCtx = null;
+  const romCanvas = document.getElementById("romDrawingPad");
+  const romCtx = romCanvas ? romCanvas.getContext("2d") : null;
+
+  const previewContainer = document.getElementById("romPreviewContainer");
+  const canvasContainer = document.getElementById("romCanvasContainer");
+  const redrawBtn = document.getElementById("btnRedraw");
+
+  /*
+   * IMPORTANT:
+   * Store drawing coordinates as percentages (0 → 1),
+   * NOT raw canvas pixels.
+   *
+   * This means the drawing survives:
+   * - phone rotation
+   * - window resizing
+   * - different screen sizes
+   * - different canvas widths
+   */
 
   let romStrokes = [];
   let romCurrentStroke = [];
   let romIsDrawing = false;
-
   let romHasChanged = false;
 
   let romBaseImage = null;
@@ -357,42 +370,77 @@
 
   let showGuides = true;
 
-  const previewContainer = document.getElementById("romPreviewContainer");
-  const canvasContainer = document.getElementById("romCanvasContainer");
-  const redrawBtn = document.getElementById("btnRedraw");
+  let cssWidth = 0;
+  let cssHeight = 0;
 
   if (romCanvas) {
-    romCtx = romCanvas.getContext("2d");
-
-    /* ========================= GET POINTER POSITION ========================= */
-    const getPos = (e) => {
+    /* ======================================================
+       GET POINTER POSITION
+    ====================================================== */
+    function getPos(e) {
       const rect = romCanvas.getBoundingClientRect();
-      const point = e.touches ? e.touches[0] : e;
+      const point = e.touches
+        ? e.touches[0]
+        : e;
+
+      /*
+       * Convert screen coordinates into normalized coordinates.
+       *
+       * x = 0 means left edge
+       * x = 1 means right edge
+       * y = 0 means top
+       * y = 1 means bottom
+       */
 
       return {
-        x: point.clientX - rect.left,
-        y: point.clientY - rect.top
-      };
-    };
+        x: Math.max(
+          0,
+          Math.min(1, (point.clientX - rect.left) / rect.width)
+        ),
 
-    /* ========================= DRAW CANVAS GUIDES ========================= */
+        y: Math.max(
+          0,
+          Math.min(1, (point.clientY - rect.top) / rect.height)
+        )
+      };
+    }
+
+    /* ======================================================
+       DRAW GUIDES
+    ====================================================== */
     function drawGuides() {
-      const w = romCanvas.width;
-      const h = romCanvas.height;
+      const w = cssWidth;
+      const h = cssHeight;
+
       const third = w / 3;
 
       romCtx.save();
+
+      /*
+       * Because the canvas uses devicePixelRatio,
+       * draw using CSS coordinates.
+       */
+      romCtx.setTransform(
+        window.devicePixelRatio || 1,
+        0,
+        0,
+        window.devicePixelRatio || 1,
+        0,
+        0
+      );
 
       romCtx.strokeStyle = "#e0e0e0";
       romCtx.lineWidth = 1;
 
       // Vertical lines
       romCtx.beginPath();
+
       romCtx.moveTo(third, 0);
       romCtx.lineTo(third, h);
 
       romCtx.moveTo(third * 2, 0);
       romCtx.lineTo(third * 2, h);
+
       romCtx.stroke();
 
       // Labels
@@ -400,67 +448,204 @@
       romCtx.font = "14px Arial";
       romCtx.textAlign = "center";
 
-      romCtx.fillText("ROM ACTIVE", third / 2, 20);
-      romCtx.fillText("ROM PASSIVE", third + third / 2, 20);
-      romCtx.fillText("ROM RESISTED", third * 2 + third / 2, 20);
+      romCtx.fillText(
+        "ROM ACTIVE",
+        third / 2,
+        20
+      );
+
+      romCtx.fillText(
+        "ROM PASSIVE",
+        third + third / 2,
+        20
+      );
+
+      romCtx.fillText(
+        "ROM RESISTED",
+        third * 2 + third / 2,
+        20
+      );
 
       romCtx.restore();
     }
 
-    /* ========================= REDRAW CANVAS ========================= */
-    const redraw = () => {
-      romCtx.clearRect(0, 0, romCanvas.width, romCanvas.height);
+    /* ======================================================
+       REDRAW EVERYTHING
+    ====================================================== */
+    function redraw() {
+      const dpr = window.devicePixelRatio || 1;
 
+      /*
+       * Reset transform before clearing.
+       */
+      romCtx.setTransform(1, 0, 0, 1, 0, 0);
+
+      romCtx.clearRect(
+        0,
+        0,
+        romCanvas.width,
+        romCanvas.height
+      );
+
+      /*
+       * Work in CSS pixels.
+       */
+      romCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+
+      /* =========================
+         GUIDES
+      ========================= */
       if (showGuides) {
         drawGuides();
       }
-      if (romStrokes.length === 0 && !romHasBaseImage) {
-        romCtx.save();
-        romCtx.font = "16px Arial";
-        romCtx.fillStyle = "#aaa";
-        romCtx.textAlign = "center";
-        romCtx.fillText("Draw ROM here", romCanvas.width / 2, romCanvas.height / 2);
-        romCtx.restore();
-        return;
+
+      /* =========================
+         BASE IMAGE
+      ========================= */
+      if (romBaseImage) {
+        romCtx.drawImage(
+          romBaseImage,
+          0,
+          0,
+          cssWidth,
+          cssHeight
+        );
       }
 
-      if (romBaseImage) {
-        romCtx.drawImage(romBaseImage, 0, 0, romCanvas.width, romCanvas.height);
-      }
+      /* =========================
+         USER STROKES
+      ========================= */
+      romCtx.save();
+
+      romCtx.strokeStyle = "#000";
+      romCtx.lineWidth = 2;
+      romCtx.lineCap = "round";
+      romCtx.lineJoin = "round";
 
       romStrokes.forEach(stroke => {
-        if (stroke.length < 2) return;
+        if (!stroke || stroke.length < 2) {
+          return;
+        }
 
         romCtx.beginPath();
-        romCtx.moveTo(stroke[0].x, stroke[0].y);
+
+        romCtx.moveTo(
+          stroke[0].x * cssWidth,
+          stroke[0].y * cssHeight
+        );
 
         for (let i = 1; i < stroke.length; i++) {
-          romCtx.lineTo(stroke[i].x, stroke[i].y);
+          romCtx.lineTo(
+            stroke[i].x * cssWidth,
+            stroke[i].y * cssHeight
+          );
         }
 
         romCtx.stroke();
       });
-    };
 
-    /* ========================= RESIZE CANVAS ========================= */
-    const resizeCanvas = () => {
-      const parent = romCanvas.parentElement;
-      romCanvas.width = parent.clientWidth;
-      romCanvas.height = 600;
+      romCtx.restore();
 
-      romCtx.lineWidth = 2;
-      romCtx.lineCap = "round";
-      romCtx.strokeStyle = "#000";
+      /* =========================
+         EMPTY CANVAS MESSAGE
+      ========================= */
+      if (
+        romStrokes.length === 0 &&
+        !romHasBaseImage
+      ) {
+
+        romCtx.save();
+
+        romCtx.fillStyle = "#aaa";
+        romCtx.font = "16px Arial";
+        romCtx.textAlign = "center";
+
+        romCtx.fillText(
+          "Draw ROM here",
+          cssWidth / 2,
+          cssHeight / 2
+        );
+
+        romCtx.restore();
+      }
+    }
+
+    /* ======================================================
+       RESIZE CANVAS
+    ====================================================== */
+    function resizeCanvas() {
+      /*
+       * Get the actual displayed size of the canvas.
+       */
+      const rect = romCanvas.getBoundingClientRect();
+
+      cssWidth = rect.width;
+
+      /*
+       * Keep your desired drawing height.
+       */
+      cssHeight = 600;
+
+      /*
+       * On mobile rotation, 600px can sometimes be too tall.
+       *
+       * You can change this if you want.
+       */
+      if (window.innerWidth < 768) {
+        cssHeight = Math.min(
+          600,
+          Math.max(400, window.innerHeight * 0.65)
+        );
+      }
+
+      const dpr = window.devicePixelRatio || 1;
+
+      /*
+       * Set the internal drawing resolution.
+       *
+       * CSS size:
+       *    cssWidth × cssHeight
+       *
+       * Internal resolution:
+       *    cssWidth × DPR
+       *    cssHeight × DPR
+       */
+      romCanvas.width = Math.round(cssWidth * dpr);
+      romCanvas.height = Math.round(cssHeight * dpr);
+
+      /*
+       * Set the actual displayed size explicitly.
+       */
+      romCanvas.style.width = cssWidth + "px";
+      romCanvas.style.height = cssHeight + "px";
+
+      /*
+       * Draw using CSS pixels.
+       */
+      romCtx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
 
       redraw();
-    };
+    }
 
-    window.addEventListener("resize", resizeCanvas);
-
-    /* =========================
-    LOAD EXISTING IMAGE
-    ========================= */
+    /* ======================================================
+       LOAD EXISTING IMAGE
+    ====================================================== */
     {% if assessment.rom_drawing %}
+
     romBaseImage = new Image();
     romBaseImage.onload = function () {
       romHasBaseImage = true;
@@ -469,89 +654,188 @@
     romBaseImage.src = "{{ assessment.rom_drawing.url }}";
     {% endif %}
 
+    /* ======================================================
+       INITIAL RESIZE
+    ====================================================== */
     resizeCanvas();
 
-    /* =========================
-    DRAW EVENTS
-    ========================= */
+    /* ======================================================
+       HANDLE RESIZE / ROTATION
+    ====================================================== */
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        resizeCanvas();
+      }, 100);
+    });
+
+    /* ======================================================
+       DRAW START
+    ====================================================== */
     const startDraw = (e) => {
-      if (IS_LOCKED) return;
+      if (IS_LOCKED) {
+        return;
+      }
+
       e.preventDefault();
       romIsDrawing = true;
       romHasChanged = true;
-
       romCurrentStroke = [];
       romStrokes.push(romCurrentStroke);
-
-      romCurrentStroke.push(getPos(e));
+      romCurrentStroke.push(
+        getPos(e)
+      );
     };
 
+    /* ======================================================
+       DRAW
+    ====================================================== */
     const draw = (e) => {
-      if (IS_LOCKED) return;
-      if (!romIsDrawing) return;
+      if (IS_LOCKED) {
+        return;
+      }
+
+      if (!romIsDrawing) {
+        return;
+      }
+
       e.preventDefault();
 
-      romCurrentStroke.push(getPos(e));
+      romCurrentStroke.push(
+        getPos(e)
+      );
+
       redraw();
     };
 
+    /* ======================================================
+       STOP DRAW
+    ====================================================== */
     const stopDraw = () => {
       romIsDrawing = false;
+      romCurrentStroke = [];
     };
 
-    romCanvas.addEventListener("mousedown", startDraw);
-    romCanvas.addEventListener("mousemove", draw);
-    romCanvas.addEventListener("mouseup", stopDraw);
-    romCanvas.addEventListener("mouseleave", stopDraw);
+    /* ======================================================
+       MOUSE EVENTS
+    ====================================================== */
+    romCanvas.addEventListener(
+      "mousedown",
+      startDraw
+    );
 
-    romCanvas.addEventListener("touchstart", startDraw);
-    romCanvas.addEventListener("touchmove", draw);
-    romCanvas.addEventListener("touchend", stopDraw);
+    romCanvas.addEventListener(
+      "mousemove",
+      draw
+    );
 
-    /* =========================
-    BUTTONS
-    ========================= */
-    document.getElementById("undoRom")?.addEventListener("click", () => {
-      romStrokes.pop();
-      redraw();
-    });
+    romCanvas.addEventListener(
+      "mouseup",
+      stopDraw
+    );
 
-    document.getElementById("clearRom")?.addEventListener("click", () => {
-      romStrokes = [];
-      romBaseImage = null;
-      romHasBaseImage = false;
-      romHasChanged = true;
-      showGuides = true;
-      redraw();
-    });
+    romCanvas.addEventListener(
+      "mouseleave",
+      stopDraw
+    );
 
-    /* =========================
-    REDRAW BUTTON
-    ========================= */
+    /* ======================================================
+       TOUCH EVENTS
+    ====================================================== */
+    romCanvas.addEventListener(
+      "touchstart",
+      startDraw,
+      { passive: false }
+    );
+
+    romCanvas.addEventListener(
+      "touchmove",
+      draw,
+      { passive: false }
+    );
+
+    romCanvas.addEventListener(
+      "touchend",
+      stopDraw
+    );
+
+    /* ======================================================
+       UNDO
+    ====================================================== */
+    document
+      .getElementById("undoRom")
+      ?.addEventListener("click", () => {
+        if (IS_LOCKED) {
+          return;
+        }
+
+        romStrokes.pop();
+        romHasChanged = true;
+        redraw();
+      });
+
+    /* ======================================================
+       CLEAR
+    ====================================================== */
+    document
+      .getElementById("clearRom")
+      ?.addEventListener("click", () => {
+
+        if (IS_LOCKED) {
+          return;
+        }
+
+        romStrokes = [];
+        romBaseImage = null;
+        romHasBaseImage = false;
+        romHasChanged = true;
+        showGuides = true;
+        redraw();
+      });
+
+    /* ======================================================
+       REDRAW BUTTON
+    ====================================================== */
     redrawBtn?.addEventListener("click", () => {
+      if (IS_LOCKED) {
+        return;
+      }
+
       previewContainer.classList.add("d-none");
       canvasContainer.classList.remove("d-none");
 
       romHasChanged = true;
-      // disable draw guides if redraw
+
+      /*
+       * Existing image becomes the background.
+       * Hide guides when redrawing an existing image.
+       */
       showGuides = false;
 
-      resizeCanvas();
+      /*
+       * Give the browser a moment to make the
+       * d-none element visible before measuring it.
+       */
+      requestAnimationFrame(() => {
+        resizeCanvas();
+      });
     });
   }
 
   /* ======================================================
-  FORM SUBMIT FIX
+     FORM SUBMIT
   ====================================================== */
   document.getElementById("section3Form").addEventListener("submit", function (e) {
     e.preventDefault();
 
     let confirmMessage = "Are you sure you want to save changes? Existing sign-off may be reset.";
     if (clickedAction === "sign_off_section_3") {
-        confirmMessage = "Are you sure you want to UPDATE and SIGN OFF Section 3?";
+      confirmMessage = "Are you sure you want to UPDATE and SIGN OFF Section 3?";
     }
+
     if (!confirm(confirmMessage)) {
-        return;
+      return;
     }
 
     const formData = new FormData(this);
@@ -564,7 +848,9 @@
     });
     payload["assessment_id"] = "{{ assessment.id }}";
 
-    // ONLY SEND IF CHANGED
+    /*
+      * Only send the drawing if the user actually changed it.
+      */
     if (romCanvas && romHasChanged) {
       payload["rom_drawing_data"] = romCanvas.toDataURL("image/png");
     }
@@ -577,21 +863,21 @@
         },
         body: JSON.stringify(payload)
       })
-      .then(async res => {
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.detail || "Request failed");
-        }
-        return data;
-      })
-      .then(data => {
-        alert(data.message || "Updated successfully");
-        window.location.href = "{% url 'assessments_list' %}";
-      })
-      .catch(err => {
-        console.error("FULL ERROR:", err);
-        alert("ERROR: " + err.message);
-      });
+    .then(async res => {
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || "Request failed");
+      }
+      return data;
+    })
+    .then(data => {
+      alert(data.message || "Updated successfully");
+      window.location.href = "{% url 'assessments_list' %}";
+    })
+    .catch(err => {
+      console.error("FULL ERROR:", err);
+      alert("ERROR: " + err.message);
+    });
   });
 </script>
 

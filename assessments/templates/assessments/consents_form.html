@@ -686,13 +686,10 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
 {% endif %}
 
 (() => {
-
   /* ======================================================
      MULTI SIGNATURE SYSTEM
   ====================================================== */
-
   let isSigning = false;
-
   const signaturePads = {};
 
   function setupSignaturePad({
@@ -712,22 +709,65 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
 
     const wrapper = canvas.parentElement;
 
+    let cssWidth = 0;
+    let cssHeight = 0;
+
+    /* ======================================================
+       GET NORMALIZED POINTER POSITION
+    ====================================================== */
     const getPos = (e) => {
       const rect = canvas.getBoundingClientRect();
-      const point = e.touches ? e.touches[0] : e;
+      const point = e.touches
+        ? e.touches[0]
+        : e;
 
       return {
-        x: point.clientX - rect.left,
-        y: point.clientY - rect.top
+        x: Math.max(
+          0,
+          Math.min(
+            1,
+            (point.clientX - rect.left) / rect.width
+          )
+        ),
+
+        y: Math.max(
+          0,
+          Math.min(
+            1,
+            (point.clientY - rect.top) / rect.height
+          )
+        )
       };
     };
 
+    /* ======================================================
+       REDRAW
+    ====================================================== */
     const redraw = () => {
+      const dpr = window.devicePixelRatio || 1;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
 
+      ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+
+      /* =========================
+         EMPTY STATE
+      ========================= */
       if (strokes.length === 0) {
-
         ctx.save();
 
         ctx.font = "16px Arial";
@@ -736,49 +776,120 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
 
         ctx.fillText(
           "Sign inside the box",
-          canvas.width / 2,
-          canvas.height / 2
+          cssWidth / 2,
+          cssHeight / 2
         );
 
         ctx.restore();
 
         wrapper?.classList.remove("border-danger");
-
         return;
       }
 
-      ctx.beginPath();
+      /* =========================
+         DRAW SIGNATURE
+      ========================= */
+      ctx.save();
 
-      strokes.forEach(stroke => {
-
-        if (!stroke.length) return;
-
-        ctx.moveTo(stroke[0].x, stroke[0].y);
-
-        stroke.forEach(p => {
-          ctx.lineTo(p.x, p.y);
-        });
-      });
-
-      ctx.stroke();
-    };
-
-    const resizeCanvas = () => {
-
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
-
+      ctx.strokeStyle = "#000";
       ctx.lineWidth = 2;
       ctx.lineCap = "round";
-      ctx.strokeStyle = "#000";
+      ctx.lineJoin = "round";
 
+      strokes.forEach(stroke => {
+        if (!stroke || stroke.length === 0) {
+          return;
+        }
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+          stroke[0].x * cssWidth,
+          stroke[0].y * cssHeight
+        );
+
+        for (let i = 1; i < stroke.length; i++) {
+
+          ctx.lineTo(
+            stroke[i].x * cssWidth,
+            stroke[i].y * cssHeight
+          );
+        }
+
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    };
+
+    /* ======================================================
+       RESIZE CANVAS
+    ====================================================== */
+    const resizeCanvas = () => {
+      const rect = canvas.getBoundingClientRect();
+
+      cssWidth = rect.width;
+      cssHeight = rect.height;
+
+      const dpr = window.devicePixelRatio || 1;
+
+      /*
+       * Internal canvas resolution
+       */
+      canvas.width = Math.round(
+        cssWidth * dpr
+      );
+
+      canvas.height = Math.round(
+        cssHeight * dpr
+      );
+
+      /*
+       * Keep the CSS/display size
+       */
+      canvas.style.width =
+        cssWidth + "px";
+
+      canvas.style.height =
+        cssHeight + "px";
+
+      ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+      );
+
+      /*
+       * Rebuild the signature from
+       * normalized stroke coordinates.
+       */
       redraw();
     };
 
-    window.addEventListener("resize", resizeCanvas);
-
+    /* ======================================================
+       INITIALIZE
+    ====================================================== */
     resizeCanvas();
 
+    /* ======================================================
+       HANDLE PHONE ROTATION / RESIZE
+    ====================================================== */
+    let resizeTimer;
+
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+
+      resizeTimer = setTimeout(() => {
+        resizeCanvas();
+      }, 100);
+    });
+
+    /* ======================================================
+       START DRAWING
+    ====================================================== */
     const startDraw = (e) => {
 
       e.preventDefault();
@@ -790,8 +901,14 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
 
       strokes.push(currentStroke);
 
-      currentStroke.push(getPos(e));
+      currentStroke.push(
+        getPos(e)
+      );
     };
+
+    /* ======================================================
+       DRAW
+    ====================================================== */
 
     const draw = (e) => {
 
@@ -799,30 +916,84 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
 
       e.preventDefault();
 
-      currentStroke.push(getPos(e));
+      currentStroke.push(
+        getPos(e)
+      );
 
       redraw();
     };
+
+    /* ======================================================
+       STOP DRAWING
+    ====================================================== */
 
     const stopDraw = () => {
 
       isDrawing = false;
       isSigning = false;
+
+      currentStroke = [];
     };
 
-    canvas.addEventListener("mousedown", startDraw);
-    canvas.addEventListener("mousemove", draw);
-    canvas.addEventListener("mouseup", stopDraw);
-    canvas.addEventListener("mouseleave", stopDraw);
+    /* ======================================================
+       MOUSE EVENTS
+    ====================================================== */
 
-    canvas.addEventListener("touchstart", startDraw);
-    canvas.addEventListener("touchmove", draw);
-    canvas.addEventListener("touchend", stopDraw);
+    canvas.addEventListener(
+      "mousedown",
+      startDraw
+    );
+
+    canvas.addEventListener(
+      "mousemove",
+      draw
+    );
+
+    canvas.addEventListener(
+      "mouseup",
+      stopDraw
+    );
+
+    canvas.addEventListener(
+      "mouseleave",
+      stopDraw
+    );
+
+    /* ======================================================
+       TOUCH EVENTS
+    ====================================================== */
+
+    canvas.addEventListener(
+      "touchstart",
+      startDraw,
+      { passive: false }
+    );
+
+    canvas.addEventListener(
+      "touchmove",
+      draw,
+      { passive: false }
+    );
+
+    canvas.addEventListener(
+      "touchend",
+      stopDraw
+    );
+
+    canvas.addEventListener(
+      "touchcancel",
+      stopDraw
+    );
+
+    /* ======================================================
+       SAVE PAD
+    ====================================================== */
 
     signaturePads[key] = {
       canvas,
       strokes,
       redraw,
+      resizeCanvas,
       wrapper
     };
   }

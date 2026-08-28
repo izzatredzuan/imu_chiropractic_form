@@ -153,26 +153,66 @@
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Pulse</label>
-              <input type="number" name="soap_pulse" class="form-control" required
-                value="{{ soap.soap_pulse|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <input
+                type="number"
+                name="soap_pulse"
+                class="form-control"
+                required
+                min="20"
+                max="250"
+                value="{{ soap.soap_pulse|default_if_none:'' }}"
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <div class="invalid-feedback">
+                Pulse must be between 20 and 250 bpm.
+              </div>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Respiratory</label>
-              <input type="number" name="soap_respiratory" class="form-control" required
-                value="{{ soap.soap_respiratory|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <input
+                type="number"
+                name="soap_respiratory"
+                class="form-control"
+                required
+                min="5"
+                max="80"
+                value="{{ soap.soap_respiratory|default_if_none:'' }}"
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <div class="invalid-feedback">
+                Respiratory rate must be between 5 and 80 breaths/min.
+              </div>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Systolic BP</label>
-              <input type="number" name="soap_systolic_bp" class="form-control" required
-                value="{{ soap.soap_systolic_bp|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <input
+                type="number"
+                name="soap_systolic_bp"
+                class="form-control"
+                required
+                min="50"
+                max="250"
+                value="{{ soap.soap_systolic_bp|default_if_none:'' }}"
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <div class="invalid-feedback">
+                Systolic BP must be between 50 and 250 mmHg.
+              </div>
             </div>
 
             <div class="col-md-3 mb-3">
               <label class="form-label required">Diastolic BP</label>
-              <input type="number" name="soap_diastolic_bp" class="form-control" required
-                value="{{ soap.soap_diastolic_bp|default_if_none:'' }}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <input
+                type="number"
+                name="soap_diastolic_bp"
+                class="form-control"
+                required
+                min="30"
+                max="150"
+                value="{{ soap.soap_diastolic_bp|default_if_none:'' }}"
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
+              <div class="invalid-feedback">
+                Diastolic BP must be between 30 and 150 mmHg.
+              </div>
             </div>
 
           </div>
