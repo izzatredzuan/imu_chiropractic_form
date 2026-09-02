@@ -1078,7 +1078,7 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
     // fill modal values
     document.getElementById("m_patient_consent_name").innerText =
     document.getElementById("patientConsentName")?.value
-    || "{{ assessment.witness_consent_signed_by|default:'-' }}";
+    || "{{ assessment.initial_patient_consent_signed_by|default:'-' }}";
     
     document.getElementById("m_patient_name").innerText =
     document.querySelector("[name='patient_name']")?.value

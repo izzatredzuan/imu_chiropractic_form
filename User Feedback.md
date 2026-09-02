@@ -29,6 +29,9 @@ General:
 Sync Script:
 - Fix exception handling for sync student and employee profile script. log and fix error when fail to query user from DB
 
+## 02 September 2026
+Section 1 & SOAP:
+- Vital error not poping up on certain pc
 
 ## To be Done on end of First Semester
 - Change whole Treatment Plan section to be able to multiple create like S.O.A.P
