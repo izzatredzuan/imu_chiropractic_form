@@ -33,6 +33,9 @@ Sync Script:
 Section 1 & SOAP:
 - Vital error not poping up on certain pc
 
+Change password page:
+- When inputting invalid value, the error text appear in two different places 
+
 ## To be Done on end of First Semester
 - Change whole Treatment Plan section to be able to multiple create like S.O.A.P
 - Add Clinic Assistant Role and accesses

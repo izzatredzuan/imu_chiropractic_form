@@ -1129,6 +1129,32 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
   loadMarkersFromAPI();
 
   /* ======================================================
+     VITAL VALIDATION
+  ====================================================== */
+  document.getElementById("section1Form")?.addEventListener("invalid", function (e) {
+
+    const field = e.target;
+
+    if (field.name === "pulse") {
+      alert("Pulse must be between 20 and 250 bpm.");
+    }
+
+    if (field.name === "respiratory") {
+      alert("Respiratory rate must be between 5 and 80 breaths/min.");
+    }
+
+    if (field.name === "systolic_bp") {
+      alert("Systolic BP must be between 50 and 250 mmHg.");
+    }
+
+    if (field.name === "diastolic_bp") {
+      alert("Diastolic BP must be between 30 and 150 mmHg.");
+    }
+
+  }, true);
+
+
+  /* ======================================================
      FORM SUBMIT
   ====================================================== */
 

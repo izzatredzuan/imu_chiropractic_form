@@ -853,6 +853,31 @@
     btnSignOff.addEventListener("click", () => clickedAction = "sign_off");
   }
 
+  /* ======================================================
+     VITAL VALIDATION
+  ====================================================== */
+  document.getElementById("soapForm")?.addEventListener("invalid", function (e) {
+
+    const field = e.target;
+
+    if (field.name === "soap_pulse") {
+      alert("Pulse must be between 20 and 250 bpm.");
+    }
+
+    if (field.name === "soap_respiratory") {
+      alert("Respiratory rate must be between 5 and 80 breaths/min.");
+    }
+
+    if (field.name === "soap_systolic_bp") {
+      alert("Systolic BP must be between 50 and 250 mmHg.");
+    }
+
+    if (field.name === "soap_diastolic_bp") {
+      alert("Diastolic BP must be between 30 and 150 mmHg.");
+    }
+
+  }, true);
+
   // =========================
   // FORM SUBMIT
   // =========================
