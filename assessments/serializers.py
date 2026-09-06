@@ -105,13 +105,13 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
 
     def get_is_section_3_complete(self, obj):
         return is_section_complete(obj, SECTION_3_FIELDS)
-    
+
     def get_is_section_4_complete(self, obj):
         return is_section_complete(obj, SECTION_4_FIELDS)
 
     def get_is_consents_complete(self, obj):
         return is_section_complete(obj, CONSENTS_FIELDS)
-    
+
     def get_is_treatment_plan_complete(self, obj):
         return is_section_complete(obj, TREATMENT_PLAN_FIELDS)
 
@@ -524,6 +524,8 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assessments
         fields = [
+            "student",
+            "evaluator",
             # =====================================================
             # CONSENT CHECKBOXES
             # =====================================================
@@ -571,7 +573,6 @@ class AssessmentConsentSerializer(serializers.ModelSerializer):
             # "pdpa_consent_signed_by",
             # "pdpa_consent_signature",
             # "pdpa_consent_signed_at",
-
             # =====================================================
             # CONSENT SIGNED OFF
             # =====================================================
@@ -759,7 +760,7 @@ class AssessmentTreatmentPlanPhaseSerializer(serializers.ModelSerializer):
     created_by = serializers.CharField(
         source="created_by.official_name", read_only=True
     )
-        
+
     class Meta:
         model = AssessmentTreatmentPlanPhase
         fields = [
@@ -794,6 +795,8 @@ class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
         model = Assessments
         fields = [
             "id",
+            "student",
+            "evaluator",
             "treatment_remarks",
             "treatment_plan_phases",
             "is_treatment_plan_signed",
@@ -1181,7 +1184,7 @@ class AssessmentNotesSerializer(serializers.ModelSerializer):
 
     def get_consents(self, obj):
         return AssessmentConsentSerializer(obj).data
-    
+
     def get_treatment_plan(self, obj):
         return AssessmentTreatmentPlanSerializer(obj).data
 
