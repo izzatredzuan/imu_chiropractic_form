@@ -6,6 +6,7 @@ from .models import Profile, Department
 class ProfileAdmin(admin.ModelAdmin):
     # Columns shown in the list view
     list_display = (
+        "id",
         "user",
         "member_id",
         "official_name",
@@ -72,6 +73,7 @@ class ProfileAdmin(admin.ModelAdmin):
             "Account Information",
             {
                 "fields": (
+                    "id",
                     "user",
                     "member_id",
                     "official_name",

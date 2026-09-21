@@ -697,7 +697,8 @@
     <h2 class="fw-semibold mobile-fonts mb-0">
         Patient Assessments Summary
     </h2>
-    {% if request.user.profile.role != "student" %}
+    
+    {% if request.user.profile.can_access_admin_area %}
     <a
         href="{% url 'assessment_notes_pdf' assessment_id %}"
         class="btn btn-primary pdf-download-btn"
