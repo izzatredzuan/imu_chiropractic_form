@@ -29,13 +29,6 @@ General:
 Sync Script:
 - Fix exception handling for sync student and employee profile script. log and fix error when fail to query user from DB
 
-## 02 September 2026
-Section 1 & SOAP:
-- Vital error not poping up on certain pc
-
-Change password page:
-- When inputting invalid value, the error text appear in two different places 
-
 ## To be Done on end of First Semester
 - Change whole Treatment Plan section to be able to multiple create like S.O.A.P
 - Add Clinic Assistant Role and accesses
@@ -257,10 +250,18 @@ Notes:
 - Add "Back" button ✅
 
 
+## 02 September 2026
+Login, Forgot Password, Change password page:
+- When inputting invalid value, the error text appear in two different places ✅
+
 ## 09 August 2026
 
 Homepage
 - Redirect home url to assessment main page ✅
+
+## 02 September 2026
+Section 1 & SOAP:
+- Vital error not poping up on certain pc ✅
 
 ## Urgent!:
  

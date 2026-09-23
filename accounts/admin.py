@@ -73,7 +73,6 @@ class ProfileAdmin(admin.ModelAdmin):
             "Account Information",
             {
                 "fields": (
-                    "id",
                     "user",
                     "member_id",
                     "official_name",
