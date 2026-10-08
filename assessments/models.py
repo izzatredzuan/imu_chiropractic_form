@@ -5,6 +5,7 @@ import uuid
 from django.db import models
 from django.utils.text import slugify
 from django.utils.deconstruct import deconstructible
+from django.core.validators import MinValueValidator
 from encrypted_fields.fields import EncryptedCharField
 
 from . import choices
@@ -84,6 +85,10 @@ class Assessments(models.Model):
 
     systolic_bp = models.PositiveSmallIntegerField(help_text="Systolic BP (mmHg)")
     diastolic_bp = models.PositiveSmallIntegerField(help_text="Diastolic BP (mmHg)")
+
+    weight = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0)], help_text="Weight in kilograms (kg)")
+    height = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0)], help_text="Height in centimetres (cm)")
+    bmi = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0)], help_text="Body Mass Index (BMI)")
 
     section_1_anatomy_markers = models.JSONField(default=list, blank=True)
 

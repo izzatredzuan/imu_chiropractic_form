@@ -12,26 +12,31 @@
 
 ## Priority
 
-## 22 July 2026: UAT Feedback
+General:
 
-- Add multiselect `Case Mix` field somewhere in the form, need to discuss more with clinician soon
+## 09 August 2026
+
+Sync Script:
+
+- Fix exception handling for sync student and employee profile script. log and fix error when fail to query user from DB
+
+## 30 September 2026
+
+- Add webserver, nginx on docker deployment
+
+## To be Done on end of First Semester
+
+- Add text color to different role (Make it red or blue for clinician [test the color])
+- Change whole Treatment Plan section to be able to multiple create like S.O.A.P. Need to move attachment section to section 4
+- Figure out a way to create new assessment but can directly start after section 4, current suggestion is to duplicate existing assement till section 4. Check if the assessment is already more than month disable the duplicate
 
 Section 4:
 
 - Figure out how to show sign off history
 
-General:
+Main Page:
 
-- Each fields need to be change to be like Section 4 Diagnosis field where need to click add, to add more test to differentiate who writing it, need to consider text color as well for different role
-- Need to have a function to download each section as an empty form pdf templete
-
-## 09 August 2026
-Sync Script:
-- Fix exception handling for sync student and employee profile script. log and fix error when fail to query user from DB
-
-## To be Done on end of First Semester
-- Change whole Treatment Plan section to be able to multiple create like S.O.A.P
-- Add Clinic Assistant Role and accesses
+- Add multiselect `Case Mix` field somewhere in the form, need to discuss more with clinician
 
 #### Enhancement Suggestions
 
@@ -40,7 +45,6 @@ Sync Script:
 - Archive logs by day.
 - Consider adding AI-generated assessment summaries when exporting to PDF.
 - Need to add notification for clinician to get info when to sign off a section
-
 
 #### Bugs
 
@@ -241,30 +245,43 @@ Treatment Plan
 - For each of the Treatment Phase add new text area field call `Treatment Plan Diagnosis` ✅
 
 S.O.A.P. / Re-Evaluation / New Complain:
+
 - Need to show numbers based on which one is latest ✅
 - Change logic where as long the role is clinician or admin they can create any assessment ✅
 
 Notes:
+
 - Disable download to pdf button for student ✅
 - Need to fix to cater the new Treatment Plan section ✅
 - Add "Back" button ✅
 
-
-## 02 September 2026
-Login, Forgot Password, Change password page:
-- When inputting invalid value, the error text appear in two different places ✅
-
 ## 09 August 2026
 
 Homepage
+
 - Redirect home url to assessment main page ✅
 
 ## 02 September 2026
+
+Login, Forgot Password, Change password page:
+
+- When inputting invalid value, the error text appear in two different places ✅
+
 Section 1 & SOAP:
+
 - Vital error not poping up on certain pc ✅
 
+## To be Done on end of First Semester
+
+- Add Clinic Assistant Role and accesses
+  Access: 1) View all assessment 2) Download Notes PDF ✅
+
+Section 1 (Vital section):
+
+- Add Weight, Height, BMI field [mandatory, set existing data value to 0] ✅
+
 ## Urgent!:
- 
+
 - Create a pdf for each of the form to give to clinician as handout. This is for emergency case if the server is crash ✅
 
 #### Enhancements
@@ -306,6 +323,7 @@ Section 1 & SOAP:
 - Datatable sorting is incorrect. ✅
 - Drawing canvas distort when flipping screen horizontal or vertically. ✅
 - Vitals fields doesnt have any check to prevent absurb number. ✅
+
 ---
 
 # Cancelled

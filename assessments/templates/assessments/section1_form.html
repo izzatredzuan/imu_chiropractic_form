@@ -288,6 +288,57 @@
                   Diastolic BP must be between 30 and 150 mmHg.
                 </div>
               </div>
+
+              <!-- Weight -->
+              <div class="col-md-4 mb-3">
+                <label class="form-label required">Weight (kg)</label>
+                <input
+                  type="number"
+                  name="weight"
+                  class="form-control"
+                  required
+                  min="0"
+                  step="0.01"
+                  value="{{ assessment.weight|default_if_none:'' }}"
+                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                <div class="invalid-feedback">
+                  Weight must be 0 kg or greater.
+                </div>
+              </div>
+
+              <!-- Height -->
+              <div class="col-md-4 mb-3">
+                <label class="form-label required">Height (cm)</label>
+                <input
+                  type="number"
+                  name="height"
+                  class="form-control"
+                  required
+                  min="0"
+                  step="0.01"
+                  value="{{ assessment.height|default_if_none:'' }}"
+                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                <div class="invalid-feedback">
+                  Height must be 0 cm or greater.
+                </div>
+              </div>
+
+              <!-- BMI -->
+              <div class="col-md-4 mb-3">
+                <label class="form-label required">BMI</label>
+                <input
+                  type="number"
+                  name="bmi"
+                  class="form-control"
+                  required
+                  min="0"
+                  step="0.01"
+                  value="{{ assessment.bmi|default_if_none:'' }}"
+                  {% if is_readonly or assessment.is_section_1_signed %}disabled{% endif %}>
+                <div class="invalid-feedback">
+                  BMI must be 0 or greater.
+                </div>
+              </div>
             </div>
           </div>
         </div>
