@@ -35,7 +35,7 @@ class Command(BaseCommand):
         )
         parser.add_argument(
             "--role",
-            choices=["clinician", "student", "admin"],
+            choices=["clinician", "student", "admin", "clinic_assistant"],
             default="clinician",
             help="Role to assign to imported users",
         )

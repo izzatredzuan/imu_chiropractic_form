@@ -7,10 +7,12 @@
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3">
         <h2 class="mb-0 mobile-fonts">My Assessments</h2>
 
+        {% if request.user.profile.role != "clinic_assistant" %}
         <a href="{% url 'assessment_create' %}" class="btn btn-primary btn-mobile">
             <i class="bi bi-plus-circle me-1"></i>
             Create Assessment
         </a>
+        {% endif %}
     </div>
 
     <!-- Controls bar -->
@@ -236,6 +238,8 @@
          * Define columns
          * ---------------------------------- */
         const USER_ROLE = "{{ request.user.profile.role }}";
+        const IS_CLINIC_ASSISTANT = USER_ROLE === "clinic_assistant";
+
         const columnsConfig = [{
                 title: "Patient Name",
                 data: "patient_name",
@@ -273,7 +277,10 @@
                         let cls = "btn btn-sm full-width ";
                         let titleText = "";
 
-                        if (!canAccess) {
+                        if (IS_CLINIC_ASSISTANT) {
+                            cls += "locked disabled";
+                            titleText = "Clinic assistants can only access Notes and filters";
+                        } else if (!canAccess) {
                             cls += "locked disabled";
                             titleText = "Locked";
                         } else if (isSigned) {
@@ -339,6 +346,9 @@
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
+                    
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
 
                     const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
                     if (!section4Signed) {
@@ -385,6 +395,9 @@
                     if (row.is_discharged) {
                         return lock_if_discharged()
                     }
+                    
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
 
                     const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
                     if (!consentsSigned) {
@@ -430,6 +443,9 @@
                         return lock_if_discharged()
                     }
 
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
+
                     const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
                     if (!consentsSigned) {
                         return lock_column(icon, "S.O.A.P. locked until Consents is signed off");
@@ -461,6 +477,9 @@
                     if (row.is_discharged) {
                         return lock_if_discharged();
                     }
+
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
 
                     const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
                     if (!consentsSigned) {
@@ -494,10 +513,13 @@
                     let icon = "bi-file-post";
                     let iconColor = "text-primary";
                     let tooltip = "View Patient New Complaints";
-
+                    
                     if (row.is_discharged) {
                         return lock_if_discharged();
                     }
+
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
 
                     const consentsSigned = row.consent_section_signed_at || row.is_consent_section_signed;
 
@@ -652,6 +674,9 @@
                         `;
                     }
 
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
+
                     // Otherwise show clickable discharge icon
                     return `
                         <div class="d-flex flex-column align-items-center small text-center">
@@ -700,6 +725,18 @@
                 opacity: 1,
                 cursor: "default"
             });
+        }
+
+        // Global utility to lock an action for clinic assistants
+        function clinicAssistantLock() {
+            if (!IS_CLINIC_ASSISTANT) {
+                return null;
+            }
+
+            return lock_column(
+                "bi-lock-fill",
+                "Clinic assistants cannot access this action"
+            );
         }
 
         /* ----------------------------------
