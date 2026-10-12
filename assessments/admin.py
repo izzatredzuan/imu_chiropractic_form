@@ -550,6 +550,9 @@ class SoapsAdmin(admin.ModelAdmin):
                     "soap_respiratory",
                     "soap_systolic_bp",
                     "soap_diastolic_bp",
+                    "weight",
+                    "height",
+                    "bmi",
                 )
             },
         ),
