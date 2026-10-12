@@ -1,7 +1,8 @@
 ROLE_CHOICES = (
+        ("admin", "Admin"),
         ("student", "Student"),
         ("clinician", "Clinician"),
-        ("admin", "Admin"),
+        ("clinic_assistant", "Clinic Assistant"),
     )
 
 GENDER_CHOICES = (

@@ -96,7 +96,7 @@ class Profile(models.Model):
     @property
     def can_access_admin_area(self):
         # Allow access to admin area for users with is_admin=True or specific member_ids (Kit and Nash)
-        return self.is_admin or self.member_id in {"001978", "002802"}
+        return self.is_admin or self.role == "clinic_assistant" or self.member_id in {"001978", "002802"}
     
     class Meta:
         ordering = ["official_name"]

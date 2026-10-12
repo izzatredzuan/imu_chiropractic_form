@@ -66,14 +66,14 @@ class AssessmentsListAPIView(APIView):
         if role == "student":
             queryset = Assessments.objects.filter(student=profile)
 
-        elif role == "admin":
-            queryset = Assessments.objects.all()
-
         elif role == "clinician":
             if scope == "assigned":
                 queryset = Assessments.objects.filter(evaluator=profile)
             else:
                 queryset = Assessments.objects.all()
+        
+        elif role in ["admin", "clinic_assistant"]:
+            queryset = Assessments.objects.all()
 
         else:
             queryset = Assessments.objects.none()
