@@ -172,6 +172,7 @@
                                                     <th>Clinician</th>
                                                     <th>Role</th>
                                                     <th>Signed At</th>
+                                                    <th>New Diagnosis Entry Dates</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -185,6 +186,15 @@
                                                         </td>
                                                         <td>
                                                             {{ record.signed_at|date:"d M Y, h:i A" }}
+                                                        </td>
+                                                        <td>
+                                                            {% for entry_date in record.diagnosis_entry_dates %}
+                                                                <span class="badge bg-light text-dark border me-1">
+                                                                    {{ entry_date }}
+                                                                </span>
+                                                            {% empty %}
+                                                                <span class="text-muted">No new entries</span>
+                                                            {% endfor %}
                                                         </td>
                                                     </tr>
                                                 {% endfor %}

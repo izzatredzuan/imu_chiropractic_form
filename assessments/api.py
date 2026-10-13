@@ -1,4 +1,5 @@
 import os
+import re
 import logging
 import base64
 import uuid
@@ -12,6 +13,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from datetime import datetime, time, date
+from django.utils.timezone import get_current_timezone
 from django.utils import timezone
 from .models import (
     Assessments,
@@ -50,6 +52,35 @@ ALLOWED_EXTENSIONS = {
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
+# Section 4 helper function
+def get_new_diagnosis_entry_dates(
+    diagnosis,
+    previous_signed_at,
+):
+    pattern = r"\[(\d{2}/\d{2}/\d{4}\s+\d{1,2}:\d{2}\s+[AP]M)" r"\s+-\s+([^\]]+)\]"
+
+    dates = []
+
+    for match in re.finditer(pattern, diagnosis or ""):
+        try:
+            entry_datetime = datetime.strptime(
+                match.group(1),
+                "%d/%m/%Y %I:%M %p",
+            )
+        except ValueError:
+            continue
+
+        entry_datetime = timezone.make_aware(
+            entry_datetime,
+            get_current_timezone(),
+        )
+
+        if previous_signed_at is None or entry_datetime > previous_signed_at:
+            dates.append(entry_datetime.strftime("%d/%m/%Y %I:%M %p"))
+
+    return list(dict.fromkeys(dates))
+
+
 class AssessmentsListAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -73,7 +104,7 @@ class AssessmentsListAPIView(APIView):
                 queryset = Assessments.objects.filter(evaluator=profile)
             else:
                 queryset = Assessments.objects.all()
-        
+
         elif role in ["admin", "clinic_assistant"]:
             queryset = Assessments.objects.all()
 
@@ -111,75 +142,39 @@ class AssessmentsListAPIView(APIView):
         # =========================
         # Created From
         if created_from:
-            start_date = datetime.strptime(
-                created_from,
-                "%Y-%m-%d"
-            ).date()
+            start_date = datetime.strptime(created_from, "%Y-%m-%d").date()
         else:
             start_date = default_year_start
 
-        created_start = timezone.make_aware(
-            datetime.combine(
-                start_date,
-                time.min
-            )
-        )
-        queryset = queryset.filter(
-            created_at__gte=created_start
-        )
+        created_start = timezone.make_aware(datetime.combine(start_date, time.min))
+        queryset = queryset.filter(created_at__gte=created_start)
 
         # Created To
         if created_to:
-            end_date = datetime.strptime(
-                created_to,
-                "%Y-%m-%d"
-            ).date()
+            end_date = datetime.strptime(created_to, "%Y-%m-%d").date()
         else:
             end_date = default_year_end
 
-        created_end = timezone.make_aware(
-            datetime.combine(
-                end_date,
-                time.max
-            )
-        )
-        queryset = queryset.filter(
-            created_at__lte=created_end
-        )
+        created_end = timezone.make_aware(datetime.combine(end_date, time.max))
+        queryset = queryset.filter(created_at__lte=created_end)
 
         # Updated From
         if updated_from:
-            updated_start_date = datetime.strptime(
-                updated_from,
-                "%Y-%m-%d"
-            ).date()
+            updated_start_date = datetime.strptime(updated_from, "%Y-%m-%d").date()
 
             updated_start = timezone.make_aware(
-                datetime.combine(
-                    updated_start_date,
-                    time.min
-                )
+                datetime.combine(updated_start_date, time.min)
             )
-            queryset = queryset.filter(
-                updated_at__gte=updated_start
-            )
+            queryset = queryset.filter(updated_at__gte=updated_start)
 
         # Updated To
         if updated_to:
-            updated_end_date = datetime.strptime(
-                updated_to,
-                "%Y-%m-%d"
-            ).date()
+            updated_end_date = datetime.strptime(updated_to, "%Y-%m-%d").date()
 
             updated_end = timezone.make_aware(
-                datetime.combine(
-                    updated_end_date,
-                    time.max
-                )
+                datetime.combine(updated_end_date, time.max)
             )
-            queryset = queryset.filter(
-                updated_at__lte=updated_end
-            )
+            queryset = queryset.filter(updated_at__lte=updated_end)
 
         if discharged == "yes":
             queryset = queryset.filter(is_discharged=True)
@@ -189,7 +184,7 @@ class AssessmentsListAPIView(APIView):
         queryset = queryset.select_related("student", "evaluator").order_by(
             "-updated_at"
         )
-        
+
         serializer = AssessmentsListSerializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -762,15 +757,10 @@ class AssessmentSection4APIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Check sign-off permission before saving anything.
-        if (
-            action == "sign_off_section_4"
-            and profile.role not in ["clinician", "admin"]
-        ):
-            logger.warning(
-                f"SIGN_OFF_DENIED - Section 4 | "
-                f"user={profile.official_name} ({profile.role})"
-            )
+        if action == "sign_off_section_4" and profile.role not in [
+            "clinician",
+            "admin",
+        ]:
             return Response(
                 {"detail": "Not allowed to sign off"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -795,7 +785,6 @@ class AssessmentSection4APIView(APIView):
         )
         serializer.is_valid(raise_exception=True)
 
-        # Keep the assessment update and history insertion atomic.
         with transaction.atomic():
             assessment = serializer.save()
 
@@ -803,25 +792,40 @@ class AssessmentSection4APIView(APIView):
                 assessment.is_section_4_signed = False
 
             elif action == "sign_off_section_4":
+                previous_history = (
+                    AssessmentSection4SignOffHistory.objects.filter(
+                        assessment=assessment
+                    )
+                    .order_by("-signed_at")
+                    .first()
+                )
+
+                previous_signed_at = (
+                    previous_history.signed_at if previous_history else None
+                )
+
+                diagnosis_dates = get_new_diagnosis_entry_dates(
+                    assessment.diagnosis,
+                    previous_signed_at,
+                )
+
                 assessment.is_section_4_signed = True
                 assessment.section_4_signed_by = profile
                 assessment.section_4_signed_at = timezone.now()
 
-            assessment.save()
-
-            # Record history only for a successful sign-off.
-            if action == "sign_off_section_4":
                 AssessmentSection4SignOffHistory.objects.create(
                     assessment=assessment,
                     signed_by=profile,
+                    diagnosis_entry_dates=diagnosis_dates,
                 )
+            assessment.save()
 
-        logger.info(
-            f"UPDATE - Section 4 | "
-            f"assessment_id={assessment.id}, "
-            f"updated_by={profile.official_name} ({profile.role}), "
-            f"action={action}"
-        )
+            logger.info(
+                f"UPDATE - Section 4 | "
+                f"assessment_id={assessment.id}, "
+                f"updated_by={profile.official_name} ({profile.role}), "
+                f"action={action}"
+            )
 
         return Response(
             {"message": "Section 4 updated successfully"},
@@ -1296,9 +1300,7 @@ class AssessmentTreatmentPlanAPIView(APIView):
                     )
 
                     return Response(
-                        {
-                            "detail": "Not allowed to sign off Treatment Plan"
-                        },
+                        {"detail": "Not allowed to sign off Treatment Plan"},
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
