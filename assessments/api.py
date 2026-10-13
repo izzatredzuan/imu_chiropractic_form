@@ -4,6 +4,7 @@ import base64
 import uuid
 from urllib import request
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from accounts.models import Profile
 from rest_framework import status
@@ -14,6 +15,7 @@ from datetime import datetime, time, date
 from django.utils import timezone
 from .models import (
     Assessments,
+    AssessmentSection4SignOffHistory,
     AssessmentAttachment,
     AssessmentTreatmentPlanPhase,
     PatientNewComplaint,
@@ -744,7 +746,6 @@ class AssessmentSection4APIView(APIView):
     # PUT
     # =========================
     def put(self, request):
-
         profile = request.user.profile
         assessment_id = request.data.get("assessment_id")
         action = request.data.get("action", "save_section_4")
@@ -755,7 +756,30 @@ class AssessmentSection4APIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        assessment = get_object_or_404(Assessments, id=assessment_id)
+        if action not in ["save_section_4", "sign_off_section_4"]:
+            return Response(
+                {"detail": "Invalid action"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check sign-off permission before saving anything.
+        if (
+            action == "sign_off_section_4"
+            and profile.role not in ["clinician", "admin"]
+        ):
+            logger.warning(
+                f"SIGN_OFF_DENIED - Section 4 | "
+                f"user={profile.official_name} ({profile.role})"
+            )
+            return Response(
+                {"detail": "Not allowed to sign off"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        assessment = get_object_or_404(
+            Assessments,
+            id=assessment_id,
+        )
 
         if profile.role == "student" and assessment.student != profile:
             return Response(
@@ -770,33 +794,31 @@ class AssessmentSection4APIView(APIView):
             context={"request": request},
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
 
-        # =========================
-        # ACTION LOGIC
-        # =========================
-        if action == "save_section_4":
-            assessment.is_section_4_signed = False
+        # Keep the assessment update and history insertion atomic.
+        with transaction.atomic():
+            assessment = serializer.save()
 
-        elif action == "sign_off_section_4":
-            if profile.role not in ["clinician", "admin"]:
-                logger.warning(
-                    f"SIGN_OFF_DENIED - Section 4 | "
-                    f"assessment_id={assessment.id}, user={profile.official_name} ({profile.role})"
+            if action == "save_section_4":
+                assessment.is_section_4_signed = False
+
+            elif action == "sign_off_section_4":
+                assessment.is_section_4_signed = True
+                assessment.section_4_signed_by = profile
+                assessment.section_4_signed_at = timezone.now()
+
+            assessment.save()
+
+            # Record history only for a successful sign-off.
+            if action == "sign_off_section_4":
+                AssessmentSection4SignOffHistory.objects.create(
+                    assessment=assessment,
+                    signed_by=profile,
                 )
-                return Response(
-                    {"detail": "Not allowed to sign off"},
-                    status=status.HTTP_403_FORBIDDEN,
-                )
 
-            assessment.is_section_4_signed = True
-            assessment.section_4_signed_by = profile
-            assessment.section_4_signed_at = timezone.now()
-
-        assessment.save()
         logger.info(
-            f"UPDATE - Section 4 | assessment_id={assessment.id}, "
-            f"student={assessment.student.official_name}, "
+            f"UPDATE - Section 4 | "
+            f"assessment_id={assessment.id}, "
             f"updated_by={profile.official_name} ({profile.role}), "
             f"action={action}"
         )

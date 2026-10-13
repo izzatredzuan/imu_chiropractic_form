@@ -272,15 +272,15 @@
                         return lock_if_discharged();
                     }
 
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
+                    
                     function sectionBtn(sectionNo, isSigned, isComplete, canAccess) {
 
                         let cls = "btn btn-sm full-width ";
                         let titleText = "";
 
-                        if (IS_CLINIC_ASSISTANT) {
-                            cls += "locked disabled";
-                            titleText = "Clinic assistants can only access Notes and filters";
-                        } else if (!canAccess) {
+                        if (!canAccess) {
                             cls += "locked disabled";
                             titleText = "Locked";
                         } else if (isSigned) {
