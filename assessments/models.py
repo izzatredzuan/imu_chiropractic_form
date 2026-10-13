@@ -419,6 +419,33 @@ class AssessmentTreatmentPlanPhase(models.Model):
         )
 
 
+class AssessmentSection4SignOffHistory(models.Model):
+    assessment = models.ForeignKey(
+        Assessments,
+        on_delete=models.CASCADE,
+        related_name="section_4_signoff_history",
+    )
+    signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="section4_signoff_history",
+    )
+    signed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-signed_at"]
+        verbose_name = "Section 4 Sign-Off History"
+        verbose_name_plural = "Section 4 Sign-Off Histories"
+
+    def __str__(self):
+        return (
+            f"Assessment {self.assessment_id} - "
+            f"Section 4 sign-off at {self.signed_at}"
+        )
+
+    
 class AssessmentAttachment(models.Model):
     assessment = models.ForeignKey(
         Assessments, on_delete=models.CASCADE, related_name="attachments"
