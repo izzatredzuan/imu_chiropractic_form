@@ -8,6 +8,7 @@ from django.views import View
 from accounts.models import Profile
 from .models import (
     Assessments,
+    AssessmentSection4SignOffHistory,
     PatientNewComplaint,
     Soaps,
     SoapModality,
@@ -122,6 +123,21 @@ class AssessmentSection3FormView(BaseAssessmentFormView):
 
 class AssessmentSection4FormView(BaseAssessmentFormView):
     template_name = "assessments/section4_form.html"
+
+    def get_extra_context(self):
+        assessment_id = self.kwargs.get("assessment_id")
+
+        if not assessment_id:
+            return {"section4_signoff_history": []}
+
+        return {
+            "section4_signoff_history": (
+                AssessmentSection4SignOffHistory.objects
+                .filter(assessment_id=assessment_id)
+                .select_related("signed_by")
+                .order_by("-signed_at")
+            )
+        }
 
 
 class AssessmentConsentsFormView(BaseAssessmentFormView):

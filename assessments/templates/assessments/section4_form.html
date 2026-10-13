@@ -50,6 +50,7 @@
                         Signed at: {{ assessment.section_4_signed_at|date:"d M Y, h:i A" }}
                     </small>
                 </div>
+                
                 {% endif %}
 
                 {% if assessment.is_discharged %}
@@ -135,6 +136,69 @@
                     <input type="date" name="diagnosis_date" class="form-control" required
                         value="{{ assessment.diagnosis_date|date:'Y-m-d' }}"
                         {% if is_readonly or assessment.is_section_4_signed %}disabled{% endif %}>
+                </div>
+
+                <!-- Section 4 Sign-Off History -->
+                <div class="accordion mb-4" id="section4HistoryAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="section4HistoryHeading">
+                            <button
+                                class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#section4HistoryContent"
+                                aria-expanded="false"
+                                aria-controls="section4HistoryContent">
+
+                                Sign-Off History
+                                <span class="badge bg-secondary ms-2">
+                                    {{ section4_signoff_history|length }}
+                                </span>
+                            </button>
+                        </h2>
+
+                        <div
+                            id="section4HistoryContent"
+                            class="accordion-collapse collapse"
+                            aria-labelledby="section4HistoryHeading"
+                            data-bs-parent="#section4HistoryAccordion">
+
+                            <div class="accordion-body">
+                                {% if section4_signoff_history %}
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Clinician</th>
+                                                    <th>Role</th>
+                                                    <th>Signed At</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for record in section4_signoff_history %}
+                                                    <tr>
+                                                        <td>
+                                                            {{ record.signed_by.official_name|default:"User unavailable" }}
+                                                        </td>
+                                                        <td>
+                                                            {{ record.signed_by.role|title|default:"—" }}
+                                                        </td>
+                                                        <td>
+                                                            {{ record.signed_at|date:"d M Y, h:i A" }}
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <p class="text-muted mb-0">
+                                        No sign-off history recorded yet.
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

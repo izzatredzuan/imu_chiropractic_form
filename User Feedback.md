@@ -6,19 +6,7 @@
 
 # Pending
 
-- _No pending issue._
-
----
-
 ## Priority
-
-General:
-
-## 09 August 2026
-
-Sync Script:
-
-- Fix exception handling for sync student and employee profile script. log and fix error when fail to query user from DB
 
 ## 30 September 2026
 
@@ -26,17 +14,19 @@ Sync Script:
 
 ## To be Done on end of First Semester
 
-- Add text color to different role (Make it red or blue for clinician [test the color])
+- Add text color to different role (Make it red or blue for clinician [test the color]) [Update: might need to find a different approach]
 - Change whole Treatment Plan section to be able to multiple create like S.O.A.P. Need to move attachment section to section 4
 - Figure out a way to create new assessment but can directly start after section 4, current suggestion is to duplicate existing assement till section 4. Check if the assessment is already more than month disable the duplicate
 
-Section 4:
+---
 
-- Figure out how to show sign off history
+# Future
 
 Main Page:
 
-- Add multiselect `Case Mix` field somewhere in the form, need to discuss more with clinician
+- Add multiselect `Case Mix` field somewhere in the form, need to discuss more with clinician [* This is a excel report generation, to be done by my successor]
+
+---
 
 #### Enhancement Suggestions
 
@@ -279,6 +269,10 @@ Section 1 & SOAP:
 Section 1 (Vital section):
 
 - Add Weight, Height, BMI field [mandatory, set existing data value to 0] ✅
+
+Section 4:
+
+- Figure out how to show sign off history ✅
 
 ## Urgent!:
 

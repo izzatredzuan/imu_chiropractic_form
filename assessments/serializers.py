@@ -6,6 +6,7 @@ from django.utils import timezone
 from accounts.models import Profile
 from .models import (
     Assessments,
+    AssessmentSection4SignOffHistory,
     AssessmentAttachment,
     AssessmentTreatmentPlanPhase,
     PatientNewComplaint,
@@ -446,6 +447,28 @@ class AssessmentSection3Serializer(serializers.ModelSerializer):
             )
 
 
+class AssessmentSection4SignOffHistorySerializer(serializers.ModelSerializer):
+    signed_by_name = serializers.CharField(
+        source="signed_by.official_name",
+        read_only=True,
+        default=None,
+    )
+    signed_by_role = serializers.CharField(
+        source="signed_by.role",
+        read_only=True,
+        default=None,
+    )
+
+    class Meta:
+        model = AssessmentSection4SignOffHistory
+        fields = [
+            "id",
+            "signed_by_name",
+            "signed_by_role",
+            "signed_at",
+        ]
+
+        
 class AssessmentSection4Serializer(serializers.ModelSerializer):
     section_4_signed_by_name = serializers.CharField(
         source="section_4_signed_by.official_name", read_only=True
@@ -453,7 +476,13 @@ class AssessmentSection4Serializer(serializers.ModelSerializer):
     section_4_signed_by_role = serializers.CharField(
         source="section_4_signed_by.role", read_only=True
     )
-
+    section_4_signoff_history = (
+        AssessmentSection4SignOffHistorySerializer(
+            many=True,
+            read_only=True,
+        )
+    )
+    
     class Meta:
         model = Assessments
         fields = [
@@ -467,12 +496,14 @@ class AssessmentSection4Serializer(serializers.ModelSerializer):
             "section_4_signed_by_name",
             "section_4_signed_by_role",
             "section_4_signed_at",
+            "section_4_signoff_history",
         ]
         read_only_fields = [
             "is_section_4_signed",
             "section_4_signed_by_name",
             "section_4_signed_by_role",
             "section_4_signed_at",
+            "section_4_signoff_history",
         ]
 
 
