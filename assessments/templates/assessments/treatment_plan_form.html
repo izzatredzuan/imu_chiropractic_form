@@ -97,7 +97,7 @@
         <!-- ========================= Treatment Phases ========================== -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
-                <span>Treatment Phases</span>
+                <span>Treatment Plan</span>
                 <button type="button" id="addPhaseBtn" class="btn btn-sm 
                     {% if is_readonly or assessment.is_treatment_plan_signed %}
                         btn-secondary disabled
@@ -113,7 +113,7 @@
                 <div class="treatment-phase-item card mb-3 shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <span class="phase-title fw-semibold">
-                            Treatment Phase {{ forloop.revcounter }}
+                            Treatment Plan {{ forloop.revcounter }}
                         </span>
                         {% if not is_readonly and not assessment.is_treatment_plan_signed %}
                         <button type="button" class="btn-close remove-phase-btn">

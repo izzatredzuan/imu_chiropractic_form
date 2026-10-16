@@ -434,6 +434,8 @@ class AssessmentSection4SignOffHistory(models.Model):
     )
     signed_at = models.DateTimeField(auto_now_add=True)
 
+    diagnosis_entry_dates = models.JSONField(default=list, blank=True)
+
     class Meta:
         ordering = ["-signed_at"]
         verbose_name = "Section 4 Sign-Off History"

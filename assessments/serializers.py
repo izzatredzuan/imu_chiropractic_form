@@ -466,6 +466,7 @@ class AssessmentSection4SignOffHistorySerializer(serializers.ModelSerializer):
             "signed_by_name",
             "signed_by_role",
             "signed_at",
+            "diagnosis_entry_dates",
         ]
 
         
