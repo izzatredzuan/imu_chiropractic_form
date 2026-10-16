@@ -18,6 +18,7 @@ from django.utils import timezone
 from .models import (
     Assessments,
     AssessmentSection4SignOffHistory,
+    AssessmentTreatmentPlanSignOffHistory,
     AssessmentAttachment,
     AssessmentTreatmentPlanPhase,
     PatientNewComplaint,
@@ -1179,7 +1180,10 @@ class AssessmentTreatmentPlanAPIView(APIView):
             )
 
         assessment = get_object_or_404(
-            Assessments.objects.prefetch_related("treatment_plan_phases"),
+            Assessments.objects.prefetch_related(
+                "treatment_plan_phases", 
+                "treatment_plan_signoff_history__signed_by",
+                ),
             id=assessment_id,
         )
 
@@ -1258,21 +1262,73 @@ class AssessmentTreatmentPlanAPIView(APIView):
             phases = request.data.get("treatment_plan_phases", None)
 
             if phases is not None:
-                assessment.treatment_plan_phases.all().delete()
+                existing_phases = {
+                    phase.id: phase
+                    for phase in assessment.treatment_plan_phases.all()
+                }
 
-                for phase in phases:
-                    AssessmentTreatmentPlanPhase.objects.create(
-                        assessment=assessment,
-                        phase_1=phase.get("phase_1", ""),
-                        phase_2=phase.get("phase_2", ""),
-                        phase_3=phase.get("phase_3", ""),
-                        treatment_plan_diagnosis=phase.get(
-                            "treatment_plan_diagnosis",
-                            "",
-                        ),
-                        created_by=profile,
-                        updated_by=profile,
-                    )
+                retained_phase_ids = set()
+
+                for phase_data in phases:
+                    phase_id = phase_data.get("id")
+
+                    if phase_id:
+                        try:
+                            phase_id = int(phase_id)
+                        except (TypeError, ValueError):
+                            return Response(
+                                {"detail": "Invalid treatment phase ID"},
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+
+                        phase_obj = existing_phases.get(phase_id)
+
+                        if phase_obj is None:
+                            return Response(
+                                {
+                                    "detail": (
+                                        f"Treatment phase ID {phase_id} "
+                                        "does not belong to this assessment."
+                                    )
+                                },
+                                status=status.HTTP_400_BAD_REQUEST,
+                            )
+
+                        # Update the existing record; preserve its database ID.
+                        phase_obj.phase_1 = phase_data.get("phase_1", "")
+                        phase_obj.phase_2 = phase_data.get("phase_2", "")
+                        phase_obj.phase_3 = phase_data.get("phase_3", "")
+                        phase_obj.treatment_plan_diagnosis = phase_data.get(
+                            "treatment_plan_diagnosis", ""
+                        )
+                        phase_obj.updated_by = profile
+                        phase_obj.save()
+
+                        retained_phase_ids.add(phase_id)
+
+                    else:
+                        # Create a record only for a genuinely new phase.
+                        new_phase = AssessmentTreatmentPlanPhase.objects.create(
+                            assessment=assessment,
+                            phase_1=phase_data.get("phase_1", ""),
+                            phase_2=phase_data.get("phase_2", ""),
+                            phase_3=phase_data.get("phase_3", ""),
+                            treatment_plan_diagnosis=phase_data.get(
+                                "treatment_plan_diagnosis", ""
+                            ),
+                            created_by=profile,
+                            updated_by=profile,
+                        )
+
+                        retained_phase_ids.add(new_phase.id)
+
+                # Delete only phases that were deliberately removed from the submission.
+                removed_phase_ids = set(existing_phases.keys()) - retained_phase_ids
+
+                if removed_phase_ids:
+                    assessment.treatment_plan_phases.filter(
+                        id__in=removed_phase_ids
+                    ).delete()
 
             # =========================
             # ACTION LOGIC
@@ -1304,9 +1360,40 @@ class AssessmentTreatmentPlanAPIView(APIView):
                         status=status.HTTP_403_FORBIDDEN,
                     )
 
+                # Sign-off logic: store the IDs of newly created phases since the last sign-off.
+                # Get the most recent sign-off for this assessment.
+                last_signoff = (
+                    AssessmentTreatmentPlanSignOffHistory.objects
+                    .filter(assessment=assessment)
+                    .order_by("-signed_at")
+                    .first()
+                )
+
+                # Identify phases created since the previous sign-off.
+                phases_query = assessment.treatment_plan_phases.all()
+
+                if last_signoff:
+                    phases_query = phases_query.filter(
+                        created_at__gt=last_signoff.signed_at
+                    )
+
+                # Store only newly created phase IDs in this sign-off history.
+                phase_ids = list(
+                    phases_query
+                    .order_by("id")
+                    .values_list("id", flat=True)
+                )
+
                 assessment.is_treatment_plan_signed = True
                 assessment.treatment_plan_signed_by = profile
                 assessment.treatment_plan_signed_at = timezone.now()
+
+                # Create a permanent history record.
+                AssessmentTreatmentPlanSignOffHistory.objects.create(
+                    assessment=assessment,
+                    signed_by=profile,
+                    phase_ids=phase_ids,
+                )
 
                 logger.info(
                     f"SIGN_OFF - Treatment Plan | "

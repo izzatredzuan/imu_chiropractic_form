@@ -15,7 +15,6 @@
 ## To be Done on end of First Semester
 
 - Add text color to different role (Make it red or blue for clinician [test the color]) [Update: might need to find a different approach]
-- Add signoff history in treatment plan like section 4 but show all the ID of new sub treatment plan created during this approval
 - Figure out a way to create new assessment but can directly start after section 4, current suggestion is to duplicate existing assement till section 4. Check if the assessment is already more than month disable the duplicate
 
 ---
@@ -274,6 +273,9 @@ Section 4:
 
 - Figure out how to show sign off history ✅
 - Section 4 Sign off need to show the date of the diagnosis that was created since last sign off ✅
+
+Treatment Plan:
+- Add sign off history in treatment plan like section 4 but show all the ID of new sub treatment plan created during this approval ✅
 
 ## Urgent!:
 

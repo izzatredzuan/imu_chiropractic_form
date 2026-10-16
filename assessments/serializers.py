@@ -7,6 +7,7 @@ from accounts.models import Profile
 from .models import (
     Assessments,
     AssessmentSection4SignOffHistory,
+    AssessmentTreatmentPlanSignOffHistory,
     AssessmentAttachment,
     AssessmentTreatmentPlanPhase,
     PatientNewComplaint,
@@ -811,12 +812,37 @@ class AssessmentTreatmentPlanPhaseSerializer(serializers.ModelSerializer):
         ]
 
 
+class AssessmentTreatmentPlanSignOffHistorySerializer(
+    serializers.ModelSerializer
+):
+    signed_by_name = serializers.CharField(
+        source="signed_by.official_name",
+        read_only=True,
+        default=None,
+    )
+
+    signed_by_role = serializers.CharField(
+        source="signed_by.role",
+        read_only=True,
+        default=None,
+    )
+
+    class Meta:
+        model = AssessmentTreatmentPlanSignOffHistory
+        fields = [
+            "id",
+            "signed_by_name",
+            "signed_by_role",
+            "signed_at",
+            "phase_ids",
+        ]
+
+        
 class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
     treatment_plan_phases = AssessmentTreatmentPlanPhaseSerializer(
         many=True,
         read_only=True,
     )
-
     treatment_plan_signed_by_name = serializers.CharField(
         source="treatment_plan_signed_by.official_name",
         read_only=True,
@@ -824,6 +850,12 @@ class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
     treatment_plan_signed_by_role = serializers.CharField(
         source="treatment_plan_signed_by.role",
         read_only=True,
+    )
+    treatment_plan_signoff_history = (
+        AssessmentTreatmentPlanSignOffHistorySerializer(
+            many=True,
+            read_only=True,
+        )
     )
 
     class Meta:
@@ -838,6 +870,7 @@ class AssessmentTreatmentPlanSerializer(serializers.ModelSerializer):
             "treatment_plan_signed_by_name",
             "treatment_plan_signed_by_role",
             "treatment_plan_signed_at",
+            "treatment_plan_signoff_history",
         ]
         read_only_fields = [
             "is_treatment_plan_signed",
