@@ -9,6 +9,7 @@ from accounts.models import Profile
 from .models import (
     Assessments,
     AssessmentSection4SignOffHistory,
+    AssessmentTreatmentPlanSignOffHistory,
     PatientNewComplaint,
     Soaps,
     SoapModality,
@@ -150,6 +151,21 @@ class AssessmentConsentsFormView(BaseAssessmentFormView):
 
 class AssessmentTreatmentPlanFormView(BaseAssessmentFormView):
     template_name = "assessments/treatment_plan_form.html"
+
+    def get_extra_context(self):
+        assessment_id = self.kwargs.get("assessment_id")
+
+        if not assessment_id:
+            return {"treatment_plan_signoff_history": []}
+
+        return {
+            "treatment_plan_signoff_history": (
+                AssessmentTreatmentPlanSignOffHistory.objects
+                .filter(assessment_id=assessment_id)
+                .select_related("signed_by")
+                .order_by("-signed_at")
+            )
+        }
 
 
 class SoapFormView(View):

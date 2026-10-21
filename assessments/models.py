@@ -378,6 +378,38 @@ class Assessments(models.Model):
         ]
 
 
+class AssessmentTreatmentPlanSignOffHistory(models.Model):
+    assessment = models.ForeignKey(
+        Assessments,
+        on_delete=models.CASCADE,
+        related_name="treatment_plan_signoff_history",
+    )
+
+    signed_by = models.ForeignKey(
+        Profile,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="treatment_plan_signoff_history",
+    )
+
+    signed_at = models.DateTimeField(auto_now_add=True)
+
+    # Phase IDs present at this sign-off
+    phase_ids = models.JSONField(default=list, blank=True)
+
+    class Meta:
+        ordering = ["-signed_at"]
+        verbose_name = "Treatment Plan Sign-Off History"
+        verbose_name_plural = "Treatment Plan Sign-Off Histories"
+
+    def __str__(self):
+        return (
+            f"Assessment {self.assessment_id} - "
+            f"Treatment Plan sign-off at {self.signed_at}"
+        )
+
+
 class AssessmentTreatmentPlanPhase(models.Model):
     assessment = models.ForeignKey(
         Assessments,
