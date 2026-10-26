@@ -33,11 +33,12 @@ Main Page:
   - Drafts **must not** be eligible for sign-off until all required sections are completed.
 - Archive logs by day.
 - Consider adding AI-generated assessment summaries when exporting to PDF.
-- Need to add notification for clinician to get info when to sign off a section
+- Need to add notification for clinician to get info when to sign off a section.
 
 #### Bugs
 
-- _No pending bugs._
+S.O.A.P., New Complaint, Re-Evaluation
+- There a chance duplication creation happen (Front end fix added, need to monitor if it happen again)
 
 ---
 

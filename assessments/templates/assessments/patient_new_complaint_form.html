@@ -239,77 +239,110 @@
 </div>
 
 <script>
-    const ASSESSMENT_ID = "{{ assessment.id }}";
+    const ASSESSMENT_ID = "{{ assessment.id|default:'' }}";
     const NEW_COMPLAINT_ID = "{{ new_complaint.id|default:'' }}";
+
+    const form = document.getElementById("newComplaintForm");
+    const btnSave = document.getElementById("btnSave");
+    const btnSignOff = document.getElementById("btnSignOff");
+
+    // Track whether a submission is currently in progress.
+    let isSubmitting = false;
+    let clickedAction = "save";
+
+    // Remember the original button labels.
+    const originalSaveText = btnSave?.textContent.trim();
+    const originalSignOffText = btnSignOff?.textContent.trim();
 
     // =========================
     // ACTION BUTTONS
     // =========================
-    let clickedAction = "save";
-    const btnSave = document.getElementById("btnSave");
-    const btnSignOff = document.getElementById("btnSignOff");
-
     if (btnSave) {
-        btnSave.addEventListener("click", () => {
+        btnSave.addEventListener("click", function () {
             clickedAction = "save";
         });
     }
 
     if (btnSignOff) {
-        btnSignOff.addEventListener("click", () => {
+        btnSignOff.addEventListener("click", function () {
             clickedAction = "sign_off";
         });
     }
 
     // =========================
+    // SUBMISSION STATE
+    // =========================
+    function setSubmittingState(submitting) {
+        if (btnSave) {
+            btnSave.disabled = submitting;
+            btnSave.textContent = submitting
+                ? "Saving..."
+                : originalSaveText;
+        }
+
+        if (btnSignOff) {
+            btnSignOff.disabled = submitting;
+            btnSignOff.textContent = submitting
+                ? "Processing..."
+                : originalSignOffText;
+        }
+    }
+
+    // =========================
     // FORM SUBMIT
     // =========================
-    document.getElementById("newComplaintForm")
-        .addEventListener("submit", function (e) {
-            e.preventDefault();
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-            let confirmMessage =
-                "Are you sure you want to save this new complaint?";
-            if (clickedAction === "sign_off") {
-                confirmMessage =
-                    "Are you sure you want to SIGN OFF this new complaint?";
-            }
-            if (!confirm(confirmMessage)) {
-                return;
-            }
+        // Critical: reject repeated submissions immediately.
+        if (isSubmitting) {
+            return;
+        }
 
-            const formData = new FormData(this);
+        const action = clickedAction;
+
+        const confirmMessage = action === "sign_off"
+            ? "Are you sure you want to SIGN OFF this new complaint?"
+            : "Are you sure you want to save this new complaint?";
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // Set the lock BEFORE doing any asynchronous work.
+        isSubmitting = true;
+        setSubmittingState(true);
+
+        try {
+            const formData = new FormData(form);
             const payload = Object.fromEntries(formData.entries());
 
             // =========================
-            // REQUIRED
+            // REQUIRED FIELDS
             // =========================
-            payload["assessment"] = Number(ASSESSMENT_ID);
-            payload["action"] = clickedAction;
+            payload.assessment = Number(ASSESSMENT_ID);
+            payload.action = action;
 
-            // remove empty optional date
-            if (!payload["next_reevaluation"]) {
-                delete payload["next_reevaluation"];
+            if (!payload.next_reevaluation) {
+                delete payload.next_reevaluation;
             }
 
             // =========================
             // DATE VALIDATION
             // =========================
             if (
-                payload["date_of_new_complaint"] &&
-                payload["next_reevaluation"]
+                payload.date_of_new_complaint &&
+                payload.next_reevaluation
             ) {
                 const complaintDate = new Date(
-                    payload["date_of_new_complaint"]
-                );
-                const nextAppointmentDate = new Date(
-                    payload["next_reevaluation"]
+                    payload.date_of_new_complaint + "T00:00:00"
                 );
 
-                // reset time
-                complaintDate.setHours(0, 0, 0, 0);
-                nextAppointmentDate.setHours(0, 0, 0, 0);
-                if (nextAppointmentDate < complaintDate) {
+                const nextReevaluationDate = new Date(
+                    payload.next_reevaluation + "T00:00:00"
+                );
+
+                if (nextReevaluationDate < complaintDate) {
                     alert(
                         "Next reevaluation date cannot be earlier than new complaint date."
                     );
@@ -320,45 +353,70 @@
             // =========================
             // API METHOD
             // =========================
+            let method = "POST";
+
             {% if new_complaint %}
-            payload["new_complaint_id"] = "{{ new_complaint.id }}";
-            const method = "PUT"; 
-            {% else %}
-            const method = "POST"; 
+                payload.new_complaint_id = NEW_COMPLAINT_ID;
+                method = "PUT";
             {% endif %}
 
             // =========================
-            // API CALL
+            // API REQUEST
             // =========================
-            fetch("{% url 'assessment_patient_new_complaint_api' %}", {
+            const response = await fetch(
+                "{% url 'assessment_patient_new_complaint_api' %}",
+                {
                     method: method,
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": CSRFTOKEN
                     },
                     body: JSON.stringify(payload)
-                })
-                .then(res => {
-                    if (!res.ok) {
-                        return res.json().then(err => {
-                            throw err;
-                        });
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    alert(data.message || "Saved successfully");
-                    window.location.href =
-                        "{% url 'assessments_list' %}";
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert(
-                        err.detail ||
-                        "Failed to save patient new complaint."
-                    );
-                });
-        });
+                }
+            );
+
+            let data;
+
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail ||
+                    data.error ||
+                    data.message ||
+                    "Failed to save patient new complaint."
+                );
+            }
+
+            alert(
+                data.message ||
+                "Patient new complaint saved successfully."
+            );
+
+            window.location.href = "{% url 'assessments_list' %}";
+
+        } catch (error) {
+            console.error(
+                "Patient New Complaint submission failed:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Failed to save patient new complaint."
+            );
+
+        } finally {
+            // Re-enable the form if the request fails or validation exits.
+            // On success, navigation will take the user away from this page.
+            isSubmitting = false;
+            setSubmittingState(false);
+        }
+    });
 </script>
 
 {% endblock %}

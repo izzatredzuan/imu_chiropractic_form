@@ -239,118 +239,175 @@
 </div>
 
 <script>
-    const ASSESSMENT_ID = "{{ assessment.id }}";
+    const ASSESSMENT_ID = "{{ assessment.id|default:'' }}";
     const REEVALUATION_ID = "{{ reevaluation.id|default:'' }}";
+
+    const form = document.getElementById("reevaluationForm");
+    const btnSave = document.getElementById("btnSave");
+    const btnSignOff = document.getElementById("btnSignOff");
+
+    // Prevent multiple submissions.
+    let isSubmitting = false;
+    let clickedAction = "save";
+
+    // Preserve original button labels.
+    const originalSaveText = btnSave?.textContent.trim();
+    const originalSignOffText = btnSignOff?.textContent.trim();
 
     // =========================
     // ACTION BUTTONS
     // =========================
-    let clickedAction = "save";
-
-    const btnSave = document.getElementById("btnSave");
-    const btnSignOff = document.getElementById("btnSignOff");
-
     if (btnSave) {
-        btnSave.addEventListener("click", () => {
+        btnSave.addEventListener("click", function () {
             clickedAction = "save";
         });
     }
 
     if (btnSignOff) {
-        btnSignOff.addEventListener("click", () => {
+        btnSignOff.addEventListener("click", function () {
             clickedAction = "sign_off";
         });
     }
 
     // =========================
+    // SUBMISSION STATE
+    // =========================
+    function setSubmittingState(submitting) {
+        if (btnSave) {
+            btnSave.disabled = submitting;
+            btnSave.textContent = submitting
+                ? "Saving..."
+                : originalSaveText;
+        }
+
+        if (btnSignOff) {
+            btnSignOff.disabled = submitting;
+            btnSignOff.textContent = submitting
+                ? "Processing..."
+                : originalSignOffText;
+        }
+    }
+
+    // =========================
     // FORM SUBMIT
     // =========================
-    document.getElementById("reevaluationForm")
-        .addEventListener("submit", function (e) {
-            e.preventDefault();
-            let confirmMessage =
-                "Are you sure you want to save this reevaluation?";
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
 
-            if (clickedAction === "sign_off") {
-                confirmMessage =
-                    "Are you sure you want to SIGN OFF this reevaluation?";
-            }
-            if (!confirm(confirmMessage)) {
-                return;
-            }
+        // Ignore repeated submissions.
+        if (isSubmitting) {
+            return;
+        }
 
-            const formData = new FormData(this);
+        const action = clickedAction;
+        const confirmMessage = action === "sign_off"
+            ? "Are you sure you want to SIGN OFF this reevaluation?"
+            : "Are you sure you want to save this reevaluation?";
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // Lock immediately before making the request.
+        isSubmitting = true;
+        setSubmittingState(true);
+
+        try {
+            const formData = new FormData(form);
             const payload = Object.fromEntries(formData.entries());
-            // =========================
-            // REQUIRED
-            // =========================
-            payload["assessment"] = Number(ASSESSMENT_ID);
-            payload["action"] = clickedAction;
 
-            // remove empty optional date
-            if (!payload["next_reevaluation"]) {
-                delete payload["next_reevaluation"];
+            // =========================
+            // REQUIRED FIELDS
+            // =========================
+            payload.assessment = Number(ASSESSMENT_ID);
+            payload.action = action;
+
+            if (!payload.next_reevaluation) {
+                delete payload.next_reevaluation;
             }
-            
+
             // =========================
             // DATE VALIDATION
             // =========================
-            if (payload["date_of_reevaluation"] && payload["next_reevaluation"]) {
+            if (
+                payload.date_of_reevaluation &&
+                payload.next_reevaluation
+            ) {
+                const reevaluationDate = new Date(
+                    payload.date_of_reevaluation + "T00:00:00"
+                );
 
-            const reevaluationDate = new Date(payload["date_of_reevaluation"]);
-            const nextAppointmentDate = new Date(payload["next_reevaluation"]);
+                const nextReevaluationDate = new Date(
+                    payload.next_reevaluation + "T00:00:00"
+                );
 
-            // reset time
-            reevaluationDate.setHours(0,0,0,0);
-            nextAppointmentDate.setHours(0,0,0,0);
-
-            if (nextAppointmentDate < reevaluationDate) {
-                alert("Next appointment date cannot be earlier than reevaluation date.");
-                return;
+                if (nextReevaluationDate < reevaluationDate) {
+                    alert("Next reevaluation date cannot be earlier than reevaluation date.");
+                    return;
+                }
             }
-            }
+
             // =========================
             // API METHOD
             // =========================
+            let method = "POST";
+
             {% if reevaluation %}
-            payload["reevaluation_id"] = "{{ reevaluation.id }}";
-            const method = "PUT"; 
-            {% else %}
-            const method = "POST"; 
+                payload.reevaluation_id = REEVALUATION_ID;
+                method = "PUT";
             {% endif %}
 
             // =========================
-            // API CALL
+            // API REQUEST
             // =========================
-            fetch("{% url 'assessment_patient_reevaluation_api' %}", {
+            const response = await fetch(
+                "{% url 'assessment_patient_reevaluation_api' %}",
+                {
                     method: method,
                     headers: {
                         "Content-Type": "application/json",
                         "X-CSRFToken": CSRFTOKEN
                     },
                     body: JSON.stringify(payload)
-                })
-                .then(res => {
-                    if (!res.ok) {
-                        return res.json().then(err => {
-                            throw err;
-                        });
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    alert(data.message || "Saved successfully");
-                    window.location.href =
-                        "{% url 'assessments_list' %}";
-                })
-                .catch(err => {
-                    console.error(err);
-                    alert(
-                        err.detail ||
-                        "Failed to save patient re-evaluation."
-                    );
-                });
-        });
+                }
+            );
+
+            let data;
+            try {
+                data = await response.json();
+            } catch {
+                data = {};
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail ||
+                    data.error ||
+                    data.message ||
+                    "Failed to save patient re-evaluation."
+                );
+            }
+
+            alert(data.message || "Saved successfully");
+            window.location.href = "{% url 'assessments_list' %}";
+
+        } catch (error) {
+            console.error(
+                "Patient Reevaluation submission failed:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Failed to save patient re-evaluation."
+            );
+
+        } finally {
+            // Restore the buttons after errors or validation failures.
+            isSubmitting = false;
+            setSubmittingState(false);
+        }
+    });
 </script>
 
 {% endblock %}
