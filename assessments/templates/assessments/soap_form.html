@@ -286,7 +286,9 @@
     <div class="card mb-4 shadow-sm">
       <div class="card-header d-flex justify-content-between align-items-center fw-semibold">
         S.O.A.P. Modalities
-        <button type="button" class="btn btn-sm {% if is_readonly or soap.is_soap_signed %}btn-secondary disabled{% else %}btn-primary{% endif %}" id="addModalityBtn">
+        <button type="button" 
+          id="addModalityBtn" 
+          class="btn btn-sm {% if is_readonly or soap.is_soap_signed %}btn-secondary{% else %}btn-primary{% endif %}" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
           + Add Modality
         </button>
       </div>
@@ -354,7 +356,8 @@
 
             <div class="mb-2">
               <label class="form-label">Modality</label>
-              <select name="modality_1" class="form-control">
+              <select name="modality_1" class="form-control"
+                {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}>
                 <option value="">-- Select Modality --</option>
                 {% for key, value in MODALITIES_CHOICES %}
                 <option value="{{ key }}">{{ value }}</option>
@@ -364,17 +367,17 @@
 
             <div class="mb-2">
               <label class="form-label">Location</label>
-              <textarea name="location_1" class="form-control" rows="2"></textarea>
+              <textarea name="location_1" class="form-control" rows="2" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}></textarea>
             </div>
 
             <div class="mb-2">
               <label class="form-label">Settings</label>
-              <textarea name="settings_1" class="form-control" rows="2"></textarea>
+              <textarea name="settings_1" class="form-control" rows="2" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}></textarea>
             </div>
 
             <div>
               <label class="form-label">Duration & Intensity</label>
-              <textarea name="duration_intensity_1" class="form-control" rows="2"></textarea>
+              <textarea name="duration_intensity_1" class="form-control" rows="2" {% if is_readonly or soap.is_soap_signed %}disabled{% endif %}></textarea>
             </div>
 
           </div>
@@ -507,6 +510,8 @@
   const ASSESSMENT_ID = "{{ assessment.id }}";
   const SOAP_ID = "{{ soap.id|default:'' }}";
   
+  let isSubmitting = false;
+
   let markers = [];
   let markerCounter = 1;
 
@@ -881,8 +886,12 @@
   // =========================
   // FORM SUBMIT
   // =========================
-  document.getElementById("soapForm").addEventListener("submit", function (e) {
+  document.getElementById("soapForm").addEventListener("submit", async function (e) {
     e.preventDefault();
+
+    if (isSubmitting) {
+        return;
+    }
 
     let confirmMessage = "Are you sure you want to save S.O.A.P.?";
     if (clickedAction === "sign_off") {
@@ -906,27 +915,50 @@
 
     payload["markers"] = markers;
 
+    
     // =========================
     // BUILD MODALITIES ARRAY
     // =========================
     const modalities = [];
-    const items = document.querySelectorAll(".soap-modality-item");
 
-    items.forEach((item, index) => {
-      const i = index + 1;
+    document.querySelectorAll(".soap-modality-item").forEach(item => {
+      const getValue = name =>
+        item.querySelector(`[name^="${name}_"]`)?.value?.trim() || "";
 
       modalities.push({
-        modality: item.querySelector(`[name="modality_${i}"]`) ?.value || "",
-        location: item.querySelector(`[name="location_${i}"]`) ?.value || "",
-        settings: item.querySelector(`[name="settings_${i}"]`) ?.value || "",
-        duration_intensity: item.querySelector(`[name="duration_intensity_${i}"]`) ?.value || ""
+        modality: getValue("modality"),
+        location: getValue("location"),
+        settings: getValue("settings"),
+        duration_intensity: getValue("duration_intensity")
       });
     });
 
     payload["soap_modalities"] = modalities;
 
+
     if (!payload["next_appointment"]) {
       delete payload["next_appointment"];
+    }
+    
+    // =========================
+    // NEXT APPOINTMENT VALIDATION
+    // =========================
+    if (payload.next_appointment) {
+      const appointmentDate = payload.next_appointment;
+      const today = new Date();
+      const localToday = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0")
+      ].join("-");
+
+      const soapDate = "{{ soap.created_at|date:'Y-m-d' }}";
+      const minimumDate = soapDate || localToday;
+
+      if (appointmentDate < minimumDate) {
+        alert("Next appointment cannot be earlier than the SOAP date.");
+        return;
+      }
     }
 
     // =========================
@@ -938,6 +970,11 @@
     {% else %}
     const method = "POST"; 
     {% endif %}
+
+    isSubmitting = true;
+
+    if (btnSave) btnSave.disabled = true;
+    if (btnSignOff) btnSignOff.disabled = true;
 
     fetch("{% url 'assessment_soap_api' %}", {
         method: method,
@@ -961,8 +998,13 @@
       })
       .catch(err => {
         console.error(err);
+        isSubmitting = false;
+
+        if (btnSave) btnSave.disabled = false;
+        if (btnSignOff) btnSignOff.disabled = false;
+
         alert(err.detail || "Failed to save S.O.A.P.");
-      });
+    });
 
   });
 </script>
