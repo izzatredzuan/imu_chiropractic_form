@@ -352,8 +352,8 @@
                                 <table class="table table-sm table-striped mb-0">
                                     <thead>
                                         <tr>
+                                            <th>Student</th>
                                             <th>Clinician</th>
-                                            <th>Role</th>
                                             <th>Signed At</th>
                                             <th>New Treatment Plan Phase IDs</th>
                                         </tr>
@@ -363,11 +363,11 @@
                                         {% for record in treatment_plan_signoff_history %}
                                             <tr>
                                                 <td>
-                                                    {{ record.signed_by.official_name|default:"User unavailable" }}
+                                                    {{ record.assessment.student|title|default:"—" }}
                                                 </td>
 
                                                 <td>
-                                                    {{ record.signed_by.role|title|default:"—" }}
+                                                    {{ record.signed_by|default:"User unavailable" }}
                                                 </td>
 
                                                 <td>

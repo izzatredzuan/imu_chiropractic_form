@@ -140,4 +140,9 @@ urlpatterns = [
         api.AssessmentNotesAPIView.as_view(),
         name="assessment_notes_api",
     ),
+    path(
+        "api/assessments/<int:assessment_id>/duplicate/",
+        api.AssessmentDuplicateAPIView.as_view(),
+        name="assessment_duplicate_api",
+    ),
 ]
