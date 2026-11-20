@@ -30,6 +30,12 @@ from .constants import (
 class AssessmentsListSerializer(serializers.ModelSerializer):
     student = serializers.StringRelatedField()
     clinician = serializers.CharField(source="evaluator", read_only=True)
+    # NEW: IDs for duplication modal
+    student_id = serializers.IntegerField(read_only=True)
+    clinician_id = serializers.IntegerField(
+        source="evaluator_id",
+        read_only=True
+    )
     updated_by = serializers.CharField(
         source="updated_by.official_name", read_only=True
     )
@@ -67,7 +73,9 @@ class AssessmentsListSerializer(serializers.ModelSerializer):
             "patient_ic_passport_number",
             "mrn_number",
             "student",
+            "student_id",
             "clinician",
+            "clinician_id",
             "is_section_1_signed",
             "section_1_signed_at",
             "is_section_1_complete",
