@@ -4,6 +4,7 @@ import logging
 import base64
 import uuid
 from urllib import request
+from copy import deepcopy
 from django.core.files.base import ContentFile
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -51,6 +52,96 @@ ALLOWED_EXTENSIONS = {
     ".docx",
 }
 MAX_FILE_SIZE = 10 * 1024 * 1024
+
+ASSESSMENT_DUPLICATE_FIELDS = [
+    # Assignment
+    "student",
+    "evaluator",
+    # Section 1
+    "patient_name",
+    "patient_ic_passport_number",
+    "mrn_number",
+    "gender",
+    "date_of_birth",
+    "interpreter_name",
+    "pulse",
+    "respiratory",
+    "systolic_bp",
+    "diastolic_bp",
+    "weight",
+    "height",
+    "bmi",
+    "section_1_anatomy_markers",
+    "summary",
+    "special_direction",
+    # Section 1 sign-off
+    "is_section_1_signed",
+    "section_1_signed_by",
+    "section_1_signed_at",
+    # Section 2
+    "chief_complaint",
+    "history_of_condition",
+    "pain",
+    "aggravating_factors",
+    "relieving_factors",
+    "associated_symptoms",
+    "health_hx_review",
+    "past_illnesses",
+    "family_hx",
+    "psycho_social_hx",
+    "occupational",
+    "diet",
+    "system_review",
+    "differential_diagnosis",
+    "red_flags",
+    "yellow_flags",
+    "contraindications",
+    "special_examination_instruction",
+    # Section 2 sign-off
+    "is_section_2_signed",
+    "section_2_signed_by",
+    "section_2_signed_at",
+    # Section 3
+    "inspection_posture",
+    "inspection_gait",
+    "inspection_regional",
+    "palpation",
+    "percussion",
+    "instrumentation",
+    "rom_active",
+    "rom_passive",
+    "rom_resisted",
+    "first_chiropractic",
+    "cranial_nerves",
+    "cerebellar",
+    "spinal_cord",
+    "nerve_root",
+    "peripheral",
+    "pathological",
+    "orthopaedic_assessment",
+    "second_chiropractic",
+    "imaging",
+    "lab",
+    "working_diagnosis",
+    # Section 3 sign-off
+    "is_section_3_signed",
+    "section_3_signed_by",
+    "section_3_signed_at",
+    # Section 4
+    "diagnosis",
+    "intervention_approved",
+    "diagnosis_date",
+    # Section 4 sign-off
+    "is_section_4_signed",
+    "section_4_signed_by",
+    "section_4_signed_at",
+]
+
+
+# Image fields belonging to Sections 1–4
+ASSESSMENT_DUPLICATE_IMAGE_FIELDS = [
+    "rom_drawing",
+]
 
 
 # Section 4 helper function
@@ -1181,9 +1272,9 @@ class AssessmentTreatmentPlanAPIView(APIView):
 
         assessment = get_object_or_404(
             Assessments.objects.prefetch_related(
-                "treatment_plan_phases", 
+                "treatment_plan_phases",
                 "treatment_plan_signoff_history__signed_by",
-                ),
+            ),
             id=assessment_id,
         )
 
@@ -1263,8 +1354,7 @@ class AssessmentTreatmentPlanAPIView(APIView):
 
             if phases is not None:
                 existing_phases = {
-                    phase.id: phase
-                    for phase in assessment.treatment_plan_phases.all()
+                    phase.id: phase for phase in assessment.treatment_plan_phases.all()
                 }
 
                 retained_phase_ids = set()
@@ -1363,8 +1453,9 @@ class AssessmentTreatmentPlanAPIView(APIView):
                 # Sign-off logic: store the IDs of newly created phases since the last sign-off.
                 # Get the most recent sign-off for this assessment.
                 last_signoff = (
-                    AssessmentTreatmentPlanSignOffHistory.objects
-                    .filter(assessment=assessment)
+                    AssessmentTreatmentPlanSignOffHistory.objects.filter(
+                        assessment=assessment
+                    )
                     .order_by("-signed_at")
                     .first()
                 )
@@ -1379,9 +1470,7 @@ class AssessmentTreatmentPlanAPIView(APIView):
 
                 # Store only newly created phase IDs in this sign-off history.
                 phase_ids = list(
-                    phases_query
-                    .order_by("id")
-                    .values_list("id", flat=True)
+                    phases_query.order_by("id").values_list("id", flat=True)
                 )
 
                 assessment.is_treatment_plan_signed = True
@@ -1410,8 +1499,7 @@ class AssessmentTreatmentPlanAPIView(APIView):
 
             if action == "save_treatment_plan":
                 message = (
-                    "Treatment Plan updated successfully. "
-                    "Sign-off has been reset."
+                    "Treatment Plan updated successfully. " "Sign-off has been reset."
                 )
 
             elif action == "sign_off_treatment_plan":
@@ -1499,7 +1587,9 @@ class SoapAPIView(APIView):
         # =========================
         # GET ALL SOAPs (fallback)
         # =========================
-        soaps = Soaps.objects.filter(assessment=assessment).prefetch_related("soap_modalities")
+        soaps = Soaps.objects.filter(assessment=assessment).prefetch_related(
+            "soap_modalities"
+        )
 
         serializer = SoapSerializer(soaps, many=True)
 
@@ -2505,3 +2595,205 @@ class AssessmentNotesAPIView(APIView):
         )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AssessmentDuplicateAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, assessment_id):
+        profile = request.user.profile
+
+        # ==================================
+        # Permission check
+        # ==================================
+        if profile.role not in ["student", "clinician", "admin"]:
+            return Response(
+                {"detail": "You are not allowed to duplicate assessments."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        original = get_object_or_404(
+            Assessments.objects.select_related(
+                "student",
+                "evaluator",
+                "section_1_signed_by",
+                "section_2_signed_by",
+                "section_3_signed_by",
+                "section_4_signed_by",
+            ),
+            id=assessment_id,
+        )
+
+        # Students can only duplicate their own assessments
+        if profile.role == "student" and original.student_id != profile.id:
+            return Response(
+                {"detail": "You cannot duplicate this assessment."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # ==================================
+        # Get selected student and clinician
+        # ==================================
+        student_id = request.data.get("student_id")
+        clinician_id = request.data.get("clinician_id")
+
+        if not student_id or not clinician_id:
+            return Response(
+                {"detail": "Please select both a student and clinician."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate selected student
+        student = get_object_or_404(
+            Profile,
+            id=student_id,
+            role="student",
+        )
+
+        # Validate selected clinician
+        clinician = get_object_or_404(
+            Profile,
+            id=clinician_id,
+            role="clinician",
+        )
+
+        try:
+            with transaction.atomic():
+
+                # ==================================
+                # Prepare duplicated data
+                # ==================================
+                duplicate_data = {}
+
+                for field in ASSESSMENT_DUPLICATE_FIELDS:
+                    value = getattr(original, field)
+
+                    # Avoid sharing mutable JSON data
+                    if isinstance(value, (list, dict)):
+                        value = deepcopy(value)
+
+                    duplicate_data[field] = value
+
+                # ==================================
+                # Override student and clinician
+                # ==================================
+                duplicate_data["student"] = student
+                duplicate_data["evaluator"] = clinician
+
+                # ==================================
+                # Create new assessment
+                # ==================================
+                duplicate = Assessments.objects.create(
+                    **duplicate_data,
+                    created_by=profile,
+                    updated_by=profile,
+                )
+
+                # ==================================
+                # Copy uploaded images
+                # ==================================
+                copied_images = []
+
+                for field_name in ASSESSMENT_DUPLICATE_IMAGE_FIELDS:
+                    original_file = getattr(original, field_name)
+
+                    if not original_file:
+                        continue
+
+                    original_file.open("rb")
+
+                    try:
+                        file_content = ContentFile(original_file.read())
+
+                        getattr(duplicate, field_name).save(
+                            original_file.name,
+                            file_content,
+                            save=False,
+                        )
+
+                        copied_images.append(field_name)
+
+                    finally:
+                        original_file.close()
+
+                if copied_images:
+                    duplicate.save(update_fields=copied_images)
+
+                # ==================================
+                # Duplicate Section 4 sign-off history
+                # ==================================
+                original_history = list(
+                    AssessmentSection4SignOffHistory.objects.filter(
+                        assessment=original
+                    ).order_by("signed_at")
+                )
+
+                history_copies = []
+                original_timestamps = []
+
+                for history in original_history:
+
+                    history_copies.append(
+                        AssessmentSection4SignOffHistory(
+                            assessment=duplicate,
+                            signed_by=history.signed_by,
+                            diagnosis_entry_dates=deepcopy(
+                                history.diagnosis_entry_dates
+                            ),
+                        )
+                    )
+
+                    original_timestamps.append(history.signed_at)
+
+                if history_copies:
+
+                    AssessmentSection4SignOffHistory.objects.bulk_create(history_copies)
+
+                    # Restore exact original timestamps
+                    for new_history, original_timestamp in zip(
+                        history_copies,
+                        original_timestamps,
+                    ):
+                        AssessmentSection4SignOffHistory.objects.filter(
+                            pk=new_history.pk
+                        ).update(signed_at=original_timestamp)
+
+                logger.info(
+                    "ASSESSMENT_DUPLICATED | "
+                    "original_id=%s | duplicate_id=%s | "
+                    "student=%s | clinician=%s | "
+                    "user=%s (%s) | copied_history=%s",
+                    original.id,
+                    duplicate.id,
+                    student.official_name,
+                    clinician.official_name,
+                    profile.official_name,
+                    profile.role,
+                    len(history_copies),
+                )
+
+            return Response(
+                {
+                    "message": "Assessment duplicated successfully.",
+                    "original_id": original.id,
+                    "new_assessment_id": duplicate.id,
+                    "patient_name": duplicate.patient_name,
+                    "mrn_number": duplicate.mrn_number,
+                    "student": student.official_name,
+                    "clinician": clinician.official_name,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        except Exception:
+
+            logger.exception(
+                "ASSESSMENT_DUPLICATION_FAILED | " "original_id=%s | user=%s",
+                assessment_id,
+                profile.official_name,
+            )
+
+            return Response(
+                {"detail": "Failed to duplicate assessment."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )

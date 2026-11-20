@@ -241,6 +241,12 @@
         const IS_CLINIC_ASSISTANT = USER_ROLE === "clinic_assistant";
 
         const columnsConfig = [{
+                title: "ID",
+                data: "id",
+                className: "text-center align-middle",
+                width: "70px"
+            },
+            {
                 title: "Patient Name",
                 data: "patient_name",
                 className: "text-left align-middle"
@@ -621,6 +627,60 @@
                 }
             },
             {
+                title: "Duplicate",
+                data: null,
+                orderable: false,
+                searchable: false,
+                className: "text-center align-middle",
+
+                render: function (row) {
+                    let icon = "bi bi-copy";
+                    let iconColor = "text-primary";
+                    let tooltip = "Duplicate Assessment";
+
+                    if (row.is_discharged) {
+                        return lock_if_discharged();
+                    }
+                    
+                    // Check original assessment creation date
+                    const createdDate = moment(row.created_at);
+                    const threeMonthsAgo = moment().subtract(3, "months");
+
+                    const isExpired = !createdDate.isValid() ||
+                        createdDate.isSameOrBefore(threeMonthsAgo);
+
+                    if (isExpired) {
+                        return lock_column(icon,"Duplication only allowed within 3 months of assessment creation");
+                    }
+
+                    const section4Signed = row.section_4_signed_at || row.is_section_4_signed;
+                    const isDischarged = row.is_discharged;
+                    if (!section4Signed && !isDischarged) {
+                        return lock_column(icon, "Duplication locked until Section 4 is signed off");
+                    }
+                    
+                    // Clinic assistant restriction
+                    const locked = clinicAssistantLock();
+                    if (locked) return locked;
+
+                    if (USER_ROLE === "student") {
+                        return lock_column(icon, "Students are not allowed to duplicate assessments");
+                    }
+                    return `
+                        <a href="javascript:void(0)"
+                        class="duplicate-assessment-btn"
+                        data-id="${row.id}"
+                        title="${tooltip}">
+
+                            <i class="bi bi-copy ${iconColor}"
+                            style="font-size:1.25rem; cursor:pointer;">
+                            </i>
+
+                        </a>
+                    `;
+                }
+            },
+            {
                 title: "Discharge",
                 data: null,
                 orderable: false,
@@ -770,7 +830,7 @@
             columns: columnsConfig,
             
             order: [
-                [10, "desc"]
+                [11, "desc"]
             ],
             
             scrollX: true,
@@ -1729,11 +1789,153 @@
             });
             $('#newComplaintListContainer').html(html);
         }
+        
+        /* ==================================
+        * DUPLICATE ASSESSMENT MODAL
+        * ================================== */
+
+        const duplicateAssessmentModal = new bootstrap.Modal(
+            document.getElementById("duplicateAssessmentModal")
+        );
+
+        let selectedDuplicateAssessmentId = null;
+
+        /* ==================================
+        * OPEN DUPLICATION CONFIRMATION
+        * ================================== */
+
+        $("#assessmentsTable").on(
+            "click",
+            ".duplicate-assessment-btn",
+            function () {
+                const rowData = table.row(
+                    $(this).closest("tr")
+                ).data();
+
+                selectedDuplicateAssessmentId = rowData.id;
+
+                $("#duplicatePatientName").text(rowData.patient_name || "-");
+
+                $("#duplicateMRNNumber").text(rowData.mrn_number || "-");
+
+                // Default to original assigned student and clinician
+                $("#duplicateStudent").val(rowData.student_id || "");
+
+                $("#duplicateClinician").val(rowData.clinician_id || "");
+
+                $("#confirmDuplicateBtn")
+                    .prop("disabled", false)
+                    .html(`
+                        <i class="bi bi-copy me-1"></i>
+                        Confirm Duplicate
+                    `);
+
+                duplicateAssessmentModal.show();
+            }
+        );
+
+
+        /* ==================================
+        * CONFIRM DUPLICATION
+        * ================================== */
+
+        $("#confirmDuplicateBtn").on("click", function () {
+
+            if (!selectedDuplicateAssessmentId) {
+                alert("Invalid assessment selected.");
+                return;
+            }
+
+            // Get selected student and clinician
+            const studentId = $("#duplicateStudent").val();
+            const clinicianId = $("#duplicateClinician").val();
+
+            // Validate selections
+            if (!studentId) {
+                alert("Please select a student.");
+                return;
+            }
+
+            if (!clinicianId) {
+                alert("Please select a clinician.");
+                return;
+            }
+
+            const btn = $(this);
+
+            btn.prop("disabled", true).html(`
+                <span class="spinner-border spinner-border-sm me-1"></span>
+                Duplicating...
+            `);
+
+            const urlTemplate =
+                "{% url 'assessment_duplicate_api' 0 %}";
+
+            const duplicateUrl = urlTemplate.replace(
+                "/0/",
+                `/${selectedDuplicateAssessmentId}/`
+            );
+
+            $.ajax({
+                url: duplicateUrl,
+                method: "POST",
+                contentType: "application/json",
+
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+
+                data: JSON.stringify({
+                    student_id: studentId,
+                    clinician_id: clinicianId
+                }),
+
+                success: function (response) {
+
+                    duplicateAssessmentModal.hide();
+
+                    selectedDuplicateAssessmentId = null;
+
+                    // Reset dropdowns
+                    $("#duplicateStudent").val("");
+                    $("#duplicateClinician").val("");
+
+                    // Refresh DataTable without resetting pagination
+                    table.ajax.reload(null, false);
+
+                    alert(
+                        response.message +
+                        "\nNew Assessment ID: " +
+                        response.new_assessment_id
+                    );
+                },
+
+                error: function (xhr) {
+
+                    let message = "Failed to duplicate assessment.";
+
+                    if (xhr.responseJSON?.detail) {
+                        message = xhr.responseJSON.detail;
+                    }
+
+                    alert(message);
+                },
+
+                complete: function () {
+
+                    btn.prop("disabled", false).html(`
+                        <i class="bi bi-copy me-1"></i>
+                        Confirm Duplicate
+                    `);
+                }
+            });
+        });
     });
 </script>
 
-{% include 'assessments/modal/_discharge_confirmation_modal.html' %}
+{% include 'assessments/modal/_duplicate_assessment_modal.html' %}
 {% include 'assessments/modal/_soap_log_modal.html' %}
 {% include 'assessments/modal/_patient_reevaluation_modal.html' %}
 {% include 'assessments/modal/_patient_new_complaint_modal.html' %}
+{% include 'assessments/modal/_discharge_confirmation_modal.html' %}
 {% endblock %}
