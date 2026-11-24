@@ -6,10 +6,11 @@ import uuid
 from urllib import request
 from copy import deepcopy
 from django.core.files.base import ContentFile
+from django.core.cache import cache
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from accounts.models import Profile
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
@@ -281,8 +282,30 @@ class AssessmentsListAPIView(APIView):
         return Response(serializer.data)
 
 
+
 class AssessmentSection1And2APIView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_idempotency_keys(self, request):
+        submission_id = request.headers.get("Idempotency-Key")
+
+        if not submission_id:
+            raise serializers.ValidationError({
+                "submission_id": "Submission ID is required."
+            })
+
+        try:
+            submission_id = str(uuid.UUID(submission_id))
+        except (ValueError, TypeError, AttributeError):
+            raise serializers.ValidationError({
+                "submission_id": "Invalid submission ID."
+            })
+
+        cache_key = (
+            f"assessment_create:{request.user.id}:{submission_id}"
+        )
+
+        return cache_key
 
     def get(self, request):
         profile = request.user.profile
@@ -344,56 +367,109 @@ class AssessmentSection1And2APIView(APIView):
             )
 
         logger.info(
-            f"CREATE - Attempt by user={request.user.username} - {profile.official_name}, role={profile.role}, "
+            f"CREATE - Attempt by user={request.user.username} - "
+            f"{profile.official_name}, role={profile.role}, "
             f"patient name={request.data.get('patient_name', 'N/A')}"
         )
 
-        serializer = AssessmentSection1And2Serializer(
-            data=request.data, context={"request": request}
-        )
-        serializer.is_valid(raise_exception=True)
-
-        # pdpa_signature_data = request.data.get("pdpa_signature_data")
-
         # --------------------------------
-        # Create assessment
+        # Prevent duplicate creation
         # --------------------------------
+
+        cache_key = self.get_idempotency_keys(request)
+
+        # Check whether this request was already completed
+        cached_result = cache.get(cache_key)
+
+        if cached_result is not None:
+            return Response(
+                cached_result,
+                status=status.HTTP_200_OK,
+            )
+
+        # Acquire temporary creation lock
+        lock_key = f"{cache_key}:processing"
+
+        if not cache.add(lock_key, True, timeout=120):
+            return Response(
+                {
+                    "detail": (
+                        "This assessment creation request is already "
+                        "being processed. Please wait."
+                    )
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
         try:
+            # --------------------------------
+            # Validate submitted data
+            # --------------------------------
+
+            serializer = AssessmentSection1And2Serializer(
+                data=request.data,
+                context={"request": request}
+            )
+
+            serializer.is_valid(raise_exception=True)
+
+            # --------------------------------
+            # Create assessment
+            # --------------------------------
             assessment = serializer.save()
+
+            response_data = {
+                "id": assessment.id,
+                "message": "Assessment created successfully",
+            }
+
+            # Remember successful creation for 24 hours
+            cache.set(
+                cache_key,
+                response_data,
+                timeout=86400,
+            )
+
             logger.info(
                 f"CREATE - Assessment created successfully: "
                 f"id={assessment.id}, "
                 f"patient name={assessment.patient_name}, "
-                f"student={assessment.student.member_id} - {assessment.student.official_name}, "
-                f"evaluator={assessment.evaluator.member_id} - {assessment.evaluator.official_name}, "
-                f"created_by={request.user.username} - {request.user.profile.official_name}"
+                f"student={assessment.student.member_id} - "
+                f"{assessment.student.official_name}, "
+                f"evaluator={assessment.evaluator.member_id} - "
+                f"{assessment.evaluator.official_name}, "
+                f"created_by={request.user.username} - "
+                f"{request.user.profile.official_name}"
             )
-
-            if any(
-                [
-                    # pdpa_signature_data,
-                ]
-            ):
-                logger.info(
-                    f"SIGNATURE_SAVED - Signatures processed for assessment {assessment.id} | "
-                    # f"pdpa={bool(pdpa_signature_data)}"
-                )
 
             return Response(
-                {"id": assessment.id, "message": "Assessment created successfully"},
+                response_data,
                 status=status.HTTP_201_CREATED,
             )
+
+        except serializers.ValidationError:
+            raise
+
         except Exception as e:
             logger.error(
                 f"CREATE - Failed to create assessment: "
                 f"patient name={request.data.get('patient_name', 'N/A')}, "
-                f"created_by={request.user.username} - {request.user.profile.official_name}, "
-                f"error={str(e)}"
+                f"created_by={request.user.username} - "
+                f"{request.user.profile.official_name}, "
+                f"error={str(e)}",
+                exc_info=True,
             )
+
             return Response(
-                {"detail": "Failed to create assessment", "error": str(e)},
+                {
+                    "detail": "Failed to create assessment",
+                    "error": str(e)
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+        finally:
+            cache.delete(lock_key)
 
     def put(self, request):
         profile = request.user.profile
@@ -418,43 +494,45 @@ class AssessmentSection1And2APIView(APIView):
             )
 
         serializer = AssessmentSection1And2Serializer(
-            assessment, data=request.data, partial=True, context={"request": request}
+            assessment,
+            data=request.data,
+            partial=True,
+            context={"request": request}
         )
+
         serializer.is_valid(raise_exception=True)
 
         try:
             serializer.save()
             logger.info(
-                f"UPDATE - Assessment updated successfully: assessment_id={assessment.id}, "
+                f"UPDATE - Assessment updated successfully: "
+                f"assessment_id={assessment.id}, "
                 f"user={profile.official_name} ({profile.role})"
             )
 
-            # pdpa_signature_data = request.data.get("pdpa_signature_data")
-
-            if any(
-                [
-                    # pdpa_signature_data,
-                ]
-            ):
-                logger.info(
-                    f"SIGNATURE_UPDATE - assessment_id={assessment.id} | "
-                    # f"pdpa={bool(pdpa_signature_data)}"
-                )
         except Exception as e:
             logger.error(
-                f"UPDATE - Failed to update assessment: assessment_id={assessment.id}, "
-                f"user={profile.official_name} ({profile.role}), error={str(e)}"
+                f"UPDATE - Failed to update assessment: "
+                f"assessment_id={assessment.id}, "
+                f"user={profile.official_name} ({profile.role}), "
+                f"error={str(e)}"
             )
+
             return Response(
-                {"detail": "Failed to update assessment", "error": str(e)},
+                {
+                    "detail": "Failed to update assessment",
+                    "error": str(e)
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         # ===== Section sign-off logic =====
-        # ---------- SAVE SECTION 1 ----------
+
         try:
+            # ---------- SAVE SECTION 1 ----------
             if action == "save_section_1":
                 assessment.is_section_1_signed = False
+
                 logger.info(
                     f"SAVE - Section 1 | "
                     f"assessment_id={assessment.id}, "
@@ -465,6 +543,7 @@ class AssessmentSection1And2APIView(APIView):
             # ---------- SAVE SECTION 2 ----------
             elif action == "save_section_2":
                 assessment.is_section_2_signed = False
+
                 logger.info(
                     f"SAVE - Section 2 | "
                     f"assessment_id={assessment.id}, "
@@ -480,6 +559,7 @@ class AssessmentSection1And2APIView(APIView):
                         f"assessment_id={assessment.id}, "
                         f"user={profile.official_name} ({profile.role})"
                     )
+
                     return Response(
                         {"detail": "Not allowed to sign off Section 1"},
                         status=status.HTTP_403_FORBIDDEN,
@@ -488,6 +568,7 @@ class AssessmentSection1And2APIView(APIView):
                 assessment.is_section_1_signed = True
                 assessment.section_1_signed_by = profile
                 assessment.section_1_signed_at = timezone.now()
+
                 logger.info(
                     f"SIGN_OFF - Section 1 | "
                     f"assessment_id={assessment.id}, "
@@ -497,12 +578,14 @@ class AssessmentSection1And2APIView(APIView):
 
             # ---------- SIGN OFF SECTION 2 ----------
             elif action == "sign_off_section_2":
+
                 if profile.role not in ["clinician", "admin"]:
                     logger.warning(
                         f"SIGN_OFF_DENIED - Section 2 | "
                         f"assessment_id={assessment.id}, "
                         f"user={profile.official_name} ({profile.role})"
                     )
+
                     return Response(
                         {"detail": "Not allowed to sign off Section 2"},
                         status=status.HTTP_403_FORBIDDEN,
@@ -515,6 +598,7 @@ class AssessmentSection1And2APIView(APIView):
                         f"user={profile.official_name} | "
                         f"reason=Section 1 not signed"
                     )
+
                     return Response(
                         {"detail": "Section 1 must be signed before Section 2"},
                         status=status.HTTP_400_BAD_REQUEST,
@@ -523,6 +607,7 @@ class AssessmentSection1And2APIView(APIView):
                 assessment.is_section_2_signed = True
                 assessment.section_2_signed_by = profile
                 assessment.section_2_signed_at = timezone.now()
+
                 logger.info(
                     f"SIGN_OFF - Section 2 | "
                     f"assessment_id={assessment.id}, "
@@ -574,7 +659,9 @@ class AssessmentSection1And2APIView(APIView):
                     f"student={assessment.student.official_name}, "
                     f"signed_by={profile.official_name} ({profile.role})"
                 )
+
             assessment.save()
+
             logger.info(
                 f"UPDATE - Section 1 | "
                 f"assessment_id={assessment.id}, "
@@ -584,7 +671,7 @@ class AssessmentSection1And2APIView(APIView):
             )
 
             # =========================
-            # RESPONSE MESSAGEs
+            # RESPONSE MESSAGES
             # =========================
             message = "Assessment updated successfully"
 
@@ -607,7 +694,7 @@ class AssessmentSection1And2APIView(APIView):
                 )
 
             elif action == "save_discharge":
-                message = "Discharge updated successfully. "
+                message = "Discharge updated successfully."
 
             elif action == "sign_off_discharge":
                 message = "Patient discharged successfully"
@@ -618,10 +705,12 @@ class AssessmentSection1And2APIView(APIView):
                 f"action={action}, "
                 f"message='{message}'"
             )
+
             return Response(
                 {"message": message},
                 status=status.HTTP_200_OK,
             )
+
         except Exception as e:
             logger.error(
                 f"UPDATE_FAILED - Section 1 | "
@@ -630,8 +719,12 @@ class AssessmentSection1And2APIView(APIView):
                 f"error={str(e)}",
                 exc_info=True,
             )
+
             return Response(
-                {"detail": "Failed to update assessment", "error": str(e)},
+                {
+                    "detail": "Failed to update assessment",
+                    "error": str(e)
+                },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
