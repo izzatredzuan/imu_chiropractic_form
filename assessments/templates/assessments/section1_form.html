@@ -863,6 +863,10 @@
 
 <script>
 let clickedAction = "save_section_1";
+let isSubmitting = false;
+
+// One ID per creation attempt; reused if the request is retried
+const creationSubmissionId = crypto.randomUUID();
 
 document.getElementById("btnSave")?.addEventListener("click", () => {
   clickedAction = "save_section_1";
@@ -1204,140 +1208,109 @@ document.getElementById("btnSignOff")?.addEventListener("click", () => {
 
   }, true);
 
-
   /* ======================================================
-     FORM SUBMIT
+    FORM SUBMIT - PREVENT ACCIDENTAL DUPLICATES
   ====================================================== */
-
   document.getElementById("section1Form")
     ?.addEventListener("submit", function (e) {
 
-    e.preventDefault();
+      e.preventDefault();
 
-    let confirmMessage =
-      {% if assessment %}
-        "Are you sure you want to save changes? Existing sign-off may be reset.";
-      {% else %}
-        "Are you sure you want to save the changes?";
-      {% endif %}
-    if (clickedAction === "sign_off_section_1") {
-      confirmMessage =
-        "Are you sure you want to UPDATE and SIGN OFF Section 1?";
-    }
-    if (!confirm(confirmMessage)) {
+      // Prevent multiple submissions
+      if (isSubmitting) {
         return;
-    }
-
-    // const requiredPads = [
-    //   { key: "patient", label: "Patient signature is required." },
-    //   { key: "attending", label: "Attending signature is required." },
-    //   { key: "witness", label: "Witness signature is required." },
-    //   // { key: "pdpa", label: "PDPA signature is required." }
-    // ];
-
-    // for (const pad of requiredPads) {
-    //   const p = signaturePads[pad.key];
-
-    //   if (p && p.strokes.length === 0) {
-    //     alert(pad.label);
-    //     p.wrapper?.classList.add("border-danger");
-    //     return;
-    //   }
-    // }
-
-    const formData = new FormData(this);
-    formData.set("action", clickedAction);
-
-    /* ======================================================
-       SAVE SIGNATURES
-    ====================================================== */
-
-    // const patientPad = signaturePads["patient"];
-    // const patientConsentName = document.getElementById("patientConsentName")?.value?.trim();
-
-    // if (patientPad?.strokes.length > 0 && !patientConsentName) {
-    //   alert("Patient consent name is required.");
-    //   return;
-    // }
-
-    // if (signaturePads["patient"]?.strokes.length > 0) {
-    //   formData.set(
-    //     "signature_data",
-    //     signaturePads["patient"].canvas.toDataURL("image/png")
-    //   );
-    // }
-
-    // if (signaturePads["attending"]?.strokes.length > 0) {
-    //   formData.set(
-    //     "attending_signature_data",
-    //     signaturePads["attending"].canvas.toDataURL("image/png")
-    //   );
-    // }
-
-    // const witnessPad = signaturePads["witness"];
-    // const witnessName = document.getElementById("witnessName")?.value?.trim();
-
-    // if (witnessPad?.strokes.length > 0 && !witnessName) {
-    //   alert("Witness name is required.");
-    //   return;
-    // }
-
-    // if (signaturePads["witness"]?.strokes.length > 0) {
-    //   formData.set(
-    //     "witness_signature_data",
-    //     signaturePads["witness"].canvas.toDataURL("image/png")
-    //   );
-    // }
-
-    // const pdpaPad = signaturePads["pdpa"];
-    // const pdpaName = document.getElementById("pdpaName")?.value?.trim();
-
-    // if (pdpaPad?.strokes.length > 0 && !pdpaName) {
-    //   alert("PDPA consent name is required.");
-    //   return;
-    // }
-
-    // if (signaturePads["pdpa"]?.strokes.length > 0) {
-    //   formData.set(
-    //     "pdpa_signature_data",
-    //     signaturePads["pdpa"].canvas.toDataURL("image/png")
-    //   );
-    // }
-
-    const payload = Object.fromEntries(formData.entries());
-    payload["section_1_anatomy_markers"] = markers;
-
-    {% if assessment %}
-      payload["assessment_id"] = "{{ assessment.id }}";
-      const method = "PUT";
-    {% else %}
-      const method = "POST";
-    {% endif %}
-
-    fetch("{% url 'assessment_section1_and_2_api' %}", {
-      method: method,
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": CSRFTOKEN
-      },
-      body: JSON.stringify(payload)
-    })
-    .then(async res => {
-      const data = await res.json();
-      if (!res.ok) {
-        console.error("Backend validation error:", data);
-        alert("Error: " + JSON.stringify(data));
-        throw data;
       }
-      return data;
-    })
-    .then(data => {
-      alert(data.message || "Saved successfully");
-      window.location.href = "{% url 'assessments_list' %}";
-    })
-    .catch(err => {
-      console.error("Save failed:", err);
-    });
+
+      let confirmMessage =
+        {% if assessment %}
+          "Are you sure you want to save changes? Existing sign-off may be reset.";
+        {% else %}
+          "Are you sure you want to save the changes?";
+        {% endif %}
+      if (clickedAction === "sign_off_section_1") {
+        confirmMessage =
+          "Are you sure you want to UPDATE and SIGN OFF Section 1?";
+      }
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      // Lock submission immediately after confirmation
+      isSubmitting = true;
+
+      const form = this;
+
+      const submitButtons = form.querySelectorAll(
+        'button[type="submit"]'
+      );
+
+      submitButtons.forEach(button => {
+        button.disabled = true;
+      });
+
+      // Optional loading text
+      const activeButton = form.querySelector(
+        `button[value="${clickedAction}"]`
+      );
+
+      if (activeButton) {
+        activeButton.dataset.originalText = activeButton.innerText;
+        activeButton.innerText = "Processing...";
+      }
+
+      const formData = new FormData(form);
+      formData.set("action", clickedAction);
+
+      const payload = Object.fromEntries(formData.entries());
+      payload["section_1_anatomy_markers"] = markers;
+
+      {% if assessment %}
+        payload["assessment_id"] = "{{ assessment.id }}";
+        const method = "PUT";
+      {% else %}
+        const method = "POST";
+      {% endif %}
+
+      fetch("{% url 'assessment_section1_and_2_api' %}", {
+        method: method,
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": CSRFTOKEN,
+            ...(method === "POST"
+                ? { "Idempotency-Key": creationSubmissionId }
+                : {})
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(async res => {
+        const data = await res.json();
+        if (!res.ok) {
+          console.error("Backend validation error:", data);
+          throw new Error(JSON.stringify(data));
+        }
+
+        return data;
+      })
+      .then(data => {
+        alert(data.message || "Saved successfully");
+        window.location.href = "{% url 'assessments_list' %}";
+      })
+      .catch(err => {
+        console.error("Save failed:", err);
+
+        alert("Failed to save assessment. Please try again.");
+
+        // Allow retry if request fails
+        isSubmitting = false;
+
+        submitButtons.forEach(button => {
+          button.disabled = false;
+        });
+
+        if (activeButton && activeButton.dataset.originalText) {
+          activeButton.innerText = activeButton.dataset.originalText;
+        }
+      });
   });
 })();
 </script>

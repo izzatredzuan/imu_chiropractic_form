@@ -32,8 +32,7 @@ Main Page:
 
 #### Bugs
 
-S.O.A.P., New Complaint, Re-Evaluation
-- There a chance duplication creation happen (Front end fix added, need to monitor if it happen again)
+- _No pending bugs._
 
 ---
 
@@ -322,6 +321,10 @@ Treatment Plan:
 - Datatable sorting is incorrect. ✅
 - Drawing canvas distort when flipping screen horizontal or vertically. ✅
 - Vitals fields doesnt have any check to prevent absurb number. ✅
+S.O.A.P., New Complaint, Re-Evaluation
+- There a chance duplication creation happen (Front end fix added, need to monitor if it happen again)  ✅
+Assessments
+- There a chance duplication creation happen (Added prevention on both back and front end, need to monitor if it happen again)  ✅
 
 ---
 
